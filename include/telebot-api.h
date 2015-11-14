@@ -41,9 +41,6 @@ extern "C" {
  * @{
  */
 
-#define TELEBOT_BASE_URL  "https://api.telegram.org/bot"
-#define TELEBOT_URL_SIZE  1024
-
 /**
  * @brief Enumerations of error code for telebot programming interface
  */
@@ -83,7 +80,7 @@ telebot_error_e telebot_send_voice(telebot_handler_t *handler, int chat_id, char
 telebot_error_e telebot_send_location(telebot_handler_t *handler, int chat_id, float latitude, float longitude, int reply_to_message_id, char *reply_markup);
 telebot_error_e telebot_send_chat_action(telebot_handler_t *handler, int chat_id, char *action);
 telebot_error_e telebot_set_web_hook(telebot_handler_t *handler, char *url, char *certificate);
-telebot_error_e telebot_get_file(telebot_handler_t *handler, char *file_id);
+telebot_error_e telebot_get_file(telebot_handler_t *handler, char *file_id, char *out_file);
 
 /**
  * @} // end of APIs
