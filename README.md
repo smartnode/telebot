@@ -1,6 +1,5 @@
 # telebot
-C Library for Telegram bot API
-Uses json-c and libcurl
+C Library for Telegram bot API tht uses json-c and libcurl
 
 ## Compilation
 You need to install libraries and build tools such as CMake. On Debian-base Linux distributions you can do it as follows:

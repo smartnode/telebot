@@ -188,7 +188,7 @@ telebot_error_e telebot_send_message(telebot_handler_t *handler, int chat_id, ch
 telebot_error_e telebot_forward_message(telebot_handler_t *handler, int chat_id, int from_chat_id, int message_id)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
@@ -209,7 +209,7 @@ telebot_error_e telebot_send_photo(telebot_handler_t *handler, int chat_id, char
 				   int reply_to_message_id, char *reply_markup)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
@@ -230,7 +230,7 @@ telebot_error_e telebot_send_audio(telebot_handler_t *handler, int chat_id, char
 				   char *title, int reply_to_message_id, char *reply_markup)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
@@ -255,7 +255,7 @@ telebot_error_e telebot_send_document(telebot_handler_t *handler, int chat_id, c
 				      int reply_to_message_id, char *reply_markup)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
@@ -275,7 +275,7 @@ telebot_error_e telebot_send_document(telebot_handler_t *handler, int chat_id, c
 telebot_error_e telebot_send_sticker(telebot_handler_t *handler, int chat_id, char *sticker_file, int reply_to_message_id, char *reply_markup)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
@@ -296,7 +296,7 @@ telebot_error_e telebot_send_video(telebot_handler_t *handler, int chat_id, char
 				   int reply_to_message_id, char *reply_markup)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
@@ -343,7 +343,7 @@ telebot_error_e telebot_send_location(telebot_handler_t *handler, int chat_id, f
 				      int reply_to_message_id, char *reply_markup)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
@@ -366,7 +366,7 @@ telebot_error_e telebot_send_location(telebot_handler_t *handler, int chat_id, f
 telebot_error_e telebot_send_chat_action(telebot_handler_t *handler, int chat_id, char *action)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
@@ -383,13 +383,13 @@ telebot_error_e telebot_send_chat_action(telebot_handler_t *handler, int chat_id
 telebot_error_e telebot_set_web_hook(telebot_handler_t *handler, char *url, char *certificate_file)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
     if (certificate_file != "")
-	  curl_formadd(&post, &last, CURLFORM_COPYNAME, "certificate", CURLFORM_FILE, certificate_file, CURLFORM_END);
+	curl_formadd(&post, &last, CURLFORM_COPYNAME, "certificate", CURLFORM_FILE, certificate_file, CURLFORM_END);
 
     return telebot_curl_perform(handler, TELEGRAM_BOT_METHOD_SET_WEBHOOK, post);
 }
@@ -403,7 +403,7 @@ static size_t write_file_cb(void *ptr, size_t size, size_t nmemb, void *stream)
 telebot_error_e telebot_get_file(telebot_handler_t *handler, char *file_id, char *out_file)
 {
     if ((handler == NULL) || (handler->token == NULL) || (handler->response == NULL))
-      return TELEBOT_ERROR_INVALID_PARAMETER;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     CURL *curl_h;
     CURLcode res;
@@ -420,7 +420,7 @@ telebot_error_e telebot_get_file(telebot_handler_t *handler, char *file_id, char
     fp = fopen(out_file, "w");
 
     if (fp == NULL)
-      return TELEBOT_ERROR_OPERATION_FAILED;
+        return TELEBOT_ERROR_OPERATION_FAILED;
 
     curl_easy_setopt(curl_h, CURLOPT_URL, URL);
     curl_easy_setopt(curl_h, CURLOPT_WRITEFUNCTION, write_file_cb);
