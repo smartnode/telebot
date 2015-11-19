@@ -2,8 +2,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(telebot C)
 
 SET(SRCS
-    src/telebot-api.c
-    src/telebot-parser.c
+    src/telebot-core-api.c
+    src/telebot-core-parser.c
 )
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
