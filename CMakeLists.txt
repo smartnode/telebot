@@ -1,6 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(telebot C)
 
+SET(CMAKE_MACOSX_RPATH 1)
+
 SET(SRCS
     src/telebot-parser.c
     src/telebot-core-api.c
