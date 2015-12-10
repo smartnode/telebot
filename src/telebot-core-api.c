@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <telebot-private.h>
@@ -84,7 +85,7 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_h *handler,
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
-    curle_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
+    curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
     if (resp_code != 200L) {
         ERR("Wrong HTTP response received, response: %ld", resp_code); 
         if (resp->data != NULL)
@@ -658,7 +659,7 @@ telebot_error_e telebot_core_set_web_hook(telebot_core_h *handler, char *url,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "url", 
             CURLFORM_COPYCONTENTS, url, CURLFORM_END);
     
-    if (certificate_file != "")
+    if (certificate_file != NULL)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "certificate", 
                 CURLFORM_FILE, certificate_file, CURLFORM_END);
 
@@ -704,7 +705,7 @@ telebot_error_e telebot_core_download_file(telebot_core_h *handler,
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
-    curle_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
+    curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
     if (resp_code != 200L) {
         fclose(fp);
         unlink(out_file);

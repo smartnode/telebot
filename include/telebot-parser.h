@@ -20,15 +20,22 @@
 #define __TELEBOT_PARSER_H__
 
 #include <telebot-api.h>
+#include <telebot-core-api.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-telebot_user_t *telebot_parser_get_user(char *data);
-int telebot_parser_get_update_id(char *data);
-telebot_message_t *telebot_parser_get_message(char *data);
-telebot_chat_t *telebot_parser_get_chat(char *data);
+typedef struct _telebot_updates_t_ {
+    int count;
+    int update_id[100];
+    telebot_message_t message[100];
+} telebot_updates_t;
+
+telebot_error_e telebot_parser_get_user(char *data, telebot_user_t *user);
+telebot_error_e telebot_parser_get_message(char *data, telebot_message_t *msg);
+telebot_error_e telebot_parser_get_chat(char *data, telebot_chat_t *chat);
+telebot_error_e telebot_parser_get_updates(char *data, telebot_updates_t *upds);
 
 #ifdef __cplusplus
 }

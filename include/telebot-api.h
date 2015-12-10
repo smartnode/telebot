@@ -343,7 +343,7 @@ typedef struct _telebot_message_t_ {
 /**
  * @brief This function type defines callback for receiving updates.
  */
-typedef void (*telebot_update_cb_f)(telebot_message_t *data);
+typedef void (*telebot_update_cb_f)(telebot_message_t message);
 
 /**
  * @brief Initial function to use telebot APIs.
@@ -387,12 +387,12 @@ telebot_error_e telebot_stop();
 /**
  * @brief This function is used to get information about telegram bot itself.
  *
- * @param me Address of pointer for putting telegram user object.
+ * @param me Pointer for putting telegram user object.
  *
  * @return On success, TELEBOT_ERROR_NONE is returned, and user object is
  * stored in input parameter.
  */
-telebot_error_e telebot_get_me(telebot_user_t **me);
+telebot_error_e telebot_get_me(telebot_user_t *me);
 
 #ifdef __cplusplus
 }

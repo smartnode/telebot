@@ -25,56 +25,52 @@
 #include <telebot-private.h>
 #include <telebot-parser.h>
 
-telebot_user_t *telebot_parser_get_user(char *data)
+telebot_error_e telebot_parser_get_user(char *data, telebot_user_t *user)
 {
-    telebot_user_t *u = (telebot_user_t *) malloc(sizeof(telebot_user_t));
-    if (u == NULL) {
-        ERR("Failed to allocate memory");
-        return NULL;
+    if (user == NULL) {
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
     json_object *obj = json_tokener_parse(data);
     json_object *item;
     if (json_object_object_get_ex(obj, "id", &item)) {
-        u->id = json_object_get_int(item);
+        user->id = json_object_get_int(item);
     }
     else {
-        free(u);
         ERR("Telegram JSON response is not user type, id not found");
-        return NULL;
+        return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
     if (json_object_object_get_ex(obj, "first_name", &item)){
-        u->first_name = (char *)json_object_get_string(item);
+        user->first_name = (char *)json_object_get_string(item);
     }
     else {
-        free(u);
         ERR("Telegram JSON response is not user type, first_name not found");
-        return NULL;
+        return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
     if (json_object_object_get_ex(obj, "last_name", &item))
-        u->last_name = (char *)json_object_get_string(item);
+        user->last_name = (char *)json_object_get_string(item);
 
     if (json_object_object_get_ex(obj, "username", &item))
-        u->username = (char *)json_object_get_string(item);
+        user->username = (char *)json_object_get_string(item);
 
-    return u;
+    return TELEBOT_ERROR_NONE;
 }
 
-int telebot_parser_get_update_id(char *data)
+telebot_error_e telebot_parser_get_updates(char *data, telebot_updates_t *ups)
 {
-    return 0;
+    return TELEBOT_ERROR_NONE;
 }
 
-telebot_message_t *telebot_parser_get_message(char *data)
+telebot_error_e telebot_parser_get_message(char *data, telebot_message_t *msg)
 {
-    return NULL;
+    return TELEBOT_ERROR_NONE;
 }
 
-telebot_chat_t *telebot_parser_get_chat(char *data)
+telebot_error_e telebot_parser_get_chat(char *data, telebot_chat_t *chat)
 {
-    return NULL;
+    return TELEBOT_ERROR_NONE;
 }
 
 

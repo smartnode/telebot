@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
 #include <telebot-private.h>
@@ -104,7 +105,7 @@ telebot_error_e telebot_stop()
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_get_me(telebot_user_t **me)
+telebot_error_e telebot_get_me(telebot_user_t *me)
 {
     if (me == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
@@ -112,57 +113,49 @@ telebot_error_e telebot_get_me(telebot_user_t **me)
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    *me = NULL;
-
     int ret = telebot_core_get_me(g_handler);
     if (ret != TELEBOT_ERROR_NONE)
         return ret;
 
-    telebot_user_t *tmp = telebot_parser_get_user(g_handler->response->data);
+    ret = telebot_parser_get_user(g_handler->response->data, me);
     free(g_handler->response->data);
     g_handler->response->size = 0;
 
-    if (tmp == NULL)
+    if (ret != TELEBOT_ERROR_NONE) {
+        me = NULL;
         return TELEBOT_ERROR_OPERATION_FAILED;
-
-    *me = tmp;
-
+    }
+    
     return TELEBOT_ERROR_NONE;
 }
 
 static void *telebot_polling_thread(void *data)
 {
-    int ret;
+    int ret, index;
 
     while (g_run_telebot) {
         ret = telebot_core_get_updates(g_handler, g_handler->offset,
                 TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
-
         if (ret != TELEBOT_ERROR_NONE)
             continue;
 
-        ret = telebot_parser_get_update_id(g_handler->response->data);
-        if (ret < g_handler->offset) {
-            ERR("Last received update_id < current offset, wrong update_id");
+        telebot_updates_t utmp;
+        ret = telebot_parser_get_updates(g_handler->response->data, &utmp);
+        if (ret != TELEBOT_ERROR_NONE)
             continue;
+        
+        for (index = 0;index < utmp.count; index++) {
+            g_handler->offset = utmp.update_id[index] + 1;
+            g_update_cb(utmp.message[index]);
         }
-        else if (ret == g_handler->offset) {
-            DBG("This update is already processed");
-            continue;
-        }
-
-        g_handler->offset = ret;
-        telebot_message_t *tmp = telebot_parser_get_message(g_handler->response->data);
-        if (tmp != NULL)
-            g_update_cb(tmp); // hand data to callback function
-
+        
         free(g_handler->response->data);
         g_handler->response->size = 0;
 
         usleep(TELEBOT_UPDATE_POLLING_INTERVAL);
     }
 
-    exit_thread(NULL);
+    pthread_exit(NULL);
 
     return NULL;
 }
