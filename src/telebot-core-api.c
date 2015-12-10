@@ -176,8 +176,8 @@ telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset,
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
-    if (limit > TELEBOT_MAX_UPDATE_LIMIT)
-        limit = TELEBOT_MAX_UPDATE_LIMIT;
+    if (limit > TELEBOT_UPDATE_COUNT_MAX_LIMIT)
+        limit = TELEBOT_UPDATE_COUNT_MAX_LIMIT;
 
     char offset_str[16], limit_str[16], timeout_str[16];
     snprintf(offset_str, sizeof(offset_str), "%d", offset);

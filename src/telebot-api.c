@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <pthread.h>
+#include <errno.h>
 #include <telebot-private.h>
 #include <telebot-core-api.h>
 #include <telebot-api.h>
@@ -28,12 +30,13 @@
 static telebot_update_cb_f g_update_cb;
 static telebot_core_h *g_handler;
 static bool g_run_telebot;
+static void *telebot_polling_thread(void *data);
 
 telebot_error_e telebot_create(char *token)
 {
     g_handler = (telebot_core_h *)malloc(sizeof(telebot_core_h));
     if (g_handler == NULL) {
-        ERROR("Failed to allocate memory");
+        ERR("Failed to allocate memory");
         return TELEBOT_ERROR_OUT_OF_MEMORY;
     }
 
@@ -65,10 +68,30 @@ telebot_error_e telebot_start(telebot_update_cb_f update_cb)
     if (update_cb == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
+    pthread_t thread_id;
+    pthread_attr_t attr;
+
+    int ret = pthread_attr_init(&attr);
+    if (ret != 0) {
+        ERR("Failed to init pthread attributes, error: %d", errno);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+    ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    if (ret != 0) {
+        ERR("Failed to set PHTREAD_CREATE_DETACHED attribute, error: %d", errno);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
     g_update_cb = update_cb;
     g_run_telebot = true;
 
-    //TODO: create thread and run
+    ret = pthread_create(&thread_id, &attr, telebot_polling_thread, NULL);
+    if (ret != 0) {
+        ERR("Failed to create thread, error: %d", errno);
+        g_update_cb = NULL;
+        g_run_telebot = false;
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
 
     return TELEBOT_ERROR_NONE;
 }
@@ -81,21 +104,66 @@ telebot_error_e telebot_stop()
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_get_me(telebot_user_t *me)
+telebot_error_e telebot_get_me(telebot_user_t **me)
 {
+    if (me == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    int ret = telebot_core_get_me(g_handler);
+    *me = NULL;
 
+    int ret = telebot_core_get_me(g_handler);
     if (ret != TELEBOT_ERROR_NONE)
         return ret;
 
-    me = telebot_parser_get_user(g_handler->response->data);
+    telebot_user_t *tmp = telebot_parser_get_user(g_handler->response->data);
+    free(g_handler->response->data);
+    g_handler->response->size = 0;
 
-    if (me == NULL)
+    if (tmp == NULL)
         return TELEBOT_ERROR_OPERATION_FAILED;
 
+    *me = tmp;
+
     return TELEBOT_ERROR_NONE;
+}
+
+static void *telebot_polling_thread(void *data)
+{
+    int ret;
+
+    while (g_run_telebot) {
+        ret = telebot_core_get_updates(g_handler, g_handler->offset,
+                TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
+
+        if (ret != TELEBOT_ERROR_NONE)
+            continue;
+
+        ret = telebot_parser_get_update_id(g_handler->response->data);
+        if (ret < g_handler->offset) {
+            ERR("Last received update_id < current offset, wrong update_id");
+            continue;
+        }
+        else if (ret == g_handler->offset) {
+            DBG("This update is already processed");
+            continue;
+        }
+
+        g_handler->offset = ret;
+        telebot_message_t *tmp = telebot_parser_get_message(g_handler->response->data);
+        if (tmp != NULL)
+            g_update_cb(tmp); // hand data to callback function
+
+        free(g_handler->response->data);
+        g_handler->response->size = 0;
+
+        usleep(TELEBOT_UPDATE_POLLING_INTERVAL);
+    }
+
+    exit_thread(NULL);
+
+    return NULL;
 }
 

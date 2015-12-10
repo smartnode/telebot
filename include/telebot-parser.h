@@ -26,6 +26,8 @@ extern "C" {
 #endif
 
 telebot_user_t *telebot_parser_get_user(char *data);
+int telebot_parser_get_update_id(char *data);
+telebot_message_t *telebot_parser_get_message(char *data);
 telebot_chat_t *telebot_parser_get_chat(char *data);
 
 #ifdef __cplusplus

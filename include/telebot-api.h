@@ -365,8 +365,8 @@ telebot_error_e telebot_create(char *token);
 telebot_error_e telebot_destory();
 
 /**
- * @brief This function starts internal thread to receive Telegram bot updates
- * by polling.
+ * @brief This function is used start to receiving Telegram bot updates.
+ * Internally, it starts thread for polling updates.
  *
  * This call MUST have corresponding call to telebot_stop() when receiving update is
  * needed to terminate.
@@ -387,12 +387,12 @@ telebot_error_e telebot_stop();
 /**
  * @brief This function is used to get information about telegram bot itself.
  *
- * @param me A pointer for putting telegram user object.
+ * @param me Address of pointer for putting telegram user object.
  *
- * @return On success, TELEBOT_ERROR_NONE is returned, and user object is stored in
- * input parameter.
+ * @return On success, TELEBOT_ERROR_NONE is returned, and user object is
+ * stored in input parameter.
  */
-telebot_error_e telebot_get_me(telebot_user_t *me);
+telebot_error_e telebot_get_me(telebot_user_t **me);
 
 #ifdef __cplusplus
 }

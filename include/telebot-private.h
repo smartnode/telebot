@@ -23,25 +23,27 @@
 extern "C" {
 #endif
 
-#define TELEBOT_API_URL  		    "https://api.telegram.org"
-#define TELEBOT_URL_SIZE  		    1024
-#define TELEBOT_MAX_UPDATE_LIMIT	100
+#define TELEBOT_API_URL                      "https://api.telegram.org"
+#define TELEBOT_URL_SIZE                     1024
+#define TELEBOT_UPDATE_POLLING_INTERVAL      1000000 // 1 second
+#define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
+#define TELEBOT_UPDATE_COUNT_PER_REQUEST     1
 
-#define TELEBOT_METHOD_GET_ME 		        "getMe"
-#define TELEBOT_METHOD_GET_UPDATES		    "getUpdates"
-#define TELEBOT_METHOD_SEND_MESSAGE	        "sendMessage"
-#define TELEBOT_METHOD_FORWARD_MESSAGE	    "forwardMessage"
-#define TELEBOT_METHOD_SEND_PHOTO		    "sendPhoto"
-#define TELEBOT_METHOD_SEND_AUDIO		    "sendAudio"
-#define TELEBOT_METHOD_SEND_DOCUMENT	    "sendDocument"
-#define TELEBOT_METHOD_SEND_VIDEO		    "sendVideo"
-#define TELEBOT_METHOD_SEND_STICKER	        "sendSticker"
-#define TELEBOT_METHOD_SEND_VOICE		    "sendVoice"
-#define TELEBOT_METHOD_SEND_LOCATION	    "sendLocation"
-#define TELEBOT_METHOD_SEND_CHATACTION	    "sendChatAction"
-#define TELEBOT_METHOD_GET_USERPHOTOS	    "getUserProfilePhotos"
-#define TELEBOT_METHOD_GET_FILE		        "getFile"
-#define TELEBOT_METHOD_SET_WEBHOOK		    "setWebhook"
+#define TELEBOT_METHOD_GET_ME                "getMe"
+#define TELEBOT_METHOD_GET_UPDATES           "getUpdates"
+#define TELEBOT_METHOD_SEND_MESSAGE          "sendMessage"
+#define TELEBOT_METHOD_FORWARD_MESSAGE       "forwardMessage"
+#define TELEBOT_METHOD_SEND_PHOTO            "sendPhoto"
+#define TELEBOT_METHOD_SEND_AUDIO            "sendAudio"
+#define TELEBOT_METHOD_SEND_DOCUMENT         "sendDocument"
+#define TELEBOT_METHOD_SEND_VIDEO            "sendVideo"
+#define TELEBOT_METHOD_SEND_STICKER          "sendSticker"
+#define TELEBOT_METHOD_SEND_VOICE            "sendVoice"
+#define TELEBOT_METHOD_SEND_LOCATION         "sendLocation"
+#define TELEBOT_METHOD_SEND_CHATACTION       "sendChatAction"
+#define TELEBOT_METHOD_GET_USERPHOTOS        "getUserProfilePhotos"
+#define TELEBOT_METHOD_GET_FILE              "getFile"
+#define TELEBOT_METHOD_SET_WEBHOOK           "setWebhook"
 
 
 #ifdef DEBUG
