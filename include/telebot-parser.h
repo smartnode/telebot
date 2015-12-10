@@ -16,26 +16,21 @@
  * limitations under the License.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <telebot-core-api.h>
-#include <telebot-core-types.h>
+#ifndef __TELEBOT_PARSER_H__
+#define __TELEBOT_PARSER_H__
 
+#include <telebot-api.h>
 
-telebot_user_t *telebot_core_get_user(telebot_resp_t *resp)
-{
-    telebot_user_t *res = (telebot_user_t *) malloc(sizeof(telebot_user_t));
-    if (res == NULL) return NULL;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    return NULL;
+telebot_user_t *telebot_parser_get_user(char *data);
+telebot_chat_t *telebot_parser_get_chat(char *data);
+
+#ifdef __cplusplus
 }
+#endif
 
-telebot_chat_t *telebto_core_get_chat(telebot_resp_t *resp)
-{
-
-    return NULL;
-}
-
+#endif /* __TELEBOT_PARSER_H__ */
 

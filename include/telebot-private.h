@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-#define TELEBOT_BASE_URL  		    "https://api.telegram.org/bot"
+#define TELEBOT_API_URL  		    "https://api.telegram.org"
 #define TELEBOT_URL_SIZE  		    1024
 #define TELEBOT_MAX_UPDATE_LIMIT	100
 
@@ -45,11 +45,11 @@ extern "C" {
 
 
 #ifdef DEBUG
-    #define PRINT_ERROR(fmt, args...) printf("[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
-    #define PRINT_DEBUG(fmt, args...) printf("[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
+    #define ERR(fmt, args...) printf("[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
+    #define DBG(fmt, args...) printf("[DEBUG][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
 #else
-    #define PRINT_ERROR(x, ...)
-    #define PRINT_DEBUG(x, ...)
+    #define ERR(x, ...)
+    #define DBG(x, ...)
 #endif
 
 #ifdef __cplusplus
