@@ -533,7 +533,7 @@ telebot_error_e telebot_core_send_video(telebot_core_h *handler, char *chat_id,
 }
 
 telebot_error_e telebot_core_send_voice(telebot_core_h *handler, char *chat_id, 
-        char *voice,bool is_file, int duration, int reply_to_message_id, 
+        char *voice, bool is_file, int duration, int reply_to_message_id,
         char *reply_markup)
 {
     if (handler == NULL) {
