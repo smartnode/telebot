@@ -49,7 +49,7 @@ typedef struct _telebot_chat_t_ {
     /** Unique identifier for this chat, not exceeding 1e13 by absolute value */
     int id;
 
-    /** Type of chat, can be either “private”, or “group”, or “channel” */
+    /** Type of chat, can be either "private", or "group", or "channel" */
     char *type;
 
     /** Optional. Title, for channels and group chats */
@@ -240,7 +240,6 @@ typedef struct _telebot_userphotos_t {
  * When the link expires, a new one can be requested by calling getFile.
  * Maximum file size to download is 20 MB.
  */
-
 typedef struct _telebot_file_t_ {
     /** Unique identifier for this file */
     char *file_id;
@@ -295,7 +294,7 @@ typedef struct _telebot_message_t_ {
     telebot_document_t document;
 
     /** Optional. Message is a photo, available sizes of the photo */
-    telebot_photosize_t photo;
+    telebot_photosize_t photo[10];
 
     /** Optional. Message is a sticker, information about the sticker */
     telebot_sticker_t sticker;
@@ -322,8 +321,8 @@ typedef struct _telebot_message_t_ {
     telebot_user_t new_chat_participant;
 
     /** 
-     * Optional. A member was removed from the group, information about them 
-     * (this member may be bot itself) 
+     * Optional. A member was removed from the group, information about them
+     * (this member may be bot itself)
      */
     telebot_user_t left_chat_participant;
 
@@ -331,13 +330,32 @@ typedef struct _telebot_message_t_ {
     char *new_chat_title; 
 
     /** Optional. A chat photo was change to this value */
-    telebot_photosize_t new_chat_photo;
+    telebot_photosize_t new_chat_photo[4];
 
     /** Optional. Informs that the chat photo was deleted */
     bool delete_chat_photo;
 
     /** Optional. Informs that the group has been created */
     bool group_chat_created;
+
+    /** Optional. Service message: the supergroup has been created */
+    bool supergroup_chat_created;
+
+    /** Optional. Service message: the channel has been created */
+    bool channel_chat_created;
+
+    /**
+     * Optional. The group has been migrated to a supergroup with the specified
+     * identifier, not exceeding 1e13 by absolute value
+     */
+    int migrate_to_chat_id;
+
+    /**
+     * Optional. The supergroup has been migrated from a group with the specified
+     * identifier, not exceeding 1e13 by absolute value
+     */
+    int migrate_from_chat_id;
+
 } telebot_message_t;
 
 /**

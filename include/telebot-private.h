@@ -27,7 +27,7 @@ extern "C" {
 #define TELEBOT_URL_SIZE                     1024
 #define TELEBOT_UPDATE_POLLING_INTERVAL      1000000 // 1 second
 #define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
-#define TELEBOT_UPDATE_COUNT_PER_REQUEST     1
+#define TELEBOT_UPDATE_COUNT_PER_REQUEST     10
 
 #define TELEBOT_METHOD_GET_ME                "getMe"
 #define TELEBOT_METHOD_GET_UPDATES           "getUpdates"

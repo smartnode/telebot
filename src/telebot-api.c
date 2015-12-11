@@ -117,7 +117,8 @@ telebot_error_e telebot_get_me(telebot_user_t *me)
     if (ret != TELEBOT_ERROR_NONE)
         return ret;
 
-    ret = telebot_parser_get_user(g_handler->response->data, me);
+    char *tmp = g_handler->response->data;
+    ret = telebot_parser_get_user(telebot_parser_str_to_obj(tmp), me);
     free(g_handler->response->data);
     g_handler->response->size = 0;
 
@@ -139,14 +140,16 @@ static void *telebot_polling_thread(void *data)
         if (ret != TELEBOT_ERROR_NONE)
             continue;
 
-        telebot_updates_t utmp;
-        ret = telebot_parser_get_updates(g_handler->response->data, &utmp);
+        telebot_update_t udates[TELEBOT_UPDATE_COUNT_PER_REQUEST];
+        int count;
+        char *tmp = g_handler->response->data;
+        ret = telebot_parser_get_updates(tmp, udates, &count);
         if (ret != TELEBOT_ERROR_NONE)
             continue;
         
-        for (index = 0;index < utmp.count; index++) {
-            g_handler->offset = utmp.update_id[index] + 1;
-            g_update_cb(utmp.message[index]);
+        for (index = 0;index < count; index++) {
+            g_handler->offset = udates[index].update_id + 1;
+            g_update_cb(udates[index].message);
         }
         
         free(g_handler->response->data);
