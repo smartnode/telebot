@@ -19,10 +19,6 @@
 #ifndef __TELEBOT_PRIVATE_H__
 #define __TELEBOT_PRIVATE_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define TELEBOT_API_URL                      "https://api.telegram.org"
 #define TELEBOT_URL_SIZE                     1024
 #define TELEBOT_UPDATE_POLLING_INTERVAL      1000000 // 1 second
@@ -52,10 +48,6 @@ extern "C" {
 #else
     #define ERR(x, ...)
     #define DBG(x, ...)
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* __TELEBOT_PRIVATE_H__ */

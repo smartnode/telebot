@@ -19,14 +19,6 @@
 #ifndef __TELEBOT_PARSER_H__
 #define __TELEBOT_PARSER_H__
 
-#include <json_object.h>
-#include <telebot-api.h>
-#include <telebot-core-api.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct _telebot_update_t_ {
     int update_id;
     telebot_message_t message;
@@ -81,10 +73,6 @@ telebot_error_e telebot_parser_get_contact(struct json_object *obj,
 /** Prase location object */
 telebot_error_e telebot_parser_get_location(struct json_object *obj,
         telebot_location_t *location);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __TELEBOT_PARSER_H__ */
 

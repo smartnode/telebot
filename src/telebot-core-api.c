@@ -24,6 +24,7 @@
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <telebot-private.h>
+#include <telebot-common.h>
 #include <telebot-core-api.h>
 
 static size_t write_data_cb(void *contents, size_t size, size_t nmemb, 

@@ -42,18 +42,6 @@ extern "C" {
  */
 
 /**
- * @brief Enumerations of error code for telebot programming interface
- */
-typedef enum {
-    TELEBOT_ERROR_NONE              = 0,    /**< Successful */
-    TELEBOT_ERROR_OPERATION_FAILED  = -1,   /**< Operation failed */
-    TELEBOT_ERROR_NOT_SUPPORTED     = -2,   /**< Not supported */
-    TELEBOT_ERROR_OUT_OF_MEMORY     = -3,   /**< Out of memory */
-    TELEBOT_ERROR_NO_CONNECTION     = -4,   /**< No Internet connection */
-    TELEBOT_ERROR_INVALID_PARAMETER = -5,   /**< Invalid parameter */
-} telebot_error_e;
-
-/**
  * @brief This object represents a telegram response in JSON form.
  */
 typedef struct _telebot_resp_t_ {
