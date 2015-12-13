@@ -6,6 +6,6 @@ includedir=@INCLUDEDIR@
 Name: telebot
 Description: Telegram Bot API
 Version: @VERSION@
-Requires: json-c curl
+Requires: @DEPENDENTS@
 Libs:  -L${libdir} -ltelebot
 Cflags: -I${includedir}/telebot
