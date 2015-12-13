@@ -24,6 +24,7 @@
 #include <pthread.h>
 #include <errno.h>
 #include <telebot-private.h>
+#include <telebot-common.h>
 #include <telebot-core-api.h>
 #include <telebot-api.h>
 #include <telebot-parser.h>

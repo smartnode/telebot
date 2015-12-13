@@ -23,6 +23,8 @@
 #include <json.h>
 #include <json_object.h>
 #include <telebot-private.h>
+#include <telebot-common.h>
+#include <telebot-api.h>
 #include <telebot-parser.h>
 
 struct json_object *telebot_parser_str_to_obj(char *data)
@@ -54,7 +56,7 @@ telebot_error_e telebot_parser_get_updates(char *data, telebot_update_t updates[
 
     int index;
     for (index=0;index<array_len;index++) {
-        obj = json_object_array_get_idx(array, index);
+        struct json_object *item = json_object_array_get_idx(array, index);
 
         struct json_object *update_id;
         if (!json_object_object_get_ex(obj, "update_id", &update_id)) {
@@ -62,6 +64,7 @@ telebot_error_e telebot_parser_get_updates(char *data, telebot_update_t updates[
             continue;
         }
         updates[index].update_id = json_object_get_int(update_id);
+        json_object_put(update_id);
 
         struct json_object *message;
         if (!json_object_object_get_ex(obj, "message", &message)) {
@@ -70,11 +73,13 @@ telebot_error_e telebot_parser_get_updates(char *data, telebot_update_t updates[
         }
 
         int ret = telebot_parser_get_message(message, &(updates[index].message));
-        if (ret != TELEBOT_ERROR_NONE) {
+        if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to parse message of bot update");
-            continue;
-        }
+        json_object_put(message);
     }
+
+    json_object_put(obj);
+    json_object_put(array);
 
     return TELEBOT_ERROR_NONE;
 }
@@ -95,6 +100,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
     msg->message_id = json_object_get_int(message_id);
+    json_object_put(message_id);
 
     int ret;
     struct json_object *from;
@@ -102,17 +108,21 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_user(from , &(msg->from));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <from user> from message object");
+        json_object_put(from);
     }
 
     struct json_object *date;
-    if (json_object_object_get_ex(obj, "date", &date))
+    if (json_object_object_get_ex(obj, "date", &date)) {
         msg->date = json_object_get_int(date);
+        json_object_put(date);
+    }
 
     struct json_object *chat;
     if (json_object_object_get_ex(obj, "chat", &chat)) {
         ret = telebot_parser_get_chat(chat , &(msg->chat));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <chat> from message object");
+        json_object_put(chat);
     }
 
     struct json_object *forward_from;
@@ -120,11 +130,14 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_user(forward_from , &(msg->forward_from));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <chat> from message object");
+        json_object_put(forward_from);
     }
 
     struct json_object *forward_date;
-    if (json_object_object_get_ex(obj, "forward_date", &forward_date))
+    if (json_object_object_get_ex(obj, "forward_date", &forward_date)) {
         msg->forward_date = json_object_get_int(forward_date);
+        json_object_put(forward_date);
+    }
 
     //TODO: Fix following
     /*
@@ -138,15 +151,20 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
        }
        */
 
+    char *ignore;
     struct json_object *text;
-    if (json_object_object_get_ex(obj, "text", &text))
-        msg->text = (char *)json_object_get_string(text);
+    if (json_object_object_get_ex(obj, "text", &text)) {
+        ignore = strncpy(msg->text, json_object_get_string(text),
+                TELEBOT_MESSAGE_TEXT_SIZE);
+        json_object_put(text);
+    }
 
     struct json_object *audio;
     if (json_object_object_get_ex(obj, "audio", &audio)) {
         ret = telebot_parser_get_audio(audio , &(msg->audio));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <audio> from message object");
+        json_object_put(audio);
     }
 
     struct json_object *document;
@@ -154,6 +172,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_document(document , &(msg->document));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <document> from message object");
+        json_object_put(document);
     }
 
     struct json_object *photo;
@@ -161,6 +180,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_photos(photo , msg->photo);
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <photo> from message object");
+        json_object_put(photo);
     }
 
     struct json_object *video;
@@ -168,6 +188,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_video(video , &(msg->video));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <video> from message object");
+        json_object_put(video);
     }
 
     struct json_object *voice;
@@ -175,17 +196,22 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_voice(voice , &(msg->voice));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <voice> from message object");
+        json_object_put(voice);
     }
 
     struct json_object *caption;
-    if (json_object_object_get_ex(obj, "caption", &caption))
-        msg->caption = (char *)json_object_get_string(caption);
+    if (json_object_object_get_ex(obj, "caption", &caption)) {
+        ignore = strncpy(msg->caption, json_object_get_string(caption),
+                TELEBOT_MESSAGE_CAPTION_SIZE);
+        json_object_put(caption);
+    }
 
     struct json_object *contact;
     if (json_object_object_get_ex(obj, "contact", &contact)) {
         ret = telebot_parser_get_contact(contact , &(msg->contact));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <contact> from message object");
+        json_object_put(contact);
     }
 
     struct json_object *location;
@@ -193,6 +219,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_location(location , &(msg->location));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <location> from message object");
+        json_object_put(location);
     }
 
     struct json_object *ncp;
@@ -200,6 +227,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_user(ncp , &(msg->new_chat_participant));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <new_chat_participant> from message object");
+        json_object_put(ncp);
     }
 
     struct json_object *lcp;
@@ -207,42 +235,59 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_user(lcp , &(msg->left_chat_participant));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <left_chat_participant> from message object");
+        json_object_put(lcp);
     }
 
-    struct json_object *new_chat_title;
-    if (json_object_object_get_ex(obj, "new_chat_title", &new_chat_title))
-        msg->new_chat_title = (char *)json_object_get_string(new_chat_title);
+    struct json_object *nct;
+    if (json_object_object_get_ex(obj, "new_chat_title", &nct)) {
+        ignore = strncpy(msg->new_chat_title, json_object_get_string(nct),
+                TELEBOT_CHAT_TITLE_SIZE);
+        json_object_put(nct);
+    }
 
     struct json_object *new_chat_photo;
     if (json_object_object_get_ex(obj, "new_chat_photo", &new_chat_photo)) {
         ret = telebot_parser_get_photos(new_chat_photo , msg->new_chat_photo);
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <left_chat_participant> from message object");
+        json_object_put(new_chat_photo);
     }
 
-    struct json_object *delete_chat_photo;
-    if (json_object_object_get_ex(obj, "delete_chat_photo", &delete_chat_photo))
-        msg->delete_chat_photo = json_object_get_boolean(delete_chat_photo);
+    struct json_object *del_chat_photo;
+    if (json_object_object_get_ex(obj, "delete_chat_photo", &del_chat_photo)) {
+        msg->delete_chat_photo = json_object_get_boolean(del_chat_photo);
+        json_objet_put(del_chat_photo);
+    }
 
     struct json_object *gcc;
-    if (json_object_object_get_ex(obj, "group_chat_created", &gcc))
+    if (json_object_object_get_ex(obj, "group_chat_created", &gcc)) {
         msg->group_chat_created = json_object_get_boolean(gcc);
+        json_objet_put(gcc);
+    }
 
     struct json_object *sgcc;
-    if (json_object_object_get_ex(obj, "supergroup_chat_created", &sgcc))
+    if (json_object_object_get_ex(obj, "supergroup_chat_created", &sgcc)) {
         msg->supergroup_chat_created = json_object_get_boolean(sgcc);
+        json_objet_put(sgcc);
+    }
 
     struct json_object *cacc;
-    if (json_object_object_get_ex(obj, "channel_chat_created", &cacc))
+    if (json_object_object_get_ex(obj, "channel_chat_created", &cacc)) {
         msg->channel_chat_created = json_object_get_boolean(cacc);
+        json_objet_put(cacc);
+    }
 
     struct json_object *mtci;
-    if (json_object_object_get_ex(obj, "migrate_to_chat_id", &mtci))
+    if (json_object_object_get_ex(obj, "migrate_to_chat_id", &mtci)) {
         msg->migrate_to_chat_id = json_object_get_int(mtci);
+        json_objet_put(mtci);
+    }
 
     struct json_object *mftci;
-    if (json_object_object_get_ex(obj, "migrate_from_chat_id", &mftci))
+    if (json_object_object_get_ex(obj, "migrate_from_chat_id", &mftci)) {
         msg->migrate_from_chat_id = json_object_get_int(mftci);
+        json_objet_put(mftci);
+    }
 
     return TELEBOT_ERROR_NONE;
 }
@@ -259,15 +304,19 @@ telebot_error_e telebot_parser_get_user(struct json_object *obj,
     struct json_object *id;
     if (json_object_object_get_ex(obj, "id", &id)) {
         user->id = json_object_get_int(id);
+        json_object_put(id);
     }
     else {
         ERR("Telegram JSON response is not user type, id not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
+    char *ignore;
     struct json_object *first_name;
-    if (json_object_object_get_ex(obj, "first_name", &first_name)){
-        user->first_name = (char *)json_object_get_string(first_name);
+    if (json_object_object_get_ex(obj, "first_name", &first_name)) {
+        ignore = strncpy(user->first_name, json_object_get_string(first_name),
+                TELEBOT_FIRST_NAME_SIZE);
+        json_object_put(first_name);
     }
     else {
         ERR("Telegram JSON response is not user type, first_name not found");
@@ -275,12 +324,18 @@ telebot_error_e telebot_parser_get_user(struct json_object *obj,
     }
 
     struct json_object *last_name;
-    if (json_object_object_get_ex(obj, "last_name", &last_name))
-        user->last_name = (char *)json_object_get_string(last_name);
+    if (json_object_object_get_ex(obj, "last_name", &last_name)) {
+        ignore = strncpy(user->last_name, json_object_get_string(last_name),
+                TELEBOT_LAST_NAME_SIZE);
+        json_object_put(last_name);
+    }
 
     struct json_object *username;
-    if (json_object_object_get_ex(obj, "username", &username))
-        user->username = (char *)json_object_get_string(username);
+    if (json_object_object_get_ex(obj, "username", &username)) {
+        ignore = strncpy(user->username, json_object_get_string(username),
+                TELEBOT_USER_NAME_SIZE);
+        json_object_put(username);
+    }
 
     return TELEBOT_ERROR_NONE;
 }

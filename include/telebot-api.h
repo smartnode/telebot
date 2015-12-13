@@ -19,11 +19,26 @@
 #ifndef __TELEBOT_API_H__
 #define __TELEBOT_API_H__
 
-#include <telebot-core-api.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @file        telebot-api.h
+ * @ingroup     TELEBOT_API
+ * @brief       This file contains simple APIs to create telegram bot
+ * @author      Elmurod Talipov
+ * @date        2015-12-13
+ */
+
+/**
+ * @defgroup TELEBOT_API		Telegram Bot API
+ * @brief Telebot Library
+ *
+ *
+ * @addtogroup TELEBOT_API
+ * @{
+ */
 
 /**
  * @brief This object represents a Telegram user or bot.
@@ -33,13 +48,13 @@ typedef struct _telebot_user_t_ {
     int id;
 
     /** User's or bot's first name. */
-    char *first_name;
+    char first_name[TELEBOT_FIRST_NAME_SIZE];
 
     /** Optional. User's or bot's last name */
-    char *last_name;
+    char last_name[TELEBOT_LAST_NAME_SIZE];
 
     /** Optional. User's or bot's username. */
-    char *username;
+    char username[TELEBOT_USER_NAME_SIZE];
 } telebot_user_t;
 
 /**
@@ -50,19 +65,19 @@ typedef struct _telebot_chat_t_ {
     int id;
 
     /** Type of chat, can be either "private", or "group", or "channel" */
-    char *type;
+    char type[TELEBOT_CHAT_TYPE_SIZE];
 
     /** Optional. Title, for channels and group chats */
-    char *title;
+    char title[TELEBOT_CHAT_TITLE_SIZE];
 
     /** Optional. Username, for private chats and channels if available */
-    char *username;
+    char username[TELEBOT_USER_NAME_SIZE];
 
     /** Optional. First name of the other party in a private chat */
-    char *first_name;
+    char first_name[TELEBOT_FIRST_NAME_SIZE];
 
     /** Optional. Last name of the other party in a private chat */
-    char *last_name;
+    char last_name[TELEBOT_LAST_NAME_SIZE];
 } telebot_chat_t;
 
 /**
@@ -71,7 +86,7 @@ typedef struct _telebot_chat_t_ {
  */
 typedef struct _telebot_photosize_t_ {
     /** Unique identifier for this file */
-    char *file_id;
+    char file_id[TELEBOT_FILE_ID_SIZE];
 
     /** Photo width */
     int width;
@@ -89,19 +104,19 @@ typedef struct _telebot_photosize_t_ {
  */
 typedef struct _telebot_audio_t_ {
     /** Unique identifier for this file */
-    char *file_id;
+    char file_id[TELEBOT_FILE_ID_SIZE];
 
     /** Duration of the audio in seconds as defined by sender */
     int duration;
 
     /** Optional. Performer of the audio as defined by sender or by audio tags */
-    char *performer;
+    char performer[TELEBOT_AUDIO_PERFORMER_SIZE];
 
     /** Optional. Title of the audio as defined by sender or by audio tags */
-    char *title;
+    char title[TELEBOT_AUDIO_TITLE_SIZE];
 
     /** Optional. MIME type of the file as defined by sender */
-    char *mime_type;
+    char mime_type[TELEBOT_AUDIO_MIME_TYPE_SIZE];
 
     /** Optional. File size */
     int file_size; 
@@ -113,16 +128,16 @@ typedef struct _telebot_audio_t_ {
  */
 typedef struct _telebot_document_t_ {
     /** Unique file identifier. */
-    char *file_id;
+    char file_id[TELEBOT_FILE_ID_SIZE];
 
     /** Optional. Document thumbnail as defined by sender. */
     telebot_photosize_t thumb;
 
     /** Optional. Original filename as defined by sender. */
-    char *file_name;
+    char file_name[TELEBOT_FILE_NAME_SIZE];
 
     /** Optional. MIME type of the file as defined by sender. */
-    char *mime_type;
+    char mime_type[TELEBOT_DOCUMENT_MIME_TYPE_SIZE];
 
     /** Optional. File size. */
     int file_size;
@@ -133,7 +148,7 @@ typedef struct _telebot_document_t_ {
  */
 typedef struct _telebot_sticker_t_ {
     /** Unique identifier for this file */
-    char *file_id;
+    char file_id[TELEBOT_FILE_ID_SIZE];
 
     /**< Sticker width */
     int width;
@@ -153,7 +168,7 @@ typedef struct _telebot_sticker_t_ {
  */
 typedef struct _telebot_video_t_ {
     /** Unique identifier for this file */
-    char *file_id;
+    char file_id[TELEBOT_FILE_ID_SIZE];
 
     /** Video width as defined by sender */
     int width; 
@@ -168,7 +183,7 @@ typedef struct _telebot_video_t_ {
     telebot_photosize_t thumb;
 
     /** Optional. Mime type of a file as defined by sender */
-    char *mime_type;
+    char mime_type[TELEBOT_VIDEO_MIME_TYPE_SIZE];
 
     /** Optional. File size */
     int file_size;
@@ -179,13 +194,13 @@ typedef struct _telebot_video_t_ {
  */
 typedef struct _telebot_voice_t_ {
     /** Unique identifier for this file */
-    char *file_id;
+    char file_id[TELEBOT_FILE_ID_SIZE];
 
     /** Duration of the audio in seconds as defined by sender */
     int duration;
 
     /** Optional. MIME type of the file as defined by sender */
-    char *mime_type;
+    char mime_type[TELEBOT_VOICE_MIME_TYPE_SIZE];
 
     /** Optional. File size */
     int file_size;
@@ -196,13 +211,13 @@ typedef struct _telebot_voice_t_ {
  */
 typedef struct _telebot_contact_t_ {
     /** Contact's phone number */
-    char *phone_number;
+    char phone_number[TELEBOT_PHONE_NUMBER_SIZE];
 
     /** Contact's first name */
-    char *first_name;
+    char first_name[TELEBOT_FIRST_NAME_SIZE];
 
     /** Optional. Contact's last name */
-    char *last_name;
+    char last_name[TELEBOT_LAST_NAME_SIZE];
 
     /** Optional. Contact's user identifier in Telegram */
     int user_id;
@@ -242,20 +257,20 @@ typedef struct _telebot_userphotos_t {
  */
 typedef struct _telebot_file_t_ {
     /** Unique identifier for this file */
-    char *file_id;
+    char file_id[TELEBOT_FILE_ID_SIZE];
 
     /** Optional. File size, if known */
     int file_size;
 
     /**  Optional. File path. */
-    char *file_path;
+    char file_path[TELEBOT_FILE_PATH_SIZE];
 } telebot_file_t;
 
 
 /**
  * @brief This object represents a message.
  */
-typedef struct _telebot_message_t_ {
+typedef struct telebot_message_s {
     /** Unique message identifier */
     int message_id;
 
@@ -282,10 +297,10 @@ typedef struct _telebot_message_t_ {
      * field will not contain further reply_to_message fields even if it itself 
      * is a reply.
      */
-    struct _telebot_message_t_  *reply_to_message;
+    struct telebot_message_s  *reply_to_message;
 
     /** Optional. For text messages, the actual UTF-8 text of the message */
-    char *text;
+    char text[TELEBOT_MESSAGE_TEXT_SIZE];
 
     /** Optional. Message is an audio file, information about the file */
     telebot_audio_t audio;
@@ -306,7 +321,7 @@ typedef struct _telebot_message_t_ {
     telebot_voice_t voice;
 
     /** Optional. Caption for the photo or video */
-    char *caption;
+    char caption[TELEBOT_MESSAGE_CAPTION_SIZE];
 
     /** Optional. Message is a shared contact, information about the contact */
     telebot_contact_t contact;
@@ -327,7 +342,7 @@ typedef struct _telebot_message_t_ {
     telebot_user_t left_chat_participant;
 
     /** Optional. A chat title was changed to this value */
-    char *new_chat_title; 
+    char new_chat_title[TELEBOT_CHAT_TITLE_SIZE];
 
     /** Optional. A chat photo was change to this value */
     telebot_photosize_t new_chat_photo[4];
@@ -411,6 +426,10 @@ telebot_error_e telebot_stop();
  * stored in input parameter.
  */
 telebot_error_e telebot_get_me(telebot_user_t *me);
+
+/**
+ * @} // end of APIs
+ */
 
 #ifdef __cplusplus
 }
