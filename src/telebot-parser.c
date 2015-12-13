@@ -256,37 +256,37 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
     struct json_object *del_chat_photo;
     if (json_object_object_get_ex(obj, "delete_chat_photo", &del_chat_photo)) {
         msg->delete_chat_photo = json_object_get_boolean(del_chat_photo);
-        json_objet_put(del_chat_photo);
+        json_object_put(del_chat_photo);
     }
 
     struct json_object *gcc;
     if (json_object_object_get_ex(obj, "group_chat_created", &gcc)) {
         msg->group_chat_created = json_object_get_boolean(gcc);
-        json_objet_put(gcc);
+        json_object_put(gcc);
     }
 
     struct json_object *sgcc;
     if (json_object_object_get_ex(obj, "supergroup_chat_created", &sgcc)) {
         msg->supergroup_chat_created = json_object_get_boolean(sgcc);
-        json_objet_put(sgcc);
+        json_object_put(sgcc);
     }
 
     struct json_object *cacc;
     if (json_object_object_get_ex(obj, "channel_chat_created", &cacc)) {
         msg->channel_chat_created = json_object_get_boolean(cacc);
-        json_objet_put(cacc);
+        json_object_put(cacc);
     }
 
     struct json_object *mtci;
     if (json_object_object_get_ex(obj, "migrate_to_chat_id", &mtci)) {
         msg->migrate_to_chat_id = json_object_get_int(mtci);
-        json_objet_put(mtci);
+        json_object_put(mtci);
     }
 
     struct json_object *mftci;
     if (json_object_object_get_ex(obj, "migrate_from_chat_id", &mftci)) {
         msg->migrate_from_chat_id = json_object_get_int(mftci);
-        json_objet_put(mftci);
+        json_object_put(mftci);
     }
 
     return TELEBOT_ERROR_NONE;
@@ -352,15 +352,19 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
     struct json_object *id;
     if (json_object_object_get_ex(obj, "id", &id)) {
         chat->id = json_object_get_int(id);
+        json_object_put(id);
     }
     else {
         ERR("Object is not chat type, chat id not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
     
+    char *ignore;
     struct json_object *type;
     if (json_object_object_get_ex(obj, "type", &type)){
-        chat->type = (char *)json_object_get_string(type);
+        ignore = strncpy(chat->type, json_object_get_string(type),
+                TELEBOT_CHAT_TYPE_SIZE);
+        json_object_put(type);
     }
     else {
         ERR("Object is not user type, chat type not found");
@@ -368,20 +372,32 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
     }
     
     struct json_object *title;
-    if (json_object_object_get_ex(obj, "title", &title))
-        chat->title = (char *)json_object_get_string(title);
+    if (json_object_object_get_ex(obj, "title", &title)) {
+        ignore = strncpy(chat->title, json_object_get_string(title),
+                TELEBOT_CHAT_TITLE_SIZE);
+        json_object_put(title);
+    }
     
     struct json_object *username;
-    if (json_object_object_get_ex(obj, "username", &username))
-        chat->username = (char *)json_object_get_string(username);
+    if (json_object_object_get_ex(obj, "username", &username)) {
+        ignore = strncpy(chat->username, json_object_get_string(username),
+                TELEBOT_USER_NAME_SIZE);
+        json_object_put(username);
+    }
     
     struct json_object *first_name;
-    if (json_object_object_get_ex(obj, "first_name", &first_name))
-        chat->first_name = (char *)json_object_get_string(first_name);
+    if (json_object_object_get_ex(obj, "first_name", &first_name)) {
+        ignore = strncpy(chat->first_name, json_object_get_string(first_name),
+                TELEBOT_FIRST_NAME_SIZE);
+        json_object_put(first_name);
+    }
     
     struct json_object *last_name;
-    if (json_object_object_get_ex(obj, "last_name", &last_name))
-        chat->last_name = (char *)json_object_get_string(last_name);
+    if (json_object_object_get_ex(obj, "last_name", &last_name)) {
+        ignore = strncpy(chat->last_name, json_object_get_string(last_name),
+                TELEBOT_LAST_NAME_SIZE);
+        json_object_put(last_name);
+    }
     
     return TELEBOT_ERROR_NONE;
 }
@@ -395,9 +411,11 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
     if (audio == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
+    char *ignore;
     struct json_object *file_id;
     if (json_object_object_get_ex(obj, "file_id", &file_id)) {
-        audio->file_id = (char *)json_object_get_string(file_id);
+        ignore = strncpy(audio->file_id, json_object_get_string(file_id),
+                TELEBOT_FILE_ID_SIZE);
         json_object_put(file_id);
     }
     else {
@@ -417,19 +435,22 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
     
     struct json_object *performer;
     if (json_object_object_get_ex(obj, "performer", &performer)) {
-        audio->performer = (char *)json_object_get_string(performer);
+        ignore = strncpy(audio->performer, json_object_get_string(performer),
+                TELEBOT_AUDIO_PERFORMER_SIZE);
         json_object_put(performer);
     }
     
     struct json_object *title;
     if (json_object_object_get_ex(obj, "title", &title)) {
-        audio->title = (char *)json_object_get_string(title);
+        ignore = strncpy(audio->title, json_object_get_string(title),
+                TELEBOT_AUDIO_TITLE_SIZE);
         json_object_put(title);
     }
     
     struct json_object *mime_type;
     if (json_object_object_get_ex(obj, "mime_type", &mime_type))
-        audio->mime_type = (char *)json_object_get_string(mime_type);
+        ignore = strncpy(audio->mime_type, json_object_get_string(mime_type),
+                TELEBOT_AUDIO_MIME_TYPE_SIZE);
     
     struct json_object *file_size;
     if (json_object_object_get_ex(obj, "file_size", &file_size))
