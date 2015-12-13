@@ -3,9 +3,9 @@ exec_prefix=@EXEC_PREFIX@
 libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
-Name: telebot
-Description: Telegram Bot API
+Name: @PROJECT_NAME@
+Description: @PROJECT_DESCRIPTION@
 Version: @VERSION@
 Requires: @DEPENDENTS@
-Libs:  -L${libdir} -ltelebot
-Cflags: -I${includedir}/telebot
+Libs:  -L${libdir} -l@PROJECT_NAME@
+Cflags: -I${includedir}
