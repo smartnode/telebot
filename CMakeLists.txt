@@ -37,5 +37,11 @@ CONFIGURE_FILE(telebot.pc.in telebot.pc @ONLY)
 # CMake Policy (CMP0002)
 # The logical name of executable and library targes
 # does not have to correspond to the physical file name built.
+INSTALL(FILES telebot.pc DESTINATION lib/pkgconfig)
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib COMPONENT RuntimeLibraries)
+INSTALL(FILES
+    include/telebot-api.h
+    include/telebot-common.h
+    include/telebot-core-api.h
+    DESTINATION include/telebot/)
 
