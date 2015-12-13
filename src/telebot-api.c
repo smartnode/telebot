@@ -106,6 +106,39 @@ telebot_error_e telebot_stop()
     return TELEBOT_ERROR_NONE;
 }
 
+static void *telebot_polling_thread(void *data)
+{
+    int ret, index;
+
+    while (g_run_telebot) {
+        ret = telebot_core_get_updates(g_handler, g_handler->offset,
+                TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
+        if (ret != TELEBOT_ERROR_NONE)
+            continue;
+
+        telebot_update_t udates[TELEBOT_UPDATE_COUNT_PER_REQUEST];
+        int count;
+        char *tmp = g_handler->response->data;
+        ret = telebot_parser_get_updates(tmp, udates, &count);
+        if (ret != TELEBOT_ERROR_NONE)
+            continue;
+
+        for (index = 0;index < count; index++) {
+            g_handler->offset = udates[index].update_id + 1;
+            g_update_cb(udates[index].message);
+        }
+
+        free(g_handler->response->data);
+        g_handler->response->size = 0;
+
+        usleep(TELEBOT_UPDATE_POLLING_INTERVAL);
+    }
+
+    pthread_exit(NULL);
+
+    return NULL;
+}
+
 telebot_error_e telebot_get_me(telebot_user_t *me)
 {
     if (me == NULL)
@@ -127,40 +160,233 @@ telebot_error_e telebot_get_me(telebot_user_t *me)
         me = NULL;
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    
+
     return TELEBOT_ERROR_NONE;
 }
 
-static void *telebot_polling_thread(void *data)
+telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
+        int limit, telebot_userphotos_t *photos)
 {
-    int ret, index;
+    if (photos == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    while (g_run_telebot) {
-        ret = telebot_core_get_updates(g_handler, g_handler->offset,
-                TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
-        if (ret != TELEBOT_ERROR_NONE)
-            continue;
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
 
-        telebot_update_t udates[TELEBOT_UPDATE_COUNT_PER_REQUEST];
-        int count;
-        char *tmp = g_handler->response->data;
-        ret = telebot_parser_get_updates(tmp, udates, &count);
-        if (ret != TELEBOT_ERROR_NONE)
-            continue;
-        
-        for (index = 0;index < count; index++) {
-            g_handler->offset = udates[index].update_id + 1;
-            g_update_cb(udates[index].message);
-        }
-        
-        free(g_handler->response->data);
-        g_handler->response->size = 0;
+    //TODO: implement
 
-        usleep(TELEBOT_UPDATE_POLLING_INTERVAL);
-    }
-
-    pthread_exit(NULL);
-
-    return NULL;
+    return TELEBOT_ERROR_NONE;
 }
 
+telebot_error_e telebot_download_file(char *file_id, char *path)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode,
+        bool disable_web_page_preview, int reply_to_message_id, char *reply_markup)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (text == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_message(g_handler, chat_id, text,
+            parse_mode, disable_web_page_preview, reply_to_message_id,
+            reply_markup);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
+        int message_id)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (message_id <= 0)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_forward_message(g_handler, chat_id,
+            from_chat_id, message_id);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
+        char *caption, int reply_to_message_id, char *reply_markup)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (photo == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_photo(g_handler, chat_id, photo,
+            is_file, caption, reply_to_message_id, reply_markup);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
+        int duration, char *performer, char *title, int reply_to_message_id,
+        char *reply_markup)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (audio == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_audio(g_handler, chat_id, audio,
+            is_file, duration, performer, title, reply_to_message_id,
+            reply_markup);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_send_document(char *chat_id, char *document,
+        bool is_file, int reply_to_message_id, char *reply_markup)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (document == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_document(g_handler, chat_id,
+            document, is_file, reply_to_message_id, reply_markup);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_send_sticker(char *chat_id, char *sticker,
+        bool is_file, int reply_to_message_id, char *reply_markup)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (sticker == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_sticker(g_handler, chat_id, sticker,
+            is_file, reply_to_message_id, reply_markup);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
+        int duration, char *caption, int reply_to_message_id, char *reply_markup)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (video == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_video(g_handler, chat_id, video,
+            is_file, duration, caption, reply_to_message_id, reply_markup);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
+        int duration, int reply_to_message_id, char *reply_markup)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (voice == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_voice(g_handler, chat_id, voice,
+            is_file, duration, reply_to_message_id, reply_markup);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_send_location(char *chat_id, float latitude,
+        float longitude, int reply_to_message_id, char *reply_markup)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_location(g_handler, chat_id,
+            latitude, longitude, reply_to_message_id, reply_markup);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}
+
+telebot_error_e telebot_send_chat_action(char *chat_id, char *action)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (chat_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_action(g_handler, chat_id, action);
+
+    if (g_handler->response->data)
+        free(g_handler->response->data);
+
+    return ret;
+}

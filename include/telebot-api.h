@@ -99,7 +99,7 @@ typedef struct _telebot_photosize_t_ {
 } telebot_photosize_t;
 
 /**
- * @brief This object represents an audio file to be treated as music by the 
+ * @brief This object represents an audio file to be treated as music by the
  * Telegram clients.
  */
 typedef struct _telebot_audio_t_ {
@@ -123,7 +123,7 @@ typedef struct _telebot_audio_t_ {
 } telebot_audio_t;
 
 /**
- * @brief This object represents a general file (as opposed to photos, voice 
+ * @brief This object represents a general file (as opposed to photos, voice
  * messages and audio files).
  */
 typedef struct _telebot_document_t_ {
@@ -243,7 +243,7 @@ typedef struct _telebot_userphotos_t {
     int total_count;
 
     /** Requested profile pictures (in up to 4 sizes each) */
-    telebot_photosize_t **photos;
+    telebot_photosize_t photos[][4];
 } telebot_userphotos_t;
 
 /**
@@ -251,7 +251,7 @@ typedef struct _telebot_userphotos_t {
  *
  * The file can be downloaded via the link 
  * https://api.telegram.org/file/bot<token>/<file_path>.
- * It is guaranteed that the link will be valid for at least 1 hour. 
+ * It is guaranteed that the link will be valid for at least 1 hour.
  * When the link expires, a new one can be requested by calling getFile.
  * Maximum file size to download is 20 MB.
  */
@@ -287,14 +287,14 @@ typedef struct telebot_message_s {
     telebot_user_t forward_from;
 
     /** 
-     * Optional. For forwarded messages, date the original message was sent 
+     * Optional. For forwarded messages, date the original message was sent
      * in Unix time
      */
     long forward_date;
 
     /** 
-     * For replies, the original message. Note that the Message object in this 
-     * field will not contain further reply_to_message fields even if it itself 
+     * For replies, the original message. Note that the Message object in this
+     * field will not contain further reply_to_message fields even if it itself
      * is a reply.
      */
     struct telebot_message_s  *reply_to_message;
@@ -330,7 +330,7 @@ typedef struct telebot_message_s {
     telebot_location_t location;
 
     /**
-     * Optional. A new member was added to the group, information about them 
+     * Optional. A new member was added to the group, information about them
      * (this member may be bot itself)
      */
     telebot_user_t new_chat_participant;
@@ -389,7 +389,7 @@ typedef void (*telebot_update_cb_f)(telebot_message_t message);
 telebot_error_e telebot_create(char *token);
 
 /**
- * @brief Final function to use telebot core APIs
+ * @brief Final function to use telebo APIs
  *
  * This function must be the last function to call for a telebot use.
  * It is the opposite of the telebot_create() function.
@@ -430,6 +430,197 @@ telebot_error_e telebot_get_me(telebot_user_t *me);
 /**
  * @} // end of APIs
  */
+
+/**
+ * @brief This function is used to get user profile pictures object
+ * @param user_id Unique identifier of the target user.
+ * @param offset Sequential number of the first photo to be returned. By default,
+ * all photos are returned.
+ * @param limit Limits the number of photos to be retrieved. Values between
+ * 1-100 are accepted. Defaults to 100.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
+        int limit, telebot_userphotos_t *photos);
+
+/**
+ * @brief This function is used to download file.
+ * @param file_id File identifier to get info about.
+ * @param path A path where the file is downloaded
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_download_file(char *file_id, char *path);
+
+
+/**
+ * @brief This function is used to send text messages.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername).
+ * @param text Text of the message to be sent.
+ * @param parse_mode Send Markdown, if you want Telegram apps to show bold,
+ * italic and inline URLs in your bot's message.
+ * @param disable_web_page_preview Disables link previews for links in this message.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom
+ * reply keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode,
+        bool disable_web_page_preview, int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to forward messages of any kind.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername).
+ * @param from_chat_id Unique identifier for the chat where the original
+ * message was sent (or channel username in the format @channelusername).
+ * @param message_id Unique message identifier.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
+        int message_id);
+
+/**
+ * @brief This functionis used to send photos.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername).
+ * @param photo Photo to send. It is either file_id as String to resend a photo
+ * that is already on the Telegram servers, or a path to photo file.
+ * @param is_file False if photo is file_id, true, if photo is a file path.
+ * @param caption Photo caption. (may also be used when resending photos).
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom
+ * reply keyboard, instructions to hide keyboard or to force a reply from
+ * the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
+        char *caption, int reply_to_message_id, char *reply_markup);
+/**
+ * @brief This function is used to to send audio files. if you want Telegram
+ * clients to display them in the music player. Your audio must be in the .mp3
+ * format. Bots can currently send audio files of up to 50 MB in size. For backward
+ * compatibility, when the fields title and performer are both empty and the
+ * mime-type of the file to be sent is not audio/mpeg, the file will be sent as
+ * a playable voice message. For this to work, the audio must be in an .ogg
+ * file encoded with OPUS.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername).
+ * @param audio Audio file to send. It is either a file_id as String to resend an
+ * audio that is already on the Telegram servers, or a path to audio file.
+ * @param is_file False if audio is file_id, true, if audio is a file path.
+ * @param duration Duration of sent audio in seconds.
+ * @param performer The performer of the audio.
+ * @param title The track name of the audio.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom reply
+ * keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
+        int duration, char *performer, char *title, int reply_to_message_id,
+        char *reply_markup);
+
+/**
+ * @brief This function is used to send general files.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername).
+ * @param document Document file to send. It is either a file_id as String to
+ * resend a file that is already on the Telegram servers, or a path to file.
+ * @param is_file False if document is file_id, true, if document is a file path.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom reply
+ * keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_send_document(char *chat_id, char *document, bool is_file,
+        int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to to send .webp stickers.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername)
+ * @param sticker Sticker file to send. It is either a file_id as String to
+ * resend a sticker that is already on the Telegram servers, or a path to file.
+ * @param is_file False if sticker is file_id, true, if sticker is a file path.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom reply
+ * keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+
+telebot_error_e telebot_send_sticker(char *chat_id, char *sticker, bool is_file,
+        int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to send video files, Telegram clients support
+ * mp4 videos (other formats may be sent as Document).
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername).
+ * @param video Video file to send. It is either a file_id as String to resend
+ * a video that is already on the Telegram servers, or a path to video file.
+ * @param is_file False if video is file_id, true, if video is a file path.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom reply
+ * keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
+        int duration, char *caption, int reply_to_message_id, char *reply_markup);
+/**
+ * @brief This function is used to send audio files, if you want Telegram
+ * clients to display the file as a playable voice message. For this to work,
+ * your audio must be in an .ogg file encoded with OPUS (other formats may be
+ * sent as Audio or Document). Bots can currently send voice messages of up to
+ * 50 MB in size.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername).
+ * @param voice Audio file to send. It is either a file_id as String to resend
+ * a audio that is already on the Telegram servers, or a path to audio file.
+ * @param is_file False if voice is file_id, true, if voice is a file path.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom reply
+ * keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+
+telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
+        int duration, int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to send point on the map.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername).
+ * @param latitude Latitude of location.
+ * @param longitude Longitude of location.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom reply
+ * keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_send_location(char *chat_id, float latitude, float longitude,
+        int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to tell the user that something is happening on
+ * the bot's side. The status is set for 5 seconds or less (when a message
+ * arrives from your bot, Telegram clients clear its typing status).
+ * Example: The ImageBot needs some time to process a request and upload the
+ * image. Instead of sending a text message along the lines of "Retrieving image,
+ * please wait...", the bot may use sendChatAction with action = upload_photo.
+ * The user will see a "sending photo" status for the bot.
+ * It is only recommended to use when a response from the bot will take a
+ * noticeable amount of time to arrive.
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format @channelusername)
+ * @param action Type of action to broadcast. Choose one, depending on what the
+ * user is about to receive: typing for text messages, upload_photo for photos,
+ * record_video or upload_video for videos, record_audio or upload_audio for
+ * audio files, upload_document for general files, find_location for location
+ * data.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_send_chat_action(char *chat_id, char *action);
 
 #ifdef __cplusplus
 }
