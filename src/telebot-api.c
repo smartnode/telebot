@@ -500,7 +500,8 @@ telebot_error_e telebot_send_chat_action(char *chat_id, char *action)
     if (chat_id == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    telebot_error_e ret = telebot_core_send_chat_action(g_handler, chat_id, action);
+    telebot_error_e ret = telebot_core_send_chat_action(g_handler, chat_id,
+            action);
 
     if (g_handler->resp_data)
         free(g_handler->resp_data);

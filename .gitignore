@@ -27,3 +27,6 @@ Temporary Items
 
 # Xcode projects
 *.xcodeproj
+
+# Bot token
+.token

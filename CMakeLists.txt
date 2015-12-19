@@ -29,11 +29,14 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_LIB_CFLAGS} -Werror -Wall" )
 
 # libtelebot
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${SRCS})
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${PKGS_LDFLAGS} "-ldl -lpthread")
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${PKGS_LDFLAGS})
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})
 
 # package configuration
 CONFIGURE_FILE(telebot.pc.in telebot.pc @ONLY)
+
+# echobot (test)
+ADD_SUBDIRECTORY(test)
 
 # CMake Policy (CMP0002)
 # The logical name of executable and library targes
