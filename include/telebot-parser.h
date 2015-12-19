@@ -19,11 +19,6 @@
 #ifndef __TELEBOT_PARSER_H__
 #define __TELEBOT_PARSER_H__
 
-typedef struct _telebot_update_t_ {
-    int update_id;
-    telebot_message_t message;
-} telebot_update_t;
-
 struct json_object *telebot_parser_str_to_obj(char *data);
 
 /** Get update from Json Object */

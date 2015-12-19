@@ -23,6 +23,8 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
+#include <json.h>
+#include <json_object.h>
 #include <telebot-private.h>
 #include <telebot-common.h>
 #include <telebot-core-api.h>
@@ -124,8 +126,9 @@ static void *telebot_polling_thread(void *data)
             continue;
 
         for (index = 0;index < count; index++) {
-            g_handler->offset = udates[index].update_id + 1;
-            g_update_cb(udates[index].message);
+            if (udates[index].update_id >= g_handler->offset)
+                g_handler->offset = udates[index].update_id + 1;
+            g_update_cb((const telebot_message_t *)&(udates[index].message));
         }
 
         free(g_handler->response->data);
@@ -139,33 +142,99 @@ static void *telebot_polling_thread(void *data)
     return NULL;
 }
 
-telebot_error_e telebot_get_me(telebot_user_t *me)
+telebot_error_e telebot_get_me(telebot_user_t **me)
 {
     if (me == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    if (g_handler == NULL)
+    
+    if (g_handler == NULL) {
+        *me = NULL;
         return TELEBOT_ERROR_NOT_SUPPORTED;
-
+    }
+    
+    telebot_user_t *tme = (telebot_user_t*)malloc(sizeof(telebot_user_t));
+    if (tme == NULL) {
+        *me = NULL;
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+    
     int ret = telebot_core_get_me(g_handler);
     if (ret != TELEBOT_ERROR_NONE)
         return ret;
-
+    
     char *tmp = g_handler->response->data;
-    ret = telebot_parser_get_user(telebot_parser_str_to_obj(tmp), me);
+    struct json_object *obj = telebot_parser_str_to_obj(tmp);
+    ret = telebot_parser_get_user(obj, tme);
     free(g_handler->response->data);
     g_handler->response->size = 0;
-
+    json_object_put(obj);
+    
     if (ret != TELEBOT_ERROR_NONE) {
-        me = NULL;
+        *me = NULL;
+        free(tme);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-
+    
+    *me = tme;
+    
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
-        int limit, telebot_userphotos_t *photos)
+telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
+{
+    if (count == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    
+    if (updates == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (g_handler == NULL) {
+        *updates = NULL;
+        count = 0;
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+    }
+
+    int ret = telebot_core_get_updates(g_handler, g_handler->offset,
+                                   TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
+    if (ret != TELEBOT_ERROR_NONE) {
+        *count = 0;
+        *updates = NULL;
+        return ret;
+    }
+
+    telebot_update_t *ups = calloc(TELEBOT_UPDATE_COUNT_PER_REQUEST,
+                            sizeof(telebot_update_t));
+    if (ups == NULL) {
+        *count = 0;
+        *updates = NULL;
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    int cnt;
+    ret = telebot_parser_get_updates(g_handler->response->data, ups, &cnt);
+    if (ret != TELEBOT_ERROR_NONE) {
+        *count = 0;
+        *updates = NULL;
+        free(ups);
+        return ret;
+    }
+    
+    int index;
+    for (index = 0;index < cnt; index++)
+        if (ups[index].update_id >= g_handler->offset)
+            g_handler->offset = ups[index].update_id + 1;
+    
+    free(g_handler->response->data);
+    g_handler->response->size = 0;
+    
+    *updates = ups;
+    *count = cnt;
+    
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_get_user_profile_photos(int user_id, int limit,
+        telebot_userphotos_t **photos)
 {
     if (photos == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;

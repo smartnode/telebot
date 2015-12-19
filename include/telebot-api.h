@@ -243,7 +243,7 @@ typedef struct _telebot_userphotos_t {
     int total_count;
 
     /** Requested profile pictures (in up to 4 sizes each) */
-    telebot_photosize_t photos[][4];
+    telebot_photosize_t photos[TELEBOT_USER_PHOTOS_MAX_LIMIT][4];
 } telebot_userphotos_t;
 
 /**
@@ -309,7 +309,7 @@ typedef struct telebot_message_s {
     telebot_document_t document;
 
     /** Optional. Message is a photo, available sizes of the photo */
-    telebot_photosize_t photo[10];
+    telebot_photosize_t photo[TELEBOT_MESSAGE_PHOTO_SIZE];
 
     /** Optional. Message is a sticker, information about the sticker */
     telebot_sticker_t sticker;
@@ -345,7 +345,7 @@ typedef struct telebot_message_s {
     char new_chat_title[TELEBOT_CHAT_TITLE_SIZE];
 
     /** Optional. A chat photo was change to this value */
-    telebot_photosize_t new_chat_photo[4];
+    telebot_photosize_t new_chat_photo[TELEBOT_MESSAGE_NEW_CHAT_PHOTO_SIZE];
 
     /** Optional. Informs that the chat photo was deleted */
     bool delete_chat_photo;
@@ -374,9 +374,23 @@ typedef struct telebot_message_s {
 } telebot_message_t;
 
 /**
+ * @brief This object represents an incoming update.
+ */
+typedef struct _telebot_update_t_ {
+    /**
+     * The update's unique identifier. Update identifiers start from a certain
+     * positive number and increase sequentially.
+     */
+    int update_id;
+    
+    /** New incoming message of any kind — text, photo, sticker, etc. */
+    telebot_message_t message;
+} telebot_update_t;
+
+/**
  * @brief This function type defines callback for receiving updates.
  */
-typedef void (*telebot_update_cb_f)(telebot_message_t message);
+typedef void (*telebot_update_cb_f)(const telebot_message_t *message);
 
 /**
  * @brief Initial function to use telebot APIs.
@@ -420,28 +434,33 @@ telebot_error_e telebot_stop();
 /**
  * @brief This function is used to get information about telegram bot itself.
  *
- * @param me Pointer for putting telegram user object.
- *
+ * @param me Pointer to the telegram user object address. This pointer MUST be 
+ * freed after use.
  * @return On success, TELEBOT_ERROR_NONE is returned, and user object is
  * stored in input parameter.
  */
-telebot_error_e telebot_get_me(telebot_user_t *me);
+telebot_error_e telebot_get_me(telebot_user_t **me);
 
 /**
- * @} // end of APIs
+ * @brief This function is used to get latest updates. It is alternative for
+ * telebot_start() function, if you want to poll updates.
+ * @param Pointer to the updates object address. This pointer MUST be freed.
+ * @param count Pointer to put number of updates received.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
-
+telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count);
+    
 /**
  * @brief This function is used to get user profile pictures object
  * @param user_id Unique identifier of the target user.
  * @param offset Sequential number of the first photo to be returned. By default,
- * all photos are returned.
- * @param limit Limits the number of photos to be retrieved. Values between
- * 1-100 are accepted. Defaults to 100.
+ * up to 10 photos are returned.
+ * @param photos Pointer to the user photos object addres. This pointer MUST be 
+ * freed after use.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
 telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
-        int limit, telebot_userphotos_t *photos);
+        telebot_userphotos_t **photos);
 
 /**
  * @brief This function is used to download file.
@@ -548,7 +567,6 @@ telebot_error_e telebot_send_document(char *chat_id, char *document, bool is_fil
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
-
 telebot_error_e telebot_send_sticker(char *chat_id, char *sticker, bool is_file,
         int reply_to_message_id, char *reply_markup);
 
@@ -567,6 +585,7 @@ telebot_error_e telebot_send_sticker(char *chat_id, char *sticker, bool is_file,
  */
 telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
         int duration, char *caption, int reply_to_message_id, char *reply_markup);
+
 /**
  * @brief This function is used to send audio files, if you want Telegram
  * clients to display the file as a playable voice message. For this to work,
@@ -583,7 +602,6 @@ telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
-
 telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
         int duration, int reply_to_message_id, char *reply_markup);
 
@@ -621,6 +639,10 @@ telebot_error_e telebot_send_location(char *chat_id, float latitude, float longi
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
 telebot_error_e telebot_send_chat_action(char *chat_id, char *action);
+
+/**
+ * @} // end of APIs
+ */
 
 #ifdef __cplusplus
 }

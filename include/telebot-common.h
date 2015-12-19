@@ -36,23 +36,26 @@ extern "C" {
  * @{
  */
 
-#define TELEBOT_FIRST_NAME_SIZE         32
-#define TELEBOT_LAST_NAME_SIZE          32
-#define TELEBOT_USER_NAME_SIZE          16
-#define TELEBOT_FILE_ID_SIZE            256
-#define TELEBOT_CHAT_TYPE_SIZE          10
-#define TELEBOT_CHAT_TITLE_SIZE         128
-#define TELEBOT_AUDIO_PERFORMER_SIZE    64
-#define TELEBOT_AUDIO_TITLE_SIZE        128
-#define TELEBOT_AUDIO_MIME_TYPE_SIZE    64
-#define TELEBOT_FILE_NAME_SIZE          128
-#define TELEBOT_DOCUMENT_MIME_TYPE_SIZE 128
-#define TELEBOT_VIDEO_MIME_TYPE_SIZE    64
-#define TELEBOT_VOICE_MIME_TYPE_SIZE    64
-#define TELEBOT_PHONE_NUMBER_SIZE       32
-#define TELEBOT_FILE_PATH_SIZE          256
-#define TELEBOT_MESSAGE_TEXT_SIZE       4096
-#define TELEBOT_MESSAGE_CAPTION_SIZE    256 
+#define TELEBOT_FIRST_NAME_SIZE             32
+#define TELEBOT_LAST_NAME_SIZE              32
+#define TELEBOT_USER_NAME_SIZE              16
+#define TELEBOT_FILE_ID_SIZE                256
+#define TELEBOT_CHAT_TYPE_SIZE              10
+#define TELEBOT_CHAT_TITLE_SIZE             128
+#define TELEBOT_AUDIO_PERFORMER_SIZE        64
+#define TELEBOT_AUDIO_TITLE_SIZE            128
+#define TELEBOT_AUDIO_MIME_TYPE_SIZE        64
+#define TELEBOT_FILE_NAME_SIZE              128
+#define TELEBOT_DOCUMENT_MIME_TYPE_SIZE     128
+#define TELEBOT_VIDEO_MIME_TYPE_SIZE        64
+#define TELEBOT_VOICE_MIME_TYPE_SIZE        64
+#define TELEBOT_PHONE_NUMBER_SIZE           32
+#define TELEBOT_FILE_PATH_SIZE              256
+#define TELEBOT_MESSAGE_TEXT_SIZE           4096
+#define TELEBOT_MESSAGE_CAPTION_SIZE        256
+#define TELEBOT_MESSAGE_PHOTO_SIZE          16
+#define TELEBOT_MESSAGE_NEW_CHAT_PHOTO_SIZE 4
+#define TELEBOT_USER_PHOTOS_MAX_LIMIT       10
 
 /**
  * @brief Enumerations of error code for telebot programming interface
