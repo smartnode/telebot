@@ -127,7 +127,7 @@ telebot_error_e telebot_core_destroy(telebot_core_h *handler)
     curl_global_cleanup();
 
     if (handler == NULL) {
-        ERR("Handler(0x%p) is NULL", handler);
+        ERR("Handler is NULL");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
