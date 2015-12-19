@@ -300,27 +300,24 @@ telebot_error_e telebot_parser_get_user(struct json_object *obj,
 
     if (user == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(user, 0, sizeof(telebot_user_t));
 
     struct json_object *id;
-    if (json_object_object_get_ex(obj, "id", &id)) {
-        user->id = json_object_get_int(id);
-        json_object_put(id);
-    }
-    else {
+    if (!json_object_object_get_ex(obj, "id", &id)) {
         ERR("Object is not json user type, id not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
+    user->id = json_object_get_int(id);
+    json_object_put(id);
 
     struct json_object *first_name;
-    if (json_object_object_get_ex(obj, "first_name", &first_name)) {
-        strncpy(user->first_name, json_object_get_string(first_name),
-                TELEBOT_FIRST_NAME_SIZE);
-        json_object_put(first_name);
-    }
-    else {
+    if (!json_object_object_get_ex(obj, "first_name", &first_name)) {
         ERR("Object is not json user type, first_name not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
+    strncpy(user->first_name, json_object_get_string(first_name),
+            TELEBOT_FIRST_NAME_SIZE);
+    json_object_put(first_name);
 
     struct json_object *last_name;
     if (json_object_object_get_ex(obj, "last_name", &last_name)) {
@@ -347,6 +344,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
 
     if (chat == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(chat, 0, sizeof(telebot_chat_t));
 
     struct json_object *id;
     if (json_object_object_get_ex(obj, "id", &id)) {
@@ -408,6 +406,7 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
 
     if (audio == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(audio, 0, sizeof(telebot_audio_t));
 
     struct json_object *file_id;
     if (json_object_object_get_ex(obj, "file_id", &file_id)) {
@@ -465,6 +464,7 @@ telebot_error_e telebot_parser_get_document(struct json_object *obj,
 
     if (document == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(document, 0, sizeof(telebot_document_t));
 
     return TELEBOT_ERROR_NONE;
 }
@@ -483,6 +483,7 @@ telebot_error_e telebot_parser_get_photos(struct json_object *obj,
 
     if (photos == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(photos, 0, sizeof(telebot_photosize_t));
 
     return TELEBOT_ERROR_NONE;
 }
@@ -495,6 +496,7 @@ telebot_error_e telebot_parser_get_sticker(struct json_object *obj,
 
     if (sticker == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(sticker, 0, sizeof(telebot_sticker_t));
 
     return TELEBOT_ERROR_NONE;
 }
@@ -507,6 +509,7 @@ telebot_error_e telebot_parser_get_video(struct json_object *obj,
 
     if (video == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(video, 0, sizeof(telebot_video_t));
 
     return TELEBOT_ERROR_NONE;
 }
@@ -519,6 +522,7 @@ telebot_error_e telebot_parser_get_voice(struct json_object *obj,
 
     if (voice == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(voice, 0, sizeof(telebot_voice_t));
 
     return TELEBOT_ERROR_NONE;
 }
@@ -531,6 +535,7 @@ telebot_error_e telebot_parser_get_contact(struct json_object *obj,
 
     if (contact == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(contact, 0, sizeof(telebot_contact_t));
 
     return TELEBOT_ERROR_NONE;
 }
@@ -543,12 +548,19 @@ telebot_error_e telebot_parser_get_location(struct json_object *obj,
 
     if (location == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(location, 0, sizeof(telebot_location_t));
 
     return TELEBOT_ERROR_NONE;
 }
 
 telebot_error_e telebot_parser_get_file_path(struct json_object *obj,
         char **path) {
+
+    if (obj == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (path == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     return TELEBOT_ERROR_NONE;
 }

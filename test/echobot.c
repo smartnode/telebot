@@ -35,6 +35,11 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    printf("ID: %d\n", me->id);
+    printf("First Name: %s\n", me->first_name);
+    printf("Last Name: %s\n", me->last_name);
+    printf("User Name: %s\n", me->username);
+
     free(me);
     telebot_destroy();
 
