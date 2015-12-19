@@ -347,7 +347,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
 
     if (chat == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
-    
+
     struct json_object *id;
     if (json_object_object_get_ex(obj, "id", &id)) {
         chat->id = json_object_get_int(id);
@@ -357,7 +357,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
         ERR("Object is not chat type, chat id not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    
+
     struct json_object *type;
     if (json_object_object_get_ex(obj, "type", &type)){
         strncpy(chat->type, json_object_get_string(type),
@@ -368,40 +368,40 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
         ERR("Object is not user type, chat type not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    
+
     struct json_object *title;
     if (json_object_object_get_ex(obj, "title", &title)) {
         strncpy(chat->title, json_object_get_string(title),
                 TELEBOT_CHAT_TITLE_SIZE);
         json_object_put(title);
     }
-    
+
     struct json_object *username;
     if (json_object_object_get_ex(obj, "username", &username)) {
         strncpy(chat->username, json_object_get_string(username),
                 TELEBOT_USER_NAME_SIZE);
         json_object_put(username);
     }
-    
+
     struct json_object *first_name;
     if (json_object_object_get_ex(obj, "first_name", &first_name)) {
         strncpy(chat->first_name, json_object_get_string(first_name),
                 TELEBOT_FIRST_NAME_SIZE);
         json_object_put(first_name);
     }
-    
+
     struct json_object *last_name;
     if (json_object_object_get_ex(obj, "last_name", &last_name)) {
         strncpy(chat->last_name, json_object_get_string(last_name),
                 TELEBOT_LAST_NAME_SIZE);
         json_object_put(last_name);
     }
-    
+
     return TELEBOT_ERROR_NONE;
 }
 
 telebot_error_e telebot_parser_get_audio(struct json_object *obj,
-                                         telebot_audio_t *audio)
+        telebot_audio_t *audio)
 {
     if (obj == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
@@ -419,7 +419,7 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
         ERR("Object is not audio type, file_id not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    
+
     struct json_object *duration;
     if (json_object_object_get_ex(obj, "duration", &duration)){
         audio->duration = json_object_get_int(duration);
@@ -429,43 +429,49 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
         ERR("Object is not audio type, audio duration not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    
+
     struct json_object *performer;
     if (json_object_object_get_ex(obj, "performer", &performer)) {
         strncpy(audio->performer, json_object_get_string(performer),
                 TELEBOT_AUDIO_PERFORMER_SIZE);
         json_object_put(performer);
     }
-    
+
     struct json_object *title;
     if (json_object_object_get_ex(obj, "title", &title)) {
         strncpy(audio->title, json_object_get_string(title),
                 TELEBOT_AUDIO_TITLE_SIZE);
         json_object_put(title);
     }
-    
+
     struct json_object *mime_type;
     if (json_object_object_get_ex(obj, "mime_type", &mime_type))
         strncpy(audio->mime_type, json_object_get_string(mime_type),
                 TELEBOT_AUDIO_MIME_TYPE_SIZE);
-    
+
     struct json_object *file_size;
     if (json_object_object_get_ex(obj, "file_size", &file_size))
         audio->file_size = json_object_get_int(file_size);
-    
+
     return TELEBOT_ERROR_NONE;
 }
 
 telebot_error_e telebot_parser_get_document(struct json_object *obj,
-                                            telebot_document_t *document)
+        telebot_document_t *document)
 {
-    
+
     if (obj == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
-    
+
     if (document == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
-    
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_profile_photos(struct json_object *obj,
+        telebot_userphotos_t *photos)
+{
     return TELEBOT_ERROR_NONE;
 }
 
@@ -541,4 +547,9 @@ telebot_error_e telebot_parser_get_location(struct json_object *obj,
     return TELEBOT_ERROR_NONE;
 }
 
+telebot_error_e telebot_parser_get_file_path(struct json_object *obj,
+        char **path) {
+
+    return TELEBOT_ERROR_NONE;
+}
 

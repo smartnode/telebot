@@ -45,6 +45,10 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
 telebot_error_e telebot_parser_get_document(struct json_object *obj,
         telebot_document_t *document);
 
+/** Prase profile photos object */
+telebot_error_e telebot_parser_get_profile_photos(struct json_object *obj,
+        telebot_userphotos_t *photos);
+
 /** Prase photos object */
 telebot_error_e telebot_parser_get_photos(struct json_object *obj,
         telebot_photosize_t photos[]);
@@ -68,6 +72,10 @@ telebot_error_e telebot_parser_get_contact(struct json_object *obj,
 /** Prase location object */
 telebot_error_e telebot_parser_get_location(struct json_object *obj,
         telebot_location_t *location);
+
+/** Prase location object */
+telebot_error_e telebot_parser_get_file_path(struct json_object *obj,
+        char **path);
 
 #endif /* __TELEBOT_PARSER_H__ */
 

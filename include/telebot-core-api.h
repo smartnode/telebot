@@ -42,20 +42,13 @@ extern "C" {
  */
 
 /**
- * @brief This object represents a telegram response in JSON form.
- */
-typedef struct _telebot_resp_t_ {
-    char  *data; /**< JSON response data */
-    size_t size; /**< Size of response data */
-} telebot_resp_t;
-
-/**
  * @brief This object represents a core telebot handler.
  */
 typedef struct _telebot_core_h_ {
     char *token; /**< Telegam bot token */
     int  offset; /**< Telegam last update id */
-    telebot_resp_t *response; /**< Telegam response object */
+    char *resp_data; /**< Telegam response object */
+    size_t resp_size; /**< Telegam response size */
 } telebot_core_h;
 
 /**
@@ -86,7 +79,7 @@ telebot_error_e telebot_core_destroy(telebot_core_h *handler);
  * @brief This function gets basic information about the bot.
  * @param handler The telebot handler created with telebot_core_create().
  * @return On success, TELEBOT_ERROR_NONE is returned. Response is placed in 
- * handler->response. All core API responses are JSON objects. It MUST be freed 
+ * handler->resp_data. All core API responses are JSON objects. It MUST be freed 
  * after use.
  */
 telebot_error_e telebot_core_get_me(telebot_core_h *handler);
@@ -107,7 +100,7 @@ telebot_error_e telebot_core_get_me(telebot_core_h *handler);
  * @param timeout Timeout in seconds for long polling. Defaults to 0, i.e. usual 
  * short polling.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response. It MUST be freed after use.
+ * handler->resp_data. It MUST be freed after use.
  */
 telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset, 
         int limit, int timeout);
@@ -121,7 +114,7 @@ telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset,
  * @param limit Limits the number of photos to be retrieved. Values between 
  * 1—100 are accepted. Defaults to 100.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response. It MUST be freed after use.
+ * handler->resp_data. It MUST be freed after use.
  */
 telebot_error_e telebot_core_get_user_profile_photos(telebot_core_h *handler, 
         int user_id, int offset, int limit);
@@ -132,7 +125,7 @@ telebot_error_e telebot_core_get_user_profile_photos(telebot_core_h *handler,
  * @param handler The telebot handler created with telebot_core_create().
  * @param file_id File identifier to get info about.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response, which contains a File object. It MUST be freed after use.
+ * handler->resp_data, which contains a File object. It MUST be freed after use.
  */
 telebot_error_e telebot_core_get_file(telebot_core_h *handler, char *file_id);
 
@@ -161,7 +154,7 @@ telebot_error_e telebot_core_download_file(telebot_core_h *handler, char *file_p
  * @param reply_markup Additional interface options. An object for a custom 
  * reply keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response. It MUST be freed after use.
+ * handler->resp_data. It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_message(telebot_core_h *handler, char *chat_id,
         char *text, char *parse_mode, bool disable_web_page_preview,
@@ -176,7 +169,7 @@ telebot_error_e telebot_core_send_message(telebot_core_h *handler, char *chat_id
  * message was sent (or channel username in the format @channelusername).
  * @param message_id Unique message identifier.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response that contains the sent message. It MUST be freed after use.
+ * handler->resp_data that contains the sent message. It MUST be freed after use.
  */
 telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
         char *chat_id, char *from_chat_id, int message_id);
@@ -195,7 +188,7 @@ telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
  * reply keyboard, instructions to hide keyboard or to force a reply from 
  * the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response that contains the sent message. It MUST be freed after use.
+ * handler->resp_data that contains the sent message. It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_photo(telebot_core_h *handler, char *chat_id,
         char *photo, bool is_file, char *caption, int reply_to_message_id,
@@ -222,7 +215,7 @@ telebot_error_e telebot_core_send_photo(telebot_core_h *handler, char *chat_id,
  * @param reply_markup Additional interface options. An object for a custom reply 
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response that contains the sent message. It MUST be freed after use.
+ * handler->resp_data that contains the sent message. It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_audio(telebot_core_h *handler, char *chat_id,
         char *audio, bool is_file, int duration, char *performer, char *title,
@@ -240,7 +233,7 @@ telebot_error_e telebot_core_send_audio(telebot_core_h *handler, char *chat_id,
  * @param reply_markup Additional interface options. An object for a custom reply 
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response that contains the sent message. It MUST be freed after use.
+ * handler->resp_data that contains the sent message. It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_document(telebot_core_h *handler, char *chat_id,
         char *document, bool is_file, int reply_to_message_id,
@@ -258,7 +251,7 @@ telebot_error_e telebot_core_send_document(telebot_core_h *handler, char *chat_i
  * @param reply_markup Additional interface options. An object for a custom reply 
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response that contains the sent message. It MUST be freed after use.
+ * handler->resp_data that contains the sent message. It MUST be freed after use.
  */
 
 telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, char *chat_id,
@@ -277,7 +270,7 @@ telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, char *chat_id
  * @param reply_markup Additional interface options. An object for a custom reply 
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response that contains the sent message. It MUST be freed after use.
+ * handler->resp_data that contains the sent message. It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_video(telebot_core_h *handler, char *chat_id,
         char *video, bool is_file, int duration, char *caption,
@@ -298,7 +291,7 @@ telebot_error_e telebot_core_send_video(telebot_core_h *handler, char *chat_id,
  * @param reply_markup Additional interface options. An object for a custom reply 
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response that contains the sent message. It MUST be freed after use.
+ * handler->resp_data that contains the sent message. It MUST be freed after use.
  */
 
 telebot_error_e telebot_core_send_voice(telebot_core_h *handler, char *chat_id,
@@ -316,7 +309,7 @@ telebot_error_e telebot_core_send_voice(telebot_core_h *handler, char *chat_id,
  * @param reply_markup Additional interface options. An object for a custom reply 
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
- * handler->response that contains the sent message. It MUST be freed after use.
+ * handler->resp_data that contains the sent message. It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_location(telebot_core_h *handler, char *chat_id,
         float latitude, float longitude, int reply_to_message_id, 

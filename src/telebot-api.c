@@ -44,7 +44,7 @@ telebot_error_e telebot_create(char *token)
         return TELEBOT_ERROR_OUT_OF_MEMORY;
     }
 
-    int ret = telebot_core_create(g_handler, token);
+    telebot_error_e ret = telebot_core_create(g_handler, token);
     if (ret != TELEBOT_ERROR_NONE) {
         free(g_handler);
         return ret;
@@ -80,9 +80,10 @@ telebot_error_e telebot_start(telebot_update_cb_f update_cb)
         ERR("Failed to init pthread attributes, error: %d", errno);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
+
     ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     if (ret != 0) {
-        ERR("Failed to set PHTREAD_CREATE_DETACHED attribute, error: %d", errno);
+        ERR("Failed to set pthread detatched attribute, error: %d", errno);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -110,7 +111,8 @@ telebot_error_e telebot_stop()
 
 static void *telebot_polling_thread(void *data)
 {
-    int ret, index;
+    int index;
+    telebot_error_e ret;
 
     while (g_run_telebot) {
         ret = telebot_core_get_updates(g_handler, g_handler->offset,
@@ -120,8 +122,7 @@ static void *telebot_polling_thread(void *data)
 
         telebot_update_t udates[TELEBOT_UPDATE_COUNT_PER_REQUEST];
         int count;
-        char *tmp = g_handler->response->data;
-        ret = telebot_parser_get_updates(tmp, udates, &count);
+        ret = telebot_parser_get_updates(g_handler->resp_data, udates, &count);
         if (ret != TELEBOT_ERROR_NONE)
             continue;
 
@@ -131,8 +132,8 @@ static void *telebot_polling_thread(void *data)
             g_update_cb((const telebot_message_t *)&(udates[index].message));
         }
 
-        free(g_handler->response->data);
-        g_handler->response->size = 0;
+        free(g_handler->resp_data);
+        g_handler->resp_size = 0;
 
         usleep(TELEBOT_UPDATE_POLLING_INTERVAL);
     }
@@ -146,37 +147,36 @@ telebot_error_e telebot_get_me(telebot_user_t **me)
 {
     if (me == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
-    
+
     if (g_handler == NULL) {
         *me = NULL;
         return TELEBOT_ERROR_NOT_SUPPORTED;
     }
-    
-    telebot_user_t *tme = (telebot_user_t*)malloc(sizeof(telebot_user_t));
-    if (tme == NULL) {
+
+    telebot_user_t *tmp = (telebot_user_t*)malloc(sizeof(telebot_user_t));
+    if (tmp == NULL) {
         *me = NULL;
         return TELEBOT_ERROR_OUT_OF_MEMORY;
     }
-    
-    int ret = telebot_core_get_me(g_handler);
+
+    telebot_error_e ret = telebot_core_get_me(g_handler);
     if (ret != TELEBOT_ERROR_NONE)
         return ret;
-    
-    char *tmp = g_handler->response->data;
-    struct json_object *obj = telebot_parser_str_to_obj(tmp);
-    ret = telebot_parser_get_user(obj, tme);
-    free(g_handler->response->data);
-    g_handler->response->size = 0;
+
+    struct json_object *obj = telebot_parser_str_to_obj(g_handler->resp_data);
+    ret = telebot_parser_get_user(obj, tmp);
+    free(g_handler->resp_data);
+    g_handler->resp_size = 0;
     json_object_put(obj);
-    
+
     if (ret != TELEBOT_ERROR_NONE) {
         *me = NULL;
-        free(tme);
+        free(tmp);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    
-    *me = tme;
-    
+
+    *me = tmp;
+
     return TELEBOT_ERROR_NONE;
 }
 
@@ -184,7 +184,7 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
 {
     if (count == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
-    
+
     if (updates == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -194,8 +194,8 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
         return TELEBOT_ERROR_NOT_SUPPORTED;
     }
 
-    int ret = telebot_core_get_updates(g_handler, g_handler->offset,
-                                   TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
+    telebot_error_e ret = telebot_core_get_updates(g_handler, g_handler->offset,
+            TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
     if (ret != TELEBOT_ERROR_NONE) {
         *count = 0;
         *updates = NULL;
@@ -203,7 +203,7 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
     }
 
     telebot_update_t *ups = calloc(TELEBOT_UPDATE_COUNT_PER_REQUEST,
-                            sizeof(telebot_update_t));
+            sizeof(telebot_update_t));
     if (ups == NULL) {
         *count = 0;
         *updates = NULL;
@@ -211,38 +211,66 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
     }
 
     int cnt;
-    ret = telebot_parser_get_updates(g_handler->response->data, ups, &cnt);
+    ret = telebot_parser_get_updates(g_handler->resp_data, ups, &cnt);
     if (ret != TELEBOT_ERROR_NONE) {
         *count = 0;
         *updates = NULL;
         free(ups);
         return ret;
     }
-    
+
     int index;
     for (index = 0;index < cnt; index++)
         if (ups[index].update_id >= g_handler->offset)
             g_handler->offset = ups[index].update_id + 1;
-    
-    free(g_handler->response->data);
-    g_handler->response->size = 0;
-    
+
+    free(g_handler->resp_data);
+    g_handler->resp_size = 0;
+
     *updates = ups;
     *count = cnt;
-    
+
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_get_user_profile_photos(int user_id, int limit,
+telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
         telebot_userphotos_t **photos)
 {
     if (photos == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (g_handler == NULL)
+    if (g_handler == NULL) {
+        *photos = NULL;
         return TELEBOT_ERROR_NOT_SUPPORTED;
+    }
 
-    //TODO: implement
+    telebot_userphotos_t *tmp = 
+        (telebot_userphotos_t*)malloc(sizeof(telebot_userphotos_t));
+    if (tmp == NULL) {
+        *photos = NULL;
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    telebot_error_e ret = telebot_core_get_user_profile_photos(g_handler,
+            user_id, offset, TELEBOT_USER_PHOTOS_MAX_LIMIT);
+    if (ret != TELEBOT_ERROR_NONE) {
+        *photos = NULL;
+        return ret;
+    }
+
+    struct json_object *obj = telebot_parser_str_to_obj(g_handler->resp_data);
+    ret = telebot_parser_get_profile_photos(obj, tmp);
+    free(g_handler->resp_data);
+    g_handler->resp_size = 0;
+    json_object_put(obj);
+
+    if (ret != TELEBOT_ERROR_NONE) {
+        *photos = NULL;
+        free(tmp);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    *photos = tmp;
 
     return TELEBOT_ERROR_NONE;
 }
@@ -252,7 +280,27 @@ telebot_error_e telebot_download_file(char *file_id, char *path)
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    return TELEBOT_ERROR_NONE;
+    if (file_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_get_file(g_handler, file_id);
+    if (ret != TELEBOT_ERROR_NONE)
+        return ret;
+
+    char *file_path;
+    struct json_object *obj = telebot_parser_str_to_obj(g_handler->resp_data);
+    ret = telebot_parser_get_file_path(obj, &file_path);
+    free(g_handler->resp_data);
+    g_handler->resp_size = 0;
+    json_object_put(obj);
+
+    ret = telebot_core_download_file(g_handler, file_path, path);
+    free(file_path);
+    g_handler->resp_size = 0;
+    if (g_handler->resp_data != NULL)
+        free(g_handler->resp_data);
+
+    return ret;
 }
 
 telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode,
@@ -271,8 +319,8 @@ telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode
             parse_mode, disable_web_page_preview, reply_to_message_id,
             reply_markup);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -292,8 +340,8 @@ telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
     telebot_error_e ret = telebot_core_forward_message(g_handler, chat_id,
             from_chat_id, message_id);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -313,8 +361,8 @@ telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
     telebot_error_e ret = telebot_core_send_photo(g_handler, chat_id, photo,
             is_file, caption, reply_to_message_id, reply_markup);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -336,8 +384,8 @@ telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
             is_file, duration, performer, title, reply_to_message_id,
             reply_markup);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -357,8 +405,8 @@ telebot_error_e telebot_send_document(char *chat_id, char *document,
     telebot_error_e ret = telebot_core_send_document(g_handler, chat_id,
             document, is_file, reply_to_message_id, reply_markup);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -378,8 +426,8 @@ telebot_error_e telebot_send_sticker(char *chat_id, char *sticker,
     telebot_error_e ret = telebot_core_send_sticker(g_handler, chat_id, sticker,
             is_file, reply_to_message_id, reply_markup);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -399,8 +447,8 @@ telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
     telebot_error_e ret = telebot_core_send_video(g_handler, chat_id, video,
             is_file, duration, caption, reply_to_message_id, reply_markup);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -420,8 +468,8 @@ telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
     telebot_error_e ret = telebot_core_send_voice(g_handler, chat_id, voice,
             is_file, duration, reply_to_message_id, reply_markup);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -438,8 +486,8 @@ telebot_error_e telebot_send_location(char *chat_id, float latitude,
     telebot_error_e ret = telebot_core_send_location(g_handler, chat_id,
             latitude, longitude, reply_to_message_id, reply_markup);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
@@ -454,8 +502,8 @@ telebot_error_e telebot_send_chat_action(char *chat_id, char *action)
 
     telebot_error_e ret = telebot_core_send_chat_action(g_handler, chat_id, action);
 
-    if (g_handler->response->data)
-        free(g_handler->response->data);
+    if (g_handler->resp_data)
+        free(g_handler->resp_data);
 
     return ret;
 }
