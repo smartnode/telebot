@@ -409,7 +409,7 @@ telebot_error_e telebot_create(char *token);
  * It is the opposite of the telebot_create() function.
  * @return On success, TELEBOT_ERROR_NONE is returned.
  */
-telebot_error_e telebot_destory();
+telebot_error_e telebot_destroy();
 
 /**
  * @brief This function is used start to receiving Telegram bot updates.
