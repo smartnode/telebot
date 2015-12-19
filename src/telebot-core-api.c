@@ -97,6 +97,8 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_h *handler,
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
+    DBG("Response: %s", handler->resp_data);
+
     curl_easy_cleanup(curl_h);
 
     return TELEBOT_ERROR_NONE;
