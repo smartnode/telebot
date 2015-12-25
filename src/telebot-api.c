@@ -118,26 +118,18 @@ static void *telebot_polling_thread(void *data)
     telebot_error_e ret;
 
     while (g_run_telebot) {
-        ret = telebot_core_get_updates(g_handler, g_handler->offset,
-                TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
-        if (ret != TELEBOT_ERROR_NONE)
-            continue;
-
-        telebot_update_t udates[TELEBOT_UPDATE_COUNT_PER_REQUEST];
         int count;
-        ret = telebot_parser_get_updates(g_handler->resp_data, udates, &count);
+        telebot_update_t *updates;
+        ret = telebot_get_updates(&updates, &count);
         if (ret != TELEBOT_ERROR_NONE)
             continue;
 
         for (index = 0;index < count; index++) {
-            if (udates[index].update_id >= g_handler->offset)
-                g_handler->offset = udates[index].update_id + 1;
-            g_update_cb((const telebot_message_t *)&(udates[index].message));
+            g_update_cb((const telebot_message_t *)&(updates[index].message));
         }
 
-        free(g_handler->resp_data);
-        g_handler->resp_data = NULL;
-        g_handler->resp_size = 0;
+        free(updates);
+        updates = NULL;
 
         usleep(TELEBOT_UPDATE_POLLING_INTERVAL);
     }
@@ -214,45 +206,64 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
     if (updates == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (g_handler == NULL) {
-        *updates = NULL;
-        count = 0;
+    *updates = NULL;
+    *count = 0;
+
+    if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
-    }
 
     telebot_error_e ret = telebot_core_get_updates(g_handler, g_handler->offset,
             TELEBOT_UPDATE_COUNT_PER_REQUEST, 0);
-    if (ret != TELEBOT_ERROR_NONE) {
-        *count = 0;
-        *updates = NULL;
+    if (ret != TELEBOT_ERROR_NONE)
         return ret;
+
+    struct json_object *obj = telebot_parser_str_to_obj(g_handler->resp_data);
+    free(g_handler->resp_data);
+    g_handler->resp_data = NULL;
+    g_handler->resp_size = 0;
+
+    struct json_object *ok;
+    if (!json_object_object_get_ex(obj, "ok", &ok)) {
+        json_object_put(obj);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    if (!json_object_get_boolean(ok)) {
+        json_object_put(ok);
+        json_object_put(obj);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+    json_object_put(ok);
+
+    struct json_object *result;
+    if (!json_object_object_get_ex(obj, "result", &result)){
+        json_object_put(obj);
+        return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
     telebot_update_t *ups = calloc(TELEBOT_UPDATE_COUNT_PER_REQUEST,
             sizeof(telebot_update_t));
     if (ups == NULL) {
-        *count = 0;
-        *updates = NULL;
+        json_object_put(result);
+        json_object_put(obj);
         return TELEBOT_ERROR_OUT_OF_MEMORY;
     }
 
     int cnt;
-    ret = telebot_parser_get_updates(g_handler->resp_data, ups, &cnt);
+    ret = telebot_parser_get_updates(result, ups, &cnt);
+    json_object_put(result);
+    json_object_put(obj);
+
     if (ret != TELEBOT_ERROR_NONE) {
-        *count = 0;
-        *updates = NULL;
         free(ups);
         return ret;
     }
 
     int index;
-    for (index = 0;index < cnt; index++)
+    for (index = 0;index < cnt; index++) {
         if (ups[index].update_id >= g_handler->offset)
             g_handler->offset = ups[index].update_id + 1;
-
-    free(g_handler->resp_data);
-    g_handler->resp_data = NULL;
-    g_handler->resp_size = 0;
+    }
 
     *updates = ups;
     *count = cnt;

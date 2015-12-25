@@ -32,22 +32,16 @@ struct json_object *telebot_parser_str_to_obj(char *data)
     return json_tokener_parse(data);
 }
 
-telebot_error_e telebot_parser_get_updates(char *data, telebot_update_t updates[],
-        int *count)
+telebot_error_e telebot_parser_get_updates(struct json_object *obj,
+        telebot_update_t updates[], int *count)
 {
-    if (data == NULL)
+    if (obj == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     if (updates == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = json_tokener_parse(data);
-    struct json_object *array;
-    if (!json_object_object_get_ex(obj, "update", &array)) {
-        ERR("Failed to get update array from response data");
-        return TELEBOT_ERROR_OPERATION_FAILED;
-    }
-
+    struct json_object *array = obj;
     int array_len = json_object_array_length(array);
     if (!array_len)
         return TELEBOT_ERROR_OPERATION_FAILED;
@@ -78,9 +72,6 @@ telebot_error_e telebot_parser_get_updates(char *data, telebot_update_t updates[
         json_object_put(message);
         json_object_put(item);
     }
-
-    json_object_put(obj);
-    json_object_put(array);
 
     return TELEBOT_ERROR_NONE;
 }

@@ -22,8 +22,8 @@
 struct json_object *telebot_parser_str_to_obj(char *data);
 
 /** Get update from Json Object */
-telebot_error_e telebot_parser_get_updates(char *data, telebot_update_t *updates,
-        int *count);
+telebot_error_e telebot_parser_get_updates(struct json_object *obj,
+        telebot_update_t *updates, int *count);
 
 /** Parse message object */
 telebot_error_e telebot_parser_get_message(struct json_object *obj,
