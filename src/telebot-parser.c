@@ -135,17 +135,17 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         json_object_put(forward_date);
     }
 
-    //FIXME: allocate memory, using alloca()
-    /*
-       struct json_object *reply_to_message;
-       if (json_object_object_get_ex(obj, "reply_to_message", &reply_to_message)) {
-       telebot_message_t *reply = alloca(sizeof(telebot_message_t));
-       ret = telebot_parser_get_message(reply_to_message , reply);
-       if (ret != TELEBOT_ERROR_NONE)
-       ERR("Failed to get <reply_to_message> from message object");
-       msg->reply_to_message = reply;
-       }
-       */
+/* FIXME: allocating memory with alloca(), it is really wrong. */
+/*
+    struct json_object *reply_to_message;
+    if (json_object_object_get_ex(obj, "reply_to_message", &reply_to_message)) {
+        telebot_message_t *reply = alloca(sizeof(telebot_message_t));
+        ret = telebot_parser_get_message(reply_to_message , reply);
+        if (ret != TELEBOT_ERROR_NONE)
+            ERR("Failed to get <reply_to_message> from message object");
+        msg->reply_to_message = reply;
+    }
+*/
 
     struct json_object *text;
     if (json_object_object_get_ex(obj, "text", &text)) {
@@ -542,13 +542,18 @@ telebot_error_e telebot_parser_get_profile_photos(struct json_object *obj,
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
-    //FIXME: not sure below code is correct.
-    int index;
-    int array_len = json_object_array_length(array);
+    int i, j, k = 0, n, m;
+    n = json_object_array_length(array);
     telebot_error_e ret = TELEBOT_ERROR_NONE;
-    for (index=0;index<array_len;index++) {
-        struct json_object *item = json_object_array_get_idx(array, index);
-        ret |= telebot_parser_get_photos(item, tmp + index*sizeof(telebot_photo_t), 4);
+    for (i=0;i<n;i++) {
+        struct json_object *item = json_object_array_get_idx(array, i);
+        m = json_object_array_length(item);
+        for(j=0;j<m;j++) {
+            struct json_object *photo = json_object_array_get_idx(item, j);
+            ret |= telebot_parser_get_photo(photo, &(tmp[k]));
+            json_object_put(photo);
+            k++;
+        }
         json_object_put(item);
     }
     json_object_put(array);
@@ -920,8 +925,8 @@ telebot_error_e telebot_parser_get_file_path(struct json_object *obj,
         json_object_put (file_path);
     }
     else {
-       *path = NULL;
-       return TELEBOT_ERROR_OPERATION_FAILED;
+        *path = NULL;
+        return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
     return TELEBOT_ERROR_NONE;
