@@ -33,8 +33,8 @@ extern "C" {
  */
 
 /**
- * @defgroup TELEBOT_CORE_API		Telegram Bot API
- * @brief Telebot Library
+ * @defgroup TELEBOT_CORE_API		Core Telegram Bot API
+ * @brief The APIs for the telegram bot interface
  *
  *
  * @addtogroup TELEBOT_CORE_API
@@ -44,7 +44,7 @@ extern "C" {
 /**
  * @brief This object represents a core telebot handler.
  */
-typedef struct _telebot_core_h_ {
+typedef struct telebot_core_handler {
     char *token; /**< Telegam bot token */
     int  offset; /**< Telegam last update id */
     char *resp_data; /**< Telegam response object */
@@ -102,7 +102,7 @@ telebot_error_e telebot_core_get_me(telebot_core_h *handler);
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
  * handler->resp_data. It MUST be freed after use.
  */
-telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset, 
+telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset,
         int limit, int timeout);
 
 /**
@@ -116,7 +116,7 @@ telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset,
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
  * handler->resp_data. It MUST be freed after use.
  */
-telebot_error_e telebot_core_get_user_profile_photos(telebot_core_h *handler, 
+telebot_error_e telebot_core_get_user_profile_photos(telebot_core_h *handler,
         int user_id, int offset, int limit);
 
 /**
@@ -136,6 +136,7 @@ telebot_error_e telebot_core_get_file(telebot_core_h *handler, char *file_id);
  * calling telebot_core_get_file() again.
  * @param handler The telebot handler created with telebot_core_create().
  * @param file_path A file path take from the response of telebot_core_get_file()
+ * @param out_file Full path to download and save file.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
 telebot_error_e telebot_core_download_file(telebot_core_h *handler, char *file_path,
@@ -145,7 +146,7 @@ telebot_error_e telebot_core_download_file(telebot_core_h *handler, char *file_p
  * @brief This function is used to send text messages.
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the 
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param text Text of the message to be sent.
  * @param parse_mode Send Markdown, if you want Telegram apps to show bold, 
  * italic and inline URLs in your bot's message.
@@ -164,9 +165,9 @@ telebot_error_e telebot_core_send_message(telebot_core_h *handler, char *chat_id
  * @brief This function is used to forward messages of any kind.
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the 
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param from_chat_id Unique identifier for the chat where the original 
- * message was sent (or channel username in the format @channelusername).
+ * message was sent (or channel username in the format \@channelusername).
  * @param message_id Unique message identifier.
  * @return on Success, TELEBOT_ERROR_NONE is returned. Response is placed in
  * handler->resp_data that contains the sent message. It MUST be freed after use.
@@ -178,7 +179,7 @@ telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
  * @brief This functionis used to send photos.
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param photo Photo to send. It is either file_id as String to resend a photo
  * that is already on the Telegram servers, or a path to photo file.
  * @param is_file False if photo is file_id, true, if photo is a file path.
@@ -204,7 +205,7 @@ telebot_error_e telebot_core_send_photo(telebot_core_h *handler, char *chat_id,
  * telegram_core_send_voice() function instead.
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param audio Audio file to send. It is either a file_id as String to resend an
  * audio that is already on the Telegram servers, or a path to audio file.
  * @param is_file False if audio is file_id, true, if audio is a file path.
@@ -225,7 +226,7 @@ telebot_error_e telebot_core_send_audio(telebot_core_h *handler, char *chat_id,
  * @brief This function is used to send general files.
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param document Document file to send. It is either a file_id as String to 
  * resend a file that is already on the Telegram servers, or a path to file.
  * @param is_file False if document is file_id, true, if document is a file path.
@@ -243,7 +244,7 @@ telebot_error_e telebot_core_send_document(telebot_core_h *handler, char *chat_i
  * @brief This function is used to to send .webp stickers.
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername)
+ * target channel (in the format \@channelusername)
  * @param sticker Sticker file to send. It is either a file_id as String to 
  * resend a sticker that is already on the Telegram servers, or a path to file.
  * @param is_file False if sticker is file_id, true, if sticker is a file path.
@@ -262,10 +263,12 @@ telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, char *chat_id
  * mp4 videos (other formats may be sent as Document).
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param video Video file to send. It is either a file_id as String to resend
  * a video that is already on the Telegram servers, or a path to video file.
  * @param is_file False if video is file_id, true, if video is a file path.
+ * @param duration Duration of sent video in seconds.
+ * @param caption Video caption (may also be used when resending videos).
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply 
  * keyboard, instructions to hide keyboard or to force a reply from the user.
@@ -283,10 +286,11 @@ telebot_error_e telebot_core_send_video(telebot_core_h *handler, char *chat_id,
  * 50 MB in size.
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param voice Audio file to send. It is either a file_id as String to resend 
  * a audio that is already on the Telegram servers, or a path to audio file.
  * @param is_file False if voice is file_id, true, if voice is a file path.
+ * @param duration Duration of sent voice/audio in seconds.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply 
  * keyboard, instructions to hide keyboard or to force a reply from the user.
@@ -302,7 +306,7 @@ telebot_error_e telebot_core_send_voice(telebot_core_h *handler, char *chat_id,
  * @brief This function is used to send point on the map.
  * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param latitude Latitude of location.
  * @param longitude Longitude of location.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
@@ -325,8 +329,9 @@ telebot_error_e telebot_core_send_location(telebot_core_h *handler, char *chat_i
  * The user will see a “sending photo” status for the bot.
  * It is only recommended to use when a response from the bot will take a 
  * noticeable amount of time to arrive.
+ * @param handler The telebot handler created with telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the 
- * target channel (in the format @channelusername)
+ * target channel (in the format \@channelusername)
  * @param action Type of action to broadcast. Choose one, depending on what the 
  * user is about to receive: typing for text messages, upload_photo for photos, 
  * record_video or upload_video for videos, record_audio or upload_audio for 
@@ -342,6 +347,7 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_h *handler,
  * send an HTTPS POST request to the specified url, containing a JSON-serialized 
  * Update. In case of an unsuccessful request, we will give up after a reasonable 
  * amount of attempts.
+ * @param handler The telebot handler created with telebot_core_create().
  * @param url HTTPS url to send updates to. Use an empty string to remove webhook 
  * integration
  * @param certificate A path to to a public key certificate to upload server.

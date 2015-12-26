@@ -32,8 +32,8 @@ extern "C" {
  */
 
 /**
- * @defgroup TELEBOT_API		Telegram Bot API
- * @brief Telebot Library
+ * @defgroup TELEBOT_API		Simple Telegram Bot API
+ * @brief Simplified APIs to create telegram bot.
  *
  *
  * @addtogroup TELEBOT_API
@@ -43,7 +43,7 @@ extern "C" {
 /**
  * @brief This object represents a Telegram user or bot.
  */
-typedef struct _telebot_user_t_ {
+typedef struct telebot_user {
     /** Unique identifier for this user or bot */
     int id;
 
@@ -60,7 +60,7 @@ typedef struct _telebot_user_t_ {
 /**
  * @brief This object represents a chat.
  */
-typedef struct _telebot_chat_t_ {
+typedef struct telebot_chat {
     /** Unique identifier for this chat, not exceeding 1e13 by absolute value */
     int id;
 
@@ -84,7 +84,7 @@ typedef struct _telebot_chat_t_ {
  * @brief This object represents one size of a photo or a file / sticker 
  * thumbnail.
  */
-typedef struct _telebot_photo_t_ {
+typedef struct telebot_photo {
     /** Unique identifier for this file */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
@@ -102,7 +102,7 @@ typedef struct _telebot_photo_t_ {
  * @brief This object represents an audio file to be treated as music by the
  * Telegram clients.
  */
-typedef struct _telebot_audio_t_ {
+typedef struct telebot_audio {
     /** Unique identifier for this file */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
@@ -126,7 +126,7 @@ typedef struct _telebot_audio_t_ {
  * @brief This object represents a general file (as opposed to photos, voice
  * messages and audio files).
  */
-typedef struct _telebot_document_t_ {
+typedef struct telebot_document {
     /** Unique file identifier. */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
@@ -146,7 +146,7 @@ typedef struct _telebot_document_t_ {
 /**
  * @brief This object represents a sticker.
  */
-typedef struct _telebot_sticker_t_ {
+typedef struct telebot_sticker {
     /** Unique identifier for this file */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
@@ -166,7 +166,7 @@ typedef struct _telebot_sticker_t_ {
 /**
  * @brief This object represents a video file.
  */
-typedef struct _telebot_video_t_ {
+typedef struct telebot_video {
     /** Unique identifier for this file */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
@@ -192,7 +192,7 @@ typedef struct _telebot_video_t_ {
 /**
  * @brief This object represents a voice note.
  */
-typedef struct _telebot_voice_t_ {
+typedef struct telebot_voice {
     /** Unique identifier for this file */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
@@ -209,7 +209,7 @@ typedef struct _telebot_voice_t_ {
 /**
  * @brief This object represents a phone contact.
  */
-typedef struct _telebot_contact_t_ {
+typedef struct telebot_contact {
     /** Contact's phone number */
     char phone_number[TELEBOT_PHONE_NUMBER_SIZE];
 
@@ -227,7 +227,7 @@ typedef struct _telebot_contact_t_ {
  * @brief This object represents a point on the map.
  */
 
-typedef struct _telebot_location_t_ {
+typedef struct telebot_location {
    /** Longitude as defined by sender */
     float longitude;
 
@@ -239,12 +239,12 @@ typedef struct _telebot_location_t_ {
  * @brief This object represents a file ready to be downloaded.
  *
  * The file can be downloaded via the link 
- * https://api.telegram.org/file/bot<token>/<file_path>.
+ * https://api.telegram.org/file/bot[token]/[file_path].
  * It is guaranteed that the link will be valid for at least 1 hour.
  * When the link expires, a new one can be requested by calling getFile.
  * Maximum file size to download is 20 MB.
  */
-typedef struct _telebot_file_t_ {
+typedef struct telebot_file {
     /** Unique identifier for this file */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
@@ -259,7 +259,7 @@ typedef struct _telebot_file_t_ {
 /**
  * @brief This object represents a message.
  */
-typedef struct telebot_message_s {
+typedef struct telebot_message {
     /** Unique message identifier */
     int message_id;
 
@@ -286,7 +286,7 @@ typedef struct telebot_message_s {
      * field will not contain further reply_to_message fields even if it itself
      * is a reply.
      */
-    struct telebot_message_s  *reply_to_message;
+    struct telebot_message  *reply_to_message;
 
     /** Optional. For text messages, the actual UTF-8 text of the message */
     char text[TELEBOT_MESSAGE_TEXT_SIZE];
@@ -365,7 +365,7 @@ typedef struct telebot_message_s {
 /**
  * @brief This object represents an incoming update.
  */
-typedef struct _telebot_update_t_ {
+typedef struct telebot_update {
     /**
      * The update's unique identifier. Update identifiers start from a certain
      * positive number and increase sequentially.
@@ -433,7 +433,7 @@ telebot_error_e telebot_get_me(telebot_user_t **me);
 /**
  * @brief This function is used to get latest updates. It is alternative for
  * telebot_start() function, if you want to poll updates.
- * @param Pointer to the updates object address. This pointer MUST be freed.
+ * @param updates Pointer to the updates object address. It MUST be freed.
  * @param count Pointer to put number of updates received.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
@@ -460,11 +460,10 @@ telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
  */
 telebot_error_e telebot_download_file(char *file_id, char *path);
 
-
 /**
  * @brief This function is used to send text messages.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param text Text of the message to be sent.
  * @param parse_mode Send Markdown, if you want Telegram apps to show bold,
  * italic and inline URLs in your bot's message.
@@ -480,9 +479,9 @@ telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode
 /**
  * @brief This function is used to forward messages of any kind.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param from_chat_id Unique identifier for the chat where the original
- * message was sent (or channel username in the format @channelusername).
+ * message was sent (or channel username in the format \@channelusername).
  * @param message_id Unique message identifier.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
@@ -492,7 +491,7 @@ telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
 /**
  * @brief This functionis used to send photos.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param photo Photo to send. It is either file_id as String to resend a photo
  * that is already on the Telegram servers, or a path to photo file.
  * @param is_file False if photo is file_id, true, if photo is a file path.
@@ -514,7 +513,7 @@ telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
  * a playable voice message. For this to work, the audio must be in an .ogg
  * file encoded with OPUS.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param audio Audio file to send. It is either a file_id as String to resend an
  * audio that is already on the Telegram servers, or a path to audio file.
  * @param is_file False if audio is file_id, true, if audio is a file path.
@@ -533,7 +532,7 @@ telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
 /**
  * @brief This function is used to send general files.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param document Document file to send. It is either a file_id as String to
  * resend a file that is already on the Telegram servers, or a path to file.
  * @param is_file False if document is file_id, true, if document is a file path.
@@ -548,7 +547,7 @@ telebot_error_e telebot_send_document(char *chat_id, char *document,
 /**
  * @brief This function is used to to send .webp stickers.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername)
+ * target channel (in the format \@channelusername)
  * @param sticker Sticker file to send. It is either a file_id as String to
  * resend a sticker that is already on the Telegram servers, or a path to file.
  * @param is_file False if sticker is file_id, true, if sticker is a file path.
@@ -564,11 +563,13 @@ telebot_error_e telebot_send_sticker(char *chat_id, char *sticker, bool is_file,
  * @brief This function is used to send video files, Telegram clients support
  * mp4 videos (other formats may be sent as Document).
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param video Video file to send. It is either a file_id as String to resend
  * a video that is already on the Telegram servers, or a path to video file.
  * @param is_file False if video is file_id, true, if video is a file path.
- * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param duration Duration of sent video in seconds.
+ * @param caption Video caption (may also be used when resending videos).
+ * @param reply_to_message_id Isend_videof the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
@@ -583,10 +584,11 @@ telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
  * sent as Audio or Document). Bots can currently send voice messages of up to
  * 50 MB in size.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param voice Audio file to send. It is either a file_id as String to resend
  * a audio that is already on the Telegram servers, or a path to audio file.
  * @param is_file False if voice is file_id, true, if voice is a file path.
+ * @param duration Duration of sent audio in seconds.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
@@ -598,7 +600,7 @@ telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
 /**
  * @brief This function is used to send point on the map.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername).
+ * target channel (in the format \@channelusername).
  * @param latitude Latitude of location.
  * @param longitude Longitude of location.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
@@ -620,7 +622,7 @@ telebot_error_e telebot_send_location(char *chat_id, float latitude,
  * It is only recommended to use when a response from the bot will take a
  * noticeable amount of time to arrive.
  * @param chat_id Unique identifier for the target chat or username of the
- * target channel (in the format @channelusername)
+ * target channel (in the format \@channelusername)
  * @param action Type of action to broadcast. Choose one, depending on what the
  * user is about to receive: typing for text messages, upload_photo for photos,
  * record_video or upload_video for videos, record_audio or upload_audio for
