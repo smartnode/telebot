@@ -84,7 +84,7 @@ typedef struct _telebot_chat_t_ {
  * @brief This object represents one size of a photo or a file / sticker 
  * thumbnail.
  */
-typedef struct _telebot_photosize_t_ {
+typedef struct _telebot_photo_t_ {
     /** Unique identifier for this file */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
@@ -96,7 +96,7 @@ typedef struct _telebot_photosize_t_ {
 
     /** Optional. File size */
     int file_size;
-} telebot_photosize_t;
+} telebot_photo_t;
 
 /**
  * @brief This object represents an audio file to be treated as music by the
@@ -131,7 +131,7 @@ typedef struct _telebot_document_t_ {
     char file_id[TELEBOT_FILE_ID_SIZE];
 
     /** Optional. Document thumbnail as defined by sender. */
-    telebot_photosize_t thumb;
+    telebot_photo_t thumb;
 
     /** Optional. Original filename as defined by sender. */
     char file_name[TELEBOT_FILE_NAME_SIZE];
@@ -157,7 +157,7 @@ typedef struct _telebot_sticker_t_ {
     int height;
 
     /** Optional. Sticker thumbnail in .webp or .jpg format */
-    telebot_photosize_t thumb;
+    telebot_photo_t thumb;
 
     /** Optional. File size */
     int file_size;
@@ -180,7 +180,7 @@ typedef struct _telebot_video_t_ {
     int duration;
 
     /** Optional. Video thumbnail */
-    telebot_photosize_t thumb;
+    telebot_photo_t thumb;
 
     /** Optional. Mime type of a file as defined by sender */
     char mime_type[TELEBOT_VIDEO_MIME_TYPE_SIZE];
@@ -234,14 +234,6 @@ typedef struct _telebot_location_t_ {
     /** Latitude as defined by sender */
     float latitude;
 } telebot_location_t;
-
-/**
- * @brief This object represent a user's profile pictures.
- */
-typedef struct _telebot_userphotos_t {
-    /** Requested profile pictures (in up to 4 sizes each) */
-    telebot_photosize_t photos[4];
-} telebot_userphotos_t;
 
 /**
  * @brief This object represents a file ready to be downloaded.
@@ -306,7 +298,7 @@ typedef struct telebot_message_s {
     telebot_document_t document;
 
     /** Optional. Message is a photo, available sizes of the photo */
-    telebot_photosize_t photo[TELEBOT_MESSAGE_PHOTO_SIZE];
+    telebot_photo_t photo[TELEBOT_MESSAGE_PHOTO_SIZE];
 
     /** Optional. Message is a sticker, information about the sticker */
     telebot_sticker_t sticker;
@@ -342,7 +334,7 @@ typedef struct telebot_message_s {
     char new_chat_title[TELEBOT_CHAT_TITLE_SIZE];
 
     /** Optional. A chat photo was change to this value */
-    telebot_photosize_t new_chat_photo[TELEBOT_MESSAGE_NEW_CHAT_PHOTO_SIZE];
+    telebot_photo_t new_chat_photo[TELEBOT_MESSAGE_NEW_CHAT_PHOTO_SIZE];
 
     /** Optional. Informs that the chat photo was deleted */
     bool delete_chat_photo;
@@ -452,13 +444,13 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count);
  * @param user_id Unique identifier of the target user.
  * @param offset Sequential number of the first photo to be returned.
  * By default, up to 10 photos are returned.
- * @param photos Pointer to the user photos object address. This pointer MUST
+ * @param photos Pointer to the photos object address. This pointer MUST
  * be freed after use.
  * @param count Pointer to the number of photos object.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
 telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
-        telebot_userphotos_t **photos, int *count);
+        telebot_photo_t **photos, int *count);
 
 /**
  * @brief This function is used to download file.

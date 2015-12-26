@@ -259,7 +259,7 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
 }
 
 telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
-        telebot_userphotos_t **photos, int *count)
+        telebot_photo_t **photos, int *count)
 {
     if (photos == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
