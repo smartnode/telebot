@@ -914,6 +914,16 @@ telebot_error_e telebot_parser_get_file_path(struct json_object *obj,
     if (path == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
+    struct json_object *file_path;
+    if (json_object_object_get_ex (obj, "file_path", &file_path)) {
+        *path = strdup(json_object_get_string(file_path));
+        json_object_put (file_path);
+    }
+    else {
+       *path = NULL;
+       return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
     return TELEBOT_ERROR_NONE;
 }
 
