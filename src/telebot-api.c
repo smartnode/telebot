@@ -329,6 +329,9 @@ telebot_error_e telebot_download_file(char *file_id, char *path)
     g_handler->resp_size = 0;
     json_object_put(obj);
 
+    if (file_path == NULL)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
     ret = telebot_core_download_file(g_handler, file_path, path);
     free(file_path);
     if (g_handler->resp_data != NULL) {
