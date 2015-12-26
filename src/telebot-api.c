@@ -241,77 +241,72 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
-    telebot_update_t *ups = calloc(TELEBOT_UPDATE_COUNT_PER_REQUEST,
-            sizeof(telebot_update_t));
-    if (ups == NULL) {
-        json_object_put(result);
-        json_object_put(obj);
-        return TELEBOT_ERROR_OUT_OF_MEMORY;
-    }
-
-    int cnt;
-    ret = telebot_parser_get_updates(result, ups, &cnt);
+    ret = telebot_parser_get_updates(result, updates, count);
     json_object_put(result);
     json_object_put(obj);
 
-    if (ret != TELEBOT_ERROR_NONE) {
-        free(ups);
+    if (ret != TELEBOT_ERROR_NONE)
         return ret;
-    }
 
-    int index;
+    int index, cnt = *count;
+    telebot_update_t *ups = *updates;
     for (index = 0;index < cnt; index++) {
         if (ups[index].update_id >= g_handler->offset)
             g_handler->offset = ups[index].update_id + 1;
     }
 
-    *updates = ups;
-    *count = cnt;
-
     return TELEBOT_ERROR_NONE;
 }
 
 telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
-        telebot_userphotos_t **photos)
+        telebot_userphotos_t **photos, int *count)
 {
     if (photos == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (g_handler == NULL) {
-        *photos = NULL;
-        return TELEBOT_ERROR_NOT_SUPPORTED;
-    }
+    if (count == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    telebot_userphotos_t *tmp = 
-        (telebot_userphotos_t*)malloc(sizeof(telebot_userphotos_t));
-    if (tmp == NULL) {
-        *photos = NULL;
-        return TELEBOT_ERROR_OUT_OF_MEMORY;
-    }
+    *photos = NULL;
+    *count = 0;
+
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
 
     telebot_error_e ret = telebot_core_get_user_profile_photos(g_handler,
             user_id, offset, TELEBOT_USER_PHOTOS_MAX_LIMIT);
-    if (ret != TELEBOT_ERROR_NONE) {
-        *photos = NULL;
+    if (ret != TELEBOT_ERROR_NONE)
         return ret;
-    }
 
     struct json_object *obj = telebot_parser_str_to_obj(g_handler->resp_data);
-    ret = telebot_parser_get_profile_photos(obj, tmp);
     free(g_handler->resp_data);
     g_handler->resp_data = NULL;
     g_handler->resp_size = 0;
-    json_object_put(obj);
 
-    if (ret != TELEBOT_ERROR_NONE) {
-        *photos = NULL;
-        free(tmp);
+    struct json_object *ok;
+    if (!json_object_object_get_ex(obj, "ok", &ok)) {
+        json_object_put(obj);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
-    *photos = tmp;
+    if (!json_object_get_boolean(ok)) {
+        json_object_put(ok);
+        json_object_put(obj);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+    json_object_put(ok);
 
-    return TELEBOT_ERROR_NONE;
+    struct json_object *result;
+    if (!json_object_object_get_ex(obj, "result", &result)){
+        json_object_put(obj);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    ret = telebot_parser_get_profile_photos(result, photos, count);
+    json_object_put(result);
+    json_object_put(obj);
+
+    return ret;
 }
 
 telebot_error_e telebot_download_file(char *file_id, char *path)

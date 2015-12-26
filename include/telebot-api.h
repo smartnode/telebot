@@ -150,7 +150,7 @@ typedef struct _telebot_sticker_t_ {
     /** Unique identifier for this file */
     char file_id[TELEBOT_FILE_ID_SIZE];
 
-    /**< Sticker width */
+    /** Sticker width */
     int width;
 
     /** Sticker height */
@@ -239,11 +239,8 @@ typedef struct _telebot_location_t_ {
  * @brief This object represent a user's profile pictures.
  */
 typedef struct _telebot_userphotos_t {
-    /** Total number of profile pictures the target user has */
-    int total_count;
-
     /** Requested profile pictures (in up to 4 sizes each) */
-    telebot_photosize_t photos[TELEBOT_USER_PHOTOS_MAX_LIMIT][4];
+    telebot_photosize_t photos[4];
 } telebot_userphotos_t;
 
 /**
@@ -366,8 +363,8 @@ typedef struct telebot_message_s {
     int migrate_to_chat_id;
 
     /**
-     * Optional. The supergroup has been migrated from a group with the specified
-     * identifier, not exceeding 1e13 by absolute value
+     * Optional. The supergroup has been migrated from a group with the
+     * specified identifier, not exceeding 1e13 by absolute value
      */
     int migrate_from_chat_id;
 
@@ -396,7 +393,7 @@ typedef void (*telebot_update_cb_f)(const telebot_message_t *message);
  * @brief Initial function to use telebot APIs.
  *
  * This function must be used first to call, and it creates handler. This call
- * MUST have  corresponding call to telebot_destroy() when operation is complete.
+ * MUST have corresponding call to telebot_destroy() when operation is complete.
  * @param token Telegram Bot token to use.
  * @return On success, TELEBOT_ERROR_NONE is returned.
  */
@@ -415,8 +412,8 @@ telebot_error_e telebot_destroy();
  * @brief This function is used start to receiving Telegram bot updates.
  * Internally, it starts thread for polling updates.
  *
- * This call MUST have corresponding call to telebot_stop() when receiving update is
- * needed to terminate.
+ * This call MUST have corresponding call to telebot_stop() when receiving
+ * update is needed to terminate.
  * @param update_cb Callback function to receive latest telegram update.
  * @return On success, TELEBOT_ERROR_NONE is returned.
  */
@@ -424,7 +421,7 @@ telebot_error_e telebot_start(telebot_update_cb_f update_cb);
 
 
 /**
- * @brief This function stops receiving Telegram update by stopping internal thread.
+ * @brief This function stops receiving updates by stopping internal thread.
  *
  * It is the opposite of the telebot_start() function.
  * @return On success, TELEBOT_ERROR_NONE is returned.
@@ -434,7 +431,7 @@ telebot_error_e telebot_stop();
 /**
  * @brief This function is used to get information about telegram bot itself.
  *
- * @param me Pointer to the telegram user object address. This pointer MUST be 
+ * @param me Pointer to the telegram user object address. This pointer MUST be
  * freed after use.
  * @return On success, TELEBOT_ERROR_NONE is returned, and user object is
  * stored in input parameter.
@@ -453,14 +450,15 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count);
 /**
  * @brief This function is used to get user profile pictures object
  * @param user_id Unique identifier of the target user.
- * @param offset Sequential number of the first photo to be returned. By default,
- * up to 10 photos are returned.
- * @param photos Pointer to the user photos object addres. This pointer MUST be 
- * freed after use.
+ * @param offset Sequential number of the first photo to be returned.
+ * By default, up to 10 photos are returned.
+ * @param photos Pointer to the user photos object address. This pointer MUST
+ * be freed after use.
+ * @param count Pointer to the number of photos object.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
 telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
-        telebot_userphotos_t **photos);
+        telebot_userphotos_t **photos, int *count);
 
 /**
  * @brief This function is used to download file.
@@ -552,8 +550,8 @@ telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
-telebot_error_e telebot_send_document(char *chat_id, char *document, bool is_file,
-        int reply_to_message_id, char *reply_markup);
+telebot_error_e telebot_send_document(char *chat_id, char *document,
+        bool is_file, int reply_to_message_id, char *reply_markup);
 
 /**
  * @brief This function is used to to send .webp stickers.
@@ -616,8 +614,8 @@ telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
-telebot_error_e telebot_send_location(char *chat_id, float latitude, float longitude,
-        int reply_to_message_id, char *reply_markup);
+telebot_error_e telebot_send_location(char *chat_id, float latitude,
+        float longitude, int reply_to_message_id, char *reply_markup);
 
 /**
  * @brief This function is used to tell the user that something is happening on

@@ -33,7 +33,7 @@ struct json_object *telebot_parser_str_to_obj(char *data)
 }
 
 telebot_error_e telebot_parser_get_updates(struct json_object *obj,
-        telebot_update_t updates[], int *count)
+        telebot_update_t **updates, int *count)
 {
     if (obj == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
@@ -46,30 +46,34 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj,
     if (!array_len)
         return TELEBOT_ERROR_OPERATION_FAILED;
 
+    telebot_update_t *tmp = calloc(array_len, sizeof(telebot_update_t));
+    if (tmp == NULL)
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+
     *count = array_len;
+    *updates = tmp;
 
     int index;
     for (index=0;index<array_len;index++) {
         struct json_object *item = json_object_array_get_idx(array, index);
 
+        memset(&(tmp[index].message), 0, sizeof(telebot_message_t));
+        tmp[index].update_id = 0;
+
         struct json_object *update_id;
-        if (!json_object_object_get_ex(item, "update_id", &update_id)) {
-            ERR("Failed to get update_id from bot updates");
-            continue;
+        if (json_object_object_get_ex(item, "update_id", &update_id)) {
+            tmp[index].update_id = json_object_get_int(update_id);
+            json_object_put(update_id);
         }
-        updates[index].update_id = json_object_get_int(update_id);
-        json_object_put(update_id);
 
         struct json_object *message;
-        if (!json_object_object_get_ex(item, "message", &message)) {
-            ERR("Failed to get message from bot updates");
-            continue;
+        if (json_object_object_get_ex(item, "message", &message)) {
+            if (telebot_parser_get_message(message, &(tmp[index].message)) !=
+                    TELEBOT_ERROR_NONE)
+                ERR("Failed to parse message of bot update");
+            json_object_put(message);
         }
 
-        int ret = telebot_parser_get_message(message, &(updates[index].message));
-        if (ret != TELEBOT_ERROR_NONE)
-            ERR("Failed to parse message of bot update");
-        json_object_put(message);
         json_object_put(item);
     }
 
@@ -121,7 +125,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
     if (json_object_object_get_ex(obj, "forward_from", &forward_from)) {
         ret = telebot_parser_get_user(forward_from , &(msg->forward_from));
         if (ret != TELEBOT_ERROR_NONE)
-            ERR("Failed to get <chat> from message object");
+            ERR("Failed to get <forward from> from message object");
         json_object_put(forward_from);
     }
 
@@ -168,7 +172,8 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *photo;
     if (json_object_object_get_ex(obj, "photo", &photo)) {
-        ret = telebot_parser_get_photos(photo , msg->photo);
+        ret = telebot_parser_get_photos(photo , msg->photo,
+                TELEBOT_MESSAGE_PHOTO_SIZE);
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <photo> from message object");
         json_object_put(photo);
@@ -238,7 +243,8 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *new_chat_photo;
     if (json_object_object_get_ex(obj, "new_chat_photo", &new_chat_photo)) {
-        ret = telebot_parser_get_photos(new_chat_photo , msg->new_chat_photo);
+        ret = telebot_parser_get_photos(new_chat_photo , msg->new_chat_photo,
+                TELEBOT_MESSAGE_NEW_CHAT_PHOTO_SIZE);
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <left_chat_participant> from message object");
         json_object_put(new_chat_photo);
@@ -449,7 +455,6 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
 telebot_error_e telebot_parser_get_document(struct json_object *obj,
         telebot_document_t *document)
 {
-
     if (obj == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -457,24 +462,162 @@ telebot_error_e telebot_parser_get_document(struct json_object *obj,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(document, 0, sizeof(telebot_document_t));
 
+    struct json_object *file_id;
+    if (json_object_object_get_ex(obj, "file_id", &file_id)) {
+        strncpy(document->file_id, json_object_get_string(file_id),
+                TELEBOT_FILE_ID_SIZE);
+        json_object_put(file_id);
+    }
+    else {
+        ERR("Object is not audio type, file_id not found");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    struct json_object *thumb;
+    if (json_object_object_get_ex(obj, "thumb", &thumb)) {
+        if (telebot_parser_get_photo(thumb, &(document->thumb)) !=
+                TELEBOT_ERROR_NONE)
+            ERR("Failed to get <thumb> from document object");
+        json_object_put(thumb);
+    }
+
+    struct json_object *file_name;
+    if (json_object_object_get_ex(obj, "file_name", &file_name)) {
+        strncpy(document->file_name, json_object_get_string(file_name),
+                TELEBOT_FILE_NAME_SIZE);
+        json_object_put(file_name);
+    }
+
+    struct json_object *mime_type;
+    if (json_object_object_get_ex(obj, "mime_type", &mime_type)) {
+        strncpy(document->mime_type, json_object_get_string(mime_type),
+                TELEBOT_DOCUMENT_MIME_TYPE_SIZE);
+        json_object_put(file_name);
+    }
+
+    struct json_object *file_size;
+    if (json_object_object_get_ex(obj, "file_size", &file_size)) {
+        document->file_size = json_object_get_int(file_size);
+        json_object_put(file_name);
+    }
+
     return TELEBOT_ERROR_NONE;
 }
 
 telebot_error_e telebot_parser_get_profile_photos(struct json_object *obj,
-        telebot_userphotos_t *photos)
+        telebot_userphotos_t **photos, int *count)
 {
-    return TELEBOT_ERROR_NONE;
-}
 
-telebot_error_e telebot_parser_get_photos(struct json_object *obj,
-        telebot_photosize_t photos[])
-{
     if (obj == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     if (photos == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
-    memset(photos, 0, sizeof(telebot_photosize_t));
+
+    struct json_object *array = obj;
+    int array_len = json_object_array_length(array);
+    if (!array_len)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
+    telebot_userphotos_t *tmp = calloc(array_len, sizeof(telebot_userphotos_t));
+    if (tmp == NULL)
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+
+    *count = array_len;
+    *photos = tmp;
+
+    telebot_error_e ret = TELEBOT_ERROR_NONE;
+    int index;
+    for (index=0;index<array_len;index++) {
+        struct json_object *item = json_object_array_get_idx(array, index);
+        ret |= telebot_parser_get_photos(item, tmp[index].photos, 4);
+        json_object_put(item);
+    }
+
+    if (ret != TELEBOT_ERROR_NONE) {
+        return TELEBOT_ERROR_OPERATION_FAILED;
+        free(tmp);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_photo(struct json_object *obj,
+        telebot_photosize_t *photo)
+{
+    if (obj == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (photo == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(photo, 0, sizeof(telebot_photosize_t));
+
+    struct json_object *file_id;
+    if (json_object_object_get_ex(obj, "file_id", &file_id)) {
+        strncpy(photo->file_id, json_object_get_string(file_id),
+                TELEBOT_FILE_ID_SIZE);
+        json_object_put(file_id);
+    }
+    else {
+        ERR("Object is not photo size type, file_id not found");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    struct json_object *width;
+    if (json_object_object_get_ex(obj, "width", &width)){
+        photo->width = json_object_get_int(width);
+        json_object_put(width);
+    }
+    else {
+        ERR("Object is not photo size type, width not found");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    struct json_object *height;
+    if (json_object_object_get_ex(obj, "height", &height)){
+        photo->height = json_object_get_int(height);
+        json_object_put(height);
+    }
+    else {
+        ERR("Object is not photo size type, height not found");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    struct json_object *file_size;
+    if (json_object_object_get_ex(obj, "file_size", &file_size))
+        photo->file_size = json_object_get_int(file_size);
+    json_object_put(file_size);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_photos(struct json_object *obj,
+        telebot_photosize_t photo_array[], int array_size)
+{
+    if (obj == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    if (photo_array == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    struct json_object *array = obj;
+    int array_len = json_object_array_length(array);
+    if (!array_len)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
+    /* FIXME: why we don't have enough memory? */
+    if (array_len > array_size)
+        array_len = array_size;
+
+    int index;
+    for (index=0;index<array_len;index++) {
+        struct json_object *item = json_object_array_get_idx(array, index);
+
+        if (telebot_parser_get_photo(item, &(photo_array[index])) !=
+                TELEBOT_ERROR_NONE)
+            ERR("Failed to parse photo object");
+        json_object_put(item);
+    }
 
     return TELEBOT_ERROR_NONE;
 }

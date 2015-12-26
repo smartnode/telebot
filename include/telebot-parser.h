@@ -23,7 +23,7 @@ struct json_object *telebot_parser_str_to_obj(char *data);
 
 /** Get update from Json Object */
 telebot_error_e telebot_parser_get_updates(struct json_object *obj,
-        telebot_update_t *updates, int *count);
+        telebot_update_t **updates, int *count);
 
 /** Parse message object */
 telebot_error_e telebot_parser_get_message(struct json_object *obj,
@@ -47,11 +47,15 @@ telebot_error_e telebot_parser_get_document(struct json_object *obj,
 
 /** Prase profile photos object */
 telebot_error_e telebot_parser_get_profile_photos(struct json_object *obj,
-        telebot_userphotos_t *photos);
+        telebot_userphotos_t **photos, int *count);
 
-/** Prase photos object */
+/** Prase photo size object */
+telebot_error_e telebot_parser_get_photo(struct json_object *obj,
+        telebot_photosize_t *photo);
+
+/** Prase array of photo size objects */
 telebot_error_e telebot_parser_get_photos(struct json_object *obj,
-        telebot_photosize_t photos[]);
+        telebot_photosize_t photo_array[], int array_size);
 
 /** Prase sticker object */
 telebot_error_e telebot_parser_get_sticker(struct json_object *obj,
