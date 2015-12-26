@@ -158,6 +158,9 @@ telebot_error_e telebot_get_me(telebot_user_t **me)
     g_handler->resp_data = NULL;
     g_handler->resp_size = 0;
 
+    if (obj == NULL)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
     struct json_object *ok;
     if (!json_object_object_get_ex(obj, "ok", &ok)) {
         json_object_put(obj);
@@ -222,6 +225,9 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count)
     g_handler->resp_data = NULL;
     g_handler->resp_size = 0;
 
+    if (obj == NULL)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
     struct json_object *ok;
     if (!json_object_object_get_ex(obj, "ok", &ok)) {
         json_object_put(obj);
@@ -283,6 +289,9 @@ telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
     g_handler->resp_data = NULL;
     g_handler->resp_size = 0;
 
+    if (obj == NULL)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
     struct json_object *ok;
     if (!json_object_object_get_ex(obj, "ok", &ok)) {
         json_object_put(obj);
@@ -321,12 +330,16 @@ telebot_error_e telebot_download_file(char *file_id, char *path)
     if (ret != TELEBOT_ERROR_NONE)
         return ret;
 
-    char *file_path;
     struct json_object *obj = telebot_parser_str_to_obj(g_handler->resp_data);
-    ret = telebot_parser_get_file_path(obj, &file_path);
     free(g_handler->resp_data);
     g_handler->resp_data = NULL;
     g_handler->resp_size = 0;
+
+    if (obj == NULL)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
+    char *file_path;
+    ret = telebot_parser_get_file_path(obj, &file_path);
     json_object_put(obj);
 
     if (file_path == NULL)
