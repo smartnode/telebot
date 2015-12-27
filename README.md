@@ -13,7 +13,7 @@ sudo port install cmake json-c curl
 ```
 To compile the library execute following commands:
 ```sh
-cd [your repository]`
+cd [your repository]
 mkdir -p Build && cd Build
 cmake ../
 make 
