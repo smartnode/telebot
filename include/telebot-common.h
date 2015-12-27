@@ -35,26 +35,45 @@ extern "C" {
  * @addtogroup TELEBOT_API
  * @{
  */
-
+/** String length limit for firt name */
 #define TELEBOT_FIRST_NAME_SIZE             32
+/** String length limit for last name */
 #define TELEBOT_LAST_NAME_SIZE              32
+/** String length limit for username */
 #define TELEBOT_USER_NAME_SIZE              16
+/** String length for file id */
 #define TELEBOT_FILE_ID_SIZE                256
+/** String length limit for chat type, which is of private, public or group */
 #define TELEBOT_CHAT_TYPE_SIZE              10
+/** String length limit for chat title */
 #define TELEBOT_CHAT_TITLE_SIZE             128
+/** String length limit for audio performer */
 #define TELEBOT_AUDIO_PERFORMER_SIZE        64
+/** String length limit for audio title */
 #define TELEBOT_AUDIO_TITLE_SIZE            128
+/** String length limit for MIME type */
 #define TELEBOT_AUDIO_MIME_TYPE_SIZE        64
+/** String length limit for file name */
 #define TELEBOT_FILE_NAME_SIZE              128
+/** String length limit for document MIME type */
 #define TELEBOT_DOCUMENT_MIME_TYPE_SIZE     128
+/** String length limit for video MIME type */
 #define TELEBOT_VIDEO_MIME_TYPE_SIZE        64
+/** String length limit for voice MIME type */
 #define TELEBOT_VOICE_MIME_TYPE_SIZE        64
+/** Maximum number of chracters for phone number */
 #define TELEBOT_PHONE_NUMBER_SIZE           32
+/** String length limit for file path */
 #define TELEBOT_FILE_PATH_SIZE              256
+/** String length limit for message text */
 #define TELEBOT_MESSAGE_TEXT_SIZE           4096
+/** String length limit for message caption */
 #define TELEBOT_MESSAGE_CAPTION_SIZE        256
+/** Maximum number of photos per message */
 #define TELEBOT_MESSAGE_PHOTO_SIZE          16
+/** Maximum number of new chat photos */
 #define TELEBOT_MESSAGE_NEW_CHAT_PHOTO_SIZE 4
+/** Maximum number of user profile photos per request */
 #define TELEBOT_USER_PHOTOS_MAX_LIMIT       10
 
 /**
