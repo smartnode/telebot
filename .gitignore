@@ -1,3 +1,7 @@
+# Self-created build folder
+Build
+
+# OSX
 .DS_Store
 .AppleDouble
 .LSOverride
