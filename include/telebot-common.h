@@ -35,12 +35,12 @@ extern "C" {
  * @addtogroup TELEBOT_API
  * @{
  */
-/** String length limit for firt name */
+/** String length limit for first name */
 #define TELEBOT_FIRST_NAME_SIZE             32
 /** String length limit for last name */
 #define TELEBOT_LAST_NAME_SIZE              32
 /** String length limit for username */
-#define TELEBOT_USER_NAME_SIZE              16
+#define TELEBOT_USER_NAME_SIZE              32
 /** String length for file id */
 #define TELEBOT_FILE_ID_SIZE                256
 /** String length limit for chat type, which is of private, public or group */
