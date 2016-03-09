@@ -23,7 +23,7 @@ INCLUDE(FindPkgConfig)
 pkg_check_modules(PKGS REQUIRED ${DEPENDENTS})
 
 FOREACH(flag ${PKGS_CFLAGS})
-	SET(EXTRA_LIB_CFLAGS "${EXTRA_LIB_CFLAGS} ${flag}")
+    SET(EXTRA_LIB_CFLAGS "${EXTRA_LIB_CFLAGS} ${flag}")
 ENDFOREACH(flag)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_LIB_CFLAGS} -Werror -Wall" )
 
@@ -39,7 +39,7 @@ CONFIGURE_FILE(telebot.pc.in telebot.pc @ONLY)
 ADD_SUBDIRECTORY(test)
 
 # CMake Policy (CMP0002)
-# The logical name of executable and library targes
+# The logical name of executable and library targets
 # does not have to correspond to the physical file name built.
 INSTALL(FILES telebot.pc DESTINATION lib/pkgconfig)
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib COMPONENT RuntimeLibraries)
