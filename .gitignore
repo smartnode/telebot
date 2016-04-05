@@ -36,3 +36,6 @@ Temporary Items
 
 # Bot token
 .token
+
+# CLion projects
+.idea
