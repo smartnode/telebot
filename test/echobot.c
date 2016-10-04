@@ -8,14 +8,15 @@
 static void update_cb(const telebot_message_t *message)
 {
     telebot_error_e ret;
-    char str[TELEBOT_MESSAGE_TEXT_SIZE];
+    // TELEBOT_MESSAGE_TEXT_SIZE + Re:<space>
+    char str[TELEBOT_MESSAGE_TEXT_SIZE + 4];
     char chat_id[32];
     if (strstr(message->text, "/start")) {
         snprintf(str, TELEBOT_MESSAGE_TEXT_SIZE, "Hello %s",
                 message->from.first_name);
     }
     else {
-        snprintf(str, TELEBOT_MESSAGE_TEXT_SIZE, "RE:%s", message->text);
+        snprintf(str, TELEBOT_MESSAGE_TEXT_SIZE, "RE: %s", message->text);
     }
     snprintf(chat_id, 32, "%d", message->chat.id);
 
