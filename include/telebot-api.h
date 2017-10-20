@@ -409,7 +409,7 @@ telebot_error_e telebot_destroy();
  * @param update_cb Callback function to receive latest telegram update.
  * @return On success, TELEBOT_ERROR_NONE is returned.
  */
-telebot_error_e telebot_start(telebot_update_cb_f update_cb, bool should_deatch_thread, pthread_t* thread_id);
+telebot_error_e telebot_start(telebot_update_cb_f update_cb, bool should_deatach_thread, pthread_t* thread_id);
 
 
 /**

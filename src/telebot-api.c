@@ -68,7 +68,7 @@ telebot_error_e telebot_destroy()
 }
 
 telebot_error_e telebot_start(telebot_update_cb_f update_cb,
-                              bool should_deatch_thread, pthread_t* thread_id)
+                              bool should_deatach_thread, pthread_t* thread_id)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
