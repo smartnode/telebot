@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <telebot-common.h>
 #include <telebot-api.h>
@@ -66,10 +67,12 @@ int main(int argc, char *argv[])
     printf("User Name: %s\n", me->username);
     free(me);
 
-    telebot_start(update_cb);
+    pthread_t thread;
+    telebot_start(update_cb, false, &thread);
 
+    printf("t: %ld\n", thread);
     // wait for callbacks;
-    while (1);
+    pthread_join(thread, NULL);
 
     telebot_stop();
     telebot_destroy();

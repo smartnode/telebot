@@ -67,7 +67,8 @@ telebot_error_e telebot_destroy()
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_start(telebot_update_cb_f update_cb)
+telebot_error_e telebot_start(telebot_update_cb_f update_cb,
+                              bool should_deatch_thread, pthread_t* thread_id)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -75,8 +76,12 @@ telebot_error_e telebot_start(telebot_update_cb_f update_cb)
     if (update_cb == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    pthread_t thread_id;
+    pthread_t t_id;
     pthread_attr_t attr;
+
+    if(thread_id == NULL) {
+        thread_id = &t_id;
+    }
 
     int ret = pthread_attr_init(&attr);
     if (ret != 0) {
@@ -84,16 +89,18 @@ telebot_error_e telebot_start(telebot_update_cb_f update_cb)
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
-    ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    if (ret != 0) {
-        ERR("Failed to set pthread detatched attribute, error: %d", errno);
-        return TELEBOT_ERROR_OPERATION_FAILED;
+    if(should_deatch_thread) {
+        ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        if (ret != 0) {
+            ERR("Failed to set pthread detatched attribute, error: %d", errno);
+            return TELEBOT_ERROR_OPERATION_FAILED;
+        }
     }
 
     g_update_cb = update_cb;
     g_run_telebot = true;
 
-    ret = pthread_create(&thread_id, &attr, telebot_polling_thread, NULL);
+    ret = pthread_create(thread_id, &attr, telebot_polling_thread, NULL);
     if (ret != 0) {
         ERR("Failed to create thread, error: %d", errno);
         g_update_cb = NULL;

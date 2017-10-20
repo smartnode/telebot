@@ -81,7 +81,7 @@ typedef struct telebot_chat {
 } telebot_chat_t;
 
 /**
- * @brief This object represents one size of a photo or a file / sticker 
+ * @brief This object represents one size of a photo or a file / sticker
  * thumbnail.
  */
 typedef struct telebot_photo {
@@ -119,7 +119,7 @@ typedef struct telebot_audio {
     char mime_type[TELEBOT_AUDIO_MIME_TYPE_SIZE];
 
     /** Optional. File size */
-    int file_size; 
+    int file_size;
 } telebot_audio_t;
 
 /**
@@ -171,7 +171,7 @@ typedef struct telebot_video {
     char file_id[TELEBOT_FILE_ID_SIZE];
 
     /** Video width as defined by sender */
-    int width; 
+    int width;
 
     /** Video height as defined by sender */
     int height;
@@ -238,7 +238,7 @@ typedef struct telebot_location {
 /**
  * @brief This object represents a file ready to be downloaded.
  *
- * The file can be downloaded via the link 
+ * The file can be downloaded via the link
  * https://api.telegram.org/file/bot[token]/[file_path].
  * It is guaranteed that the link will be valid for at least 1 hour.
  * When the link expires, a new one can be requested by calling getFile.
@@ -275,13 +275,13 @@ typedef struct telebot_message {
     /** Optional. For forwarded messages, sender of the original message */
     telebot_user_t forward_from;
 
-    /** 
+    /**
      * Optional. For forwarded messages, date the original message was sent
      * in Unix time
      */
     long forward_date;
 
-    /** 
+    /**
      * For replies, the original message. Note that the Message object in this
      * field will not contain further reply_to_message fields even if it itself
      * is a reply.
@@ -324,7 +324,7 @@ typedef struct telebot_message {
      */
     telebot_user_t new_chat_participant;
 
-    /** 
+    /**
      * Optional. A member was removed from the group, information about them
      * (this member may be bot itself)
      */
@@ -371,7 +371,7 @@ typedef struct telebot_update {
      * positive number and increase sequentially.
      */
     int update_id;
-    
+
     /** New incoming message of any kind — text, photo, sticker, etc. */
     telebot_message_t message;
 } telebot_update_t;
@@ -409,7 +409,7 @@ telebot_error_e telebot_destroy();
  * @param update_cb Callback function to receive latest telegram update.
  * @return On success, TELEBOT_ERROR_NONE is returned.
  */
-telebot_error_e telebot_start(telebot_update_cb_f update_cb);
+telebot_error_e telebot_start(telebot_update_cb_f update_cb, bool should_deatch_thread, pthread_t* thread_id);
 
 
 /**
@@ -438,7 +438,7 @@ telebot_error_e telebot_get_me(telebot_user_t **me);
  * @return on Success, TELEBOT_ERROR_NONE is returned.
  */
 telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count);
-    
+
 /**
  * @brief This function is used to get user profile pictures object
  * @param user_id Unique identifier of the target user.
@@ -641,5 +641,3 @@ telebot_error_e telebot_send_chat_action(char *chat_id, char *action);
 #endif
 
 #endif /* __TELEBOT_API_H__ */
-
-
