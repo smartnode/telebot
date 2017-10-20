@@ -1,21 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <string.h>
+
 #include <telebot-common.h>
 #include <telebot-api.h>
+
+#define SIZE_OF_ARRAY(array) (sizeof(array)/sizeof(array[0]))
 
 static void update_cb(const telebot_message_t *message)
 {
     telebot_error_e ret;
-    char str[TELEBOT_MESSAGE_TEXT_SIZE];
+    char str[TELEBOT_MESSAGE_TEXT_SIZE + 3];
     char chat_id[32];
     if (strstr(message->text, "/start")) {
-        snprintf(str, TELEBOT_MESSAGE_TEXT_SIZE, "Hello %s",
+        snprintf(str, SIZE_OF_ARRAY(str), "Hello %s",
                 message->from.first_name);
     }
     else {
-        snprintf(str, TELEBOT_MESSAGE_TEXT_SIZE, "RE:%s", message->text);
+        snprintf(str, SIZE_OF_ARRAY(str), "RE:%s", message->text);
     }
     snprintf(chat_id, 32, "%d", message->chat.id);
 
