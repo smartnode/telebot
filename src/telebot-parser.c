@@ -35,10 +35,7 @@ struct json_object *telebot_parser_str_to_obj(char *data)
 telebot_error_e telebot_parser_get_updates(struct json_object *obj,
         telebot_update_t **updates, int *count)
 {
-    if (obj == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    if (updates == NULL)
+    if ((obj == NULL) || (updates == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct json_object *array = obj;
@@ -83,11 +80,9 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj,
 telebot_error_e telebot_parser_get_message(struct json_object *obj,
         telebot_message_t *msg)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (msg == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (msg == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(msg, 0, sizeof(telebot_message_t));
 
     struct json_object *message_id;
@@ -292,11 +287,9 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 telebot_error_e telebot_parser_get_user(struct json_object *obj,
         telebot_user_t *user)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (user == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (user == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(user, 0, sizeof(telebot_user_t));
 
     struct json_object *id;
@@ -336,11 +329,9 @@ telebot_error_e telebot_parser_get_user(struct json_object *obj,
 telebot_error_e telebot_parser_get_chat(struct json_object *obj,
         telebot_chat_t *chat)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (chat == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (chat == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(chat, 0, sizeof(telebot_chat_t));
 
     struct json_object *id;
@@ -398,11 +389,9 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
 telebot_error_e telebot_parser_get_audio(struct json_object *obj,
         telebot_audio_t *audio)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (audio == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (audio == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(audio, 0, sizeof(telebot_audio_t));
 
     struct json_object *file_id;
@@ -459,11 +448,9 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
 telebot_error_e telebot_parser_get_document(struct json_object *obj,
         telebot_document_t *document)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (document == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (document == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(document, 0, sizeof(telebot_document_t));
 
     struct json_object *file_id;
@@ -511,10 +498,7 @@ telebot_error_e telebot_parser_get_document(struct json_object *obj,
 telebot_error_e telebot_parser_get_profile_photos(struct json_object *obj,
         telebot_photo_t **photos, int *count)
 {
-    if (obj == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    if (photos == NULL)
+    if ((obj == NULL) || (photos == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     int total_count;
@@ -571,11 +555,9 @@ telebot_error_e telebot_parser_get_profile_photos(struct json_object *obj,
 telebot_error_e telebot_parser_get_photo(struct json_object *obj,
         telebot_photo_t *photo)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (photo == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (photo == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(photo, 0, sizeof(telebot_photo_t));
 
     struct json_object *file_id;
@@ -621,10 +603,7 @@ telebot_error_e telebot_parser_get_photo(struct json_object *obj,
 telebot_error_e telebot_parser_get_photos(struct json_object *obj,
         telebot_photo_t photo_array[], int array_size)
 {
-    if (obj == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    if (photo_array == NULL)
+    if ((obj == NULL) || (photo_array == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct json_object *array = obj;
@@ -652,11 +631,9 @@ telebot_error_e telebot_parser_get_photos(struct json_object *obj,
 telebot_error_e telebot_parser_get_sticker(struct json_object *obj,
         telebot_sticker_t *sticker)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (sticker == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (sticker == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(sticker, 0, sizeof(telebot_sticker_t));
 
     struct json_object *file_id;
@@ -710,11 +687,9 @@ telebot_error_e telebot_parser_get_sticker(struct json_object *obj,
 telebot_error_e telebot_parser_get_video(struct json_object *obj,
         telebot_video_t *video)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (video == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (video == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(video, 0, sizeof(telebot_video_t));
 
     struct json_object *file_id;
@@ -785,11 +760,9 @@ telebot_error_e telebot_parser_get_video(struct json_object *obj,
 telebot_error_e telebot_parser_get_voice(struct json_object *obj,
         telebot_voice_t *voice)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (voice == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (voice == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(voice, 0, sizeof(telebot_voice_t));
 
     struct json_object *file_id;
@@ -832,11 +805,9 @@ telebot_error_e telebot_parser_get_voice(struct json_object *obj,
 telebot_error_e telebot_parser_get_contact(struct json_object *obj,
         telebot_contact_t *contact)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (contact == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (contact == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
     memset(contact, 0, sizeof(telebot_contact_t));
 
     struct json_object *phone_number;
@@ -880,15 +851,13 @@ telebot_error_e telebot_parser_get_contact(struct json_object *obj,
 telebot_error_e telebot_parser_get_location(struct json_object *obj,
         telebot_location_t *location)
 {
-    if (obj == NULL)
+    if ((obj == NULL) || (location == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    if (location == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    memset (location, 0, sizeof(telebot_location_t));
+    memset(location, 0, sizeof(telebot_location_t));
 
     struct json_object *latitude;
-    if (json_object_object_get_ex (obj, "latitude", &latitude)) {
+    if (json_object_object_get_ex(obj, "latitude", &latitude)) {
         location->latitude = json_object_get_double(latitude);
         json_object_put (latitude);
     }
@@ -898,12 +867,12 @@ telebot_error_e telebot_parser_get_location(struct json_object *obj,
     }
 
     struct json_object *longitude;
-    if (json_object_object_get_ex (obj, "longitude", &longitude)) {
+    if (json_object_object_get_ex(obj, "longitude", &longitude)) {
         location->longitude = json_object_get_double(longitude);
         json_object_put (longitude);
     }
     else {
-        ERR("Object is not location type, latitude not found");
+        ERR("Object is not location type, longitude not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -913,19 +882,17 @@ telebot_error_e telebot_parser_get_location(struct json_object *obj,
 telebot_error_e telebot_parser_get_file_path(struct json_object *obj,
         char **path) {
 
-    if (obj == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    if (path == NULL)
+    if ((obj == NULL) || (path == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct json_object *file_path;
-    if (json_object_object_get_ex (obj, "file_path", &file_path)) {
+    if (json_object_object_get_ex(obj, "file_path", &file_path)) {
         *path = strdup(json_object_get_string(file_path));
-        json_object_put (file_path);
+        json_object_put(file_path);
     }
     else {
         *path = NULL;
+        ERR("Object is not file type, file_path not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 

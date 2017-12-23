@@ -36,3 +36,11 @@ Temporary Items
 
 # Bot token
 .token
+
+# Eclipse projects
+.cproject
+.project
+
+# Build and doc directory
+build
+html

@@ -331,16 +331,19 @@ telebot_error_e telebot_download_file(char *file_id, char *path)
         return ret;
 
     struct json_object *obj = telebot_parser_str_to_obj(g_handler->resp_data);
-    free(g_handler->resp_data);
-    g_handler->resp_data = NULL;
-    g_handler->resp_size = 0;
-
-    if (obj == NULL)
+    if (obj == NULL) {
+        free(g_handler->resp_data);
+        g_handler->resp_data = NULL;
+        g_handler->resp_size = 0;
         return TELEBOT_ERROR_OPERATION_FAILED;
+    }
 
     char *file_path;
     ret = telebot_parser_get_file_path(obj, &file_path);
     json_object_put(obj);
+    free(g_handler->resp_data);
+    g_handler->resp_data = NULL;
+    g_handler->resp_size = 0;
 
     if (file_path == NULL)
         return TELEBOT_ERROR_OPERATION_FAILED;
