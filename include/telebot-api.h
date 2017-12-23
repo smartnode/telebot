@@ -659,15 +659,58 @@ telebot_error_e telebot_send_location(char *chat_id, float latitude,
 telebot_error_e telebot_send_chat_action(char *chat_id, char *action);
 
 
+/**
+ * @brief This function creates a 'telebot_reply_keyboard' struct used to set
+ * a ReplyKeyboard.
+ * @param resize Requests clients to resize the keyboard vertically
+ * for optimal fit (e.g., make the keyboard smaller if there are just
+ * two rows of buttons). Defaults to false, in which case the custom
+ * keyboard is always of the same height as the app's standard keyboard.
+ * @param one_time Requests clients to hide the keyboard as soon as it's
+ * been used. The keyboard will still be available, but clients will
+ * automatically display the usual letter-keyboard in the chat – the user
+ * can press a special button in the input field to see the custom
+ * keyboard again.
+ * @param selective Use this parameter if you want to show the keyboard to
+ * specific users only. Targets: 1) users that are @mentioned in the text
+ * of the Message object; 2) if the bot's message is a
+ * reply (has reply_to_message_id), sender of the original message.
+ * @return  a 'telebot_reply_keyboard' struct representing a ReplyKeyboard.
+ */
 telebot_reply_keyboard create_reply_keyboard(bool resize, bool one_time, bool selective);
 
+/**
+ * @brief This function is used to destroy a 'telebot_reply_keyboard' struct.
+ * @param keyboard The keyboard to be destroyed.
+ */
 void destroy_telebot_reply_keyboard(telebot_reply_keyboard* keyboard);
 
+/**
+ * @brief This function adds a button to the current row of a ReplyKeyboard.
+ * @param keyboard The keyboard to where the button will be added.
+ * @param text Text of the button. If none of the other fields are true, it
+ * will be sent as a message when the button is pressed.
+ * @param request_contact If True, the user's phone number will be sent as
+ * a contact when the button is pressed. Available in private chats only.
+ * @param request_location If True, the user's current location will be
+ * sent when the button is pressed. Available in private chats only.
+ */
 void telebot_reply_keyboard_add_button(telebot_reply_keyboard* keyboard, char* text,
                                        bool request_contact, bool request_location);
 
+/**
+ * @brief This function adds a button row to a ReplyKeyboard. This
+ * updates the concept of the 'current_row' where new buttons are going to
+ * be added.
+ * @param keyboard The keyboard to where the button row will be added.
+ */
 void telebot_reply_keyboard_add_row(telebot_reply_keyboard* keyboard);
 
+/**
+ * @brief Stringfy the JSON object representing the ReplyKeyboard.
+ * @param keyboard The keyboard.
+ * @return the string representation of the JSON object.
+ */
 const char* reply_keyboard_string(telebot_reply_keyboard* keyboard);
 /**
  * @} // end of APIs
