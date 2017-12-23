@@ -601,3 +601,66 @@ telebot_error_e telebot_send_chat_action(char *chat_id, char *action)
 
     return ret;
 }
+
+telebot_reply_keyboard create_reply_keyboard(bool resize, bool one_time, bool selective) {
+    telebot_reply_keyboard result;
+    result.keyboard_obj = json_object_new_object();
+    result.rows = json_object_new_array();
+    result.current_row = json_object_new_array();
+
+    json_object_array_add(result.rows, result.current_row);
+    json_object_object_add(result.keyboard_obj, "keyboard", result.rows);
+
+    if(resize) {
+        json_object_object_add(result.keyboard_obj, "resize_keyboard",
+                               json_object_new_boolean(true));
+    }
+    if(one_time) {
+        json_object_object_add(result.keyboard_obj, "one_time_keyboard",
+                               json_object_new_boolean(true));
+    }
+    if(selective) {
+        json_object_object_add(result.keyboard_obj, "selective",
+                               json_object_new_boolean(true));
+    }
+
+
+    return result;
+}
+
+void destroy_telebot_reply_keyboard(telebot_reply_keyboard* keyboard) {
+    json_object_put(keyboard->keyboard_obj);
+}
+
+void telebot_reply_keyboard_add_row(telebot_reply_keyboard* keyboard) {
+    keyboard->current_row = json_object_new_array();
+    json_object_array_add(keyboard->rows, keyboard->current_row);
+}
+
+void telebot_reply_keyboard_add_button(telebot_reply_keyboard* keyboard, char* text,
+                                       bool request_contact, bool request_location) {
+    if(!request_contact && !request_location) {
+        json_object_array_add(keyboard->current_row,
+                              json_object_new_string(text));
+    } else {
+        json_object* button = json_object_new_object();
+        json_object_object_add(button, "text",
+                              json_object_new_string(text));
+        if(request_contact) {
+            json_object_object_add(button, "request_contact",
+                                   json_object_new_boolean(true));
+        }
+        if(request_location) {
+            json_object_object_add(button, "request_location",
+                                   json_object_new_boolean(true));
+        }
+        json_object_array_add(keyboard->current_row, button);
+    }
+
+}
+
+const char* reply_keyboard_string(telebot_reply_keyboard* keyboard) {
+    const char* result = json_object_to_json_string_ext(keyboard->keyboard_obj,
+
+    return result;
+}

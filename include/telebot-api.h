@@ -19,6 +19,9 @@
 #ifndef __TELEBOT_API_H__
 #define __TELEBOT_API_H__
 
+#include <json.h>
+#include <json_object.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -376,6 +379,29 @@ typedef struct telebot_update {
     telebot_message_t message;
 } telebot_update_t;
 
+
+/**
+ * @brief This object represent a reply keyboard.
+ */
+typedef struct {
+    /**
+     * A JSON Object to represent the keyboard.
+     */
+    json_object* keyboard_obj;
+
+    /**
+     * A reference to the rows of buttons array.
+     * Used by 'telebot_reply_keyboard_add_row()'
+     */
+    json_object* rows;
+    /**
+     * A reference to the current row of buttons.
+     * Used by 'telebot_reply_keyboard_add_button()'
+     */
+    json_object* current_row;
+} telebot_reply_keyboard;
+
+
 /**
  * @brief This function type defines callback for receiving updates.
  */
@@ -632,6 +658,17 @@ telebot_error_e telebot_send_location(char *chat_id, float latitude,
  */
 telebot_error_e telebot_send_chat_action(char *chat_id, char *action);
 
+
+telebot_reply_keyboard create_reply_keyboard(bool resize, bool one_time, bool selective);
+
+void destroy_telebot_reply_keyboard(telebot_reply_keyboard* keyboard);
+
+void telebot_reply_keyboard_add_button(telebot_reply_keyboard* keyboard, char* text,
+                                       bool request_contact, bool request_location);
+
+void telebot_reply_keyboard_add_row(telebot_reply_keyboard* keyboard);
+
+const char* reply_keyboard_string(telebot_reply_keyboard* keyboard);
 /**
  * @} // end of APIs
  */
