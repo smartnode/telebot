@@ -249,7 +249,7 @@ telebot_error_e telebot_core_get_file(telebot_core_h *handler, char *file_id)
 
 telebot_error_e telebot_core_send_message(telebot_core_h *handler, char *chat_id,
         char *text, char *parse_mode, bool disable_web_page_preview,
-        int reply_to_message_id, char *reply_markup)
+        int reply_to_message_id, const char *reply_markup)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -706,4 +706,3 @@ telebot_error_e telebot_core_download_file(telebot_core_h *handler,
 
     return TELEBOT_ERROR_NONE;
 }
-

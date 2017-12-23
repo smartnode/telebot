@@ -367,7 +367,7 @@ telebot_error_e telebot_download_file(char *file_id, char *path)
 }
 
 telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode,
-        bool disable_web_page_preview, int reply_to_message_id, char *reply_markup)
+        bool disable_web_page_preview, int reply_to_message_id, const char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
