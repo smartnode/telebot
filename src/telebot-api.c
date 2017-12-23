@@ -89,7 +89,7 @@ telebot_error_e telebot_start(telebot_update_cb_f update_cb,
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
-    if(should_deatch_thread) {
+    if(should_deatach_thread) {
         ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
         if (ret != 0) {
             ERR("Failed to set pthread detatched attribute, error: %d", errno);
