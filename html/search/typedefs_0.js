@@ -10,7 +10,7 @@ var searchData=
   ['telebot_5fmessage_5ft',['telebot_message_t',['../group__TELEBOT__API.html#gaa6116c669875a58d173e08f81b265d24',1,'telebot-api.h']]],
   ['telebot_5fphoto_5ft',['telebot_photo_t',['../group__TELEBOT__API.html#ga97c03906e89430b04104f8739104e616',1,'telebot-api.h']]],
   ['telebot_5fsticker_5ft',['telebot_sticker_t',['../group__TELEBOT__API.html#ga3b494fc19400ce87204bdb0357ef0de2',1,'telebot-api.h']]],
-  ['telebot_5fupdate_5fcb_5ff',['telebot_update_cb_f',['../group__TELEBOT__API.html#ga4df9c260ea0c0b324f01737c5adef3b5',1,'telebot-api.h']]],
+  ['telebot_5fupdate_5fcb_5ff',['telebot_update_cb_f',['../group__TELEBOT__API.html#gafeaa62b26d04aa4bbadb94c1437c1976',1,'telebot-api.h']]],
   ['telebot_5fupdate_5ft',['telebot_update_t',['../group__TELEBOT__API.html#ga358a9ac5454da4008703da941cf8e1e6',1,'telebot-api.h']]],
   ['telebot_5fuser_5ft',['telebot_user_t',['../group__TELEBOT__API.html#gaf68ef97f470a9e15fa25bbda986a424d',1,'telebot-api.h']]],
   ['telebot_5fvideo_5ft',['telebot_video_t',['../group__TELEBOT__API.html#ga547cf3bfb373d3c84c0a7cf4a92774bc',1,'telebot-api.h']]],

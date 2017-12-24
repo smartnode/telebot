@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>Telebot: telebot_update Struct Reference</title>
+<title>Telebot: telebot_keyboard_t Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -85,72 +85,65 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="structtelebot__update-members.html">List of all members</a>  </div>
+<a href="structtelebot__keyboard__t-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">telebot_update Struct Reference<div class="ingroups"><a class="el" href="group__TELEBOT__API.html">Simple Telegram Bot API</a></div></div>  </div>
+<div class="title">telebot_keyboard_t Struct Reference<div class="ingroups"><a class="el" href="group__TELEBOT__API.html">Simple Telegram Bot API</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>This object represents an incoming update.  
- <a href="structtelebot__update.html#details">More...</a></p>
+<p>This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard).  
+ <a href="structtelebot__keyboard__t.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="telebot-api_8h_source.html">telebot-api.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ad69604433d48aeb428ee296c173082cc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__update.html#ad69604433d48aeb428ee296c173082cc">update_id</a></td></tr>
-<tr class="separator:ad69604433d48aeb428ee296c173082cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9cab7d58c488c856f88155e6cbf8741e"><td class="memItemLeft" align="right" valign="top">telebot_update_type_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__update.html#a9cab7d58c488c856f88155e6cbf8741e">update_type</a></td></tr>
-<tr class="separator:a9cab7d58c488c856f88155e6cbf8741e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3e2c5f57c686f19756456c0badf8513"><td class="memItemLeft" ><a class="anchor" id="af3e2c5f57c686f19756456c0badf8513"></a>
-union {</td></tr>
-<tr class="memitem:a36e9f44aee44a3b55d23b47d2799f9f2"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="group__TELEBOT__API.html#gaa6116c669875a58d173e08f81b265d24">telebot_message_t</a>&#160;&#160;&#160;<a class="el" href="structtelebot__update.html#ad9fdf9986d210f3ca3d3dfce35ad0dc1">message</a></td></tr>
-<tr class="separator:a36e9f44aee44a3b55d23b47d2799f9f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afdf3d24536ce1b495e917bbd1a3ca014"><td class="memItemLeft" >
-&#160;&#160;&#160;<a class="el" href="structtelebot__callback__query.html">telebot_callback_query_t</a>&#160;&#160;&#160;<b>callback_query</b></td></tr>
-<tr class="separator:afdf3d24536ce1b495e917bbd1a3ca014"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3e2c5f57c686f19756456c0badf8513"><td class="memItemLeft" valign="top">};&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
-<tr class="separator:af3e2c5f57c686f19756456c0badf8513"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38861b3c13d2e0cfbd1f58f5badec157"><td class="memItemLeft" align="right" valign="top">json_object *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__keyboard__t.html#a38861b3c13d2e0cfbd1f58f5badec157">keyboard_obj</a></td></tr>
+<tr class="separator:a38861b3c13d2e0cfbd1f58f5badec157"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a808b2f13a9f7ef1ce36ac6fd1336a18b"><td class="memItemLeft" align="right" valign="top">json_object *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__keyboard__t.html#a808b2f13a9f7ef1ce36ac6fd1336a18b">rows</a></td></tr>
+<tr class="separator:a808b2f13a9f7ef1ce36ac6fd1336a18b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73e7ca8cf10ae5be970011abab5a4e4b"><td class="memItemLeft" align="right" valign="top">json_object *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__keyboard__t.html#a73e7ca8cf10ae5be970011abab5a4e4b">current_row</a></td></tr>
+<tr class="separator:a73e7ca8cf10ae5be970011abab5a4e4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This object represents an incoming update. </p>
+<div class="textblock"><p>This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard). </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
-<a class="anchor" id="ad9fdf9986d210f3ca3d3dfce35ad0dc1"></a>
+<a class="anchor" id="a73e7ca8cf10ae5be970011abab5a4e4b"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gaa6116c669875a58d173e08f81b265d24">telebot_message_t</a> telebot_update::message</td>
+          <td class="memname">json_object* telebot_keyboard_t::current_row</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>New incoming message of any kind — text, photo, sticker, etc. </p>
+<p>A reference to the current row of buttons. Used by 'telebot_reply_keyboard_add_button()' </p>
 
 </div>
 </div>
-<a class="anchor" id="ad69604433d48aeb428ee296c173082cc"></a>
+<a class="anchor" id="a38861b3c13d2e0cfbd1f58f5badec157"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int telebot_update::update_id</td>
+          <td class="memname">json_object* telebot_keyboard_t::keyboard_obj</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The update's unique identifier. Update identifiers start from a certain positive number and increase sequentially. </p>
+<p>A JSON Object to represent the keyboard. </p>
 
 </div>
 </div>
-<a class="anchor" id="a9cab7d58c488c856f88155e6cbf8741e"></a>
+<a class="anchor" id="a808b2f13a9f7ef1ce36ac6fd1336a18b"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">telebot_update_type_t telebot_update::update_type</td>
+          <td class="memname">json_object* telebot_keyboard_t::rows</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The type of the update. </p>
+<p>A reference to the rows of buttons array. Used by '<a class="el" href="group__TELEBOT__API.html#ga275cc738948f352740b5632572435245" title="This function adds a button row to a ReplyKeyboard. This updates the concept of the &#39;current_row&#39; whe...">telebot_reply_keyboard_add_row()</a>' </p>
 
 </div>
 </div>

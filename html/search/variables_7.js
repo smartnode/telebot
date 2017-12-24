@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['keyboard_5fobj',['keyboard_obj',['../structtelebot__reply__keyboard__t.html#aed300b27c775d09aa2eff7f1ec6cffd8',1,'telebot_reply_keyboard_t']]]
+  ['keyboard_5fobj',['keyboard_obj',['../structtelebot__keyboard__t.html#a38861b3c13d2e0cfbd1f58f5badec157',1,'telebot_keyboard_t']]]
 ];

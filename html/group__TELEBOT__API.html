@@ -138,11 +138,13 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html">telebot_message</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a message.  <a href="structtelebot__message.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__callback__query.html">telebot_callback_query</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__update.html">telebot_update</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an incoming update.  <a href="structtelebot__update.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represent a reply keyboard.  <a href="structtelebot__reply__keyboard__t.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard).  <a href="structtelebot__keyboard__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
@@ -237,17 +239,27 @@ typedef struct <a class="el" href="structtelebot__location.html">telebot_locatio
 typedef struct <a class="el" href="structtelebot__message.html">telebot_message</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gaa6116c669875a58d173e08f81b265d24">telebot_message_t</a></td></tr>
 <tr class="memdesc:gaa6116c669875a58d173e08f81b265d24"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a message. <br /></td></tr>
 <tr class="separator:gaa6116c669875a58d173e08f81b265d24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5c124ec8d5f214d99485ad2fea53929c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5c124ec8d5f214d99485ad2fea53929c"></a>
+typedef struct <a class="el" href="structtelebot__callback__query.html">telebot_callback_query</a>&#160;</td><td class="memItemRight" valign="bottom"><b>telebot_callback_query_t</b></td></tr>
+<tr class="separator:ga5c124ec8d5f214d99485ad2fea53929c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5a8c78ebbadf473a7fecc77a34055dc8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5a8c78ebbadf473a7fecc77a34055dc8"></a>
+typedef enum telebot_update_type&#160;</td><td class="memItemRight" valign="bottom"><b>telebot_update_type_t</b></td></tr>
+<tr class="separator:ga5a8c78ebbadf473a7fecc77a34055dc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga358a9ac5454da4008703da941cf8e1e6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga358a9ac5454da4008703da941cf8e1e6"></a>
 typedef struct <a class="el" href="structtelebot__update.html">telebot_update</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga358a9ac5454da4008703da941cf8e1e6">telebot_update_t</a></td></tr>
 <tr class="memdesc:ga358a9ac5454da4008703da941cf8e1e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an incoming update. <br /></td></tr>
 <tr class="separator:ga358a9ac5454da4008703da941cf8e1e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4df9c260ea0c0b324f01737c5adef3b5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga4df9c260ea0c0b324f01737c5adef3b5"></a>
-typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga4df9c260ea0c0b324f01737c5adef3b5">telebot_update_cb_f</a>) (const <a class="el" href="group__TELEBOT__API.html#gaa6116c669875a58d173e08f81b265d24">telebot_message_t</a> *message)</td></tr>
-<tr class="memdesc:ga4df9c260ea0c0b324f01737c5adef3b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function type defines callback for receiving updates. <br /></td></tr>
-<tr class="separator:ga4df9c260ea0c0b324f01737c5adef3b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafeaa62b26d04aa4bbadb94c1437c1976"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gafeaa62b26d04aa4bbadb94c1437c1976"></a>
+typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gafeaa62b26d04aa4bbadb94c1437c1976">telebot_update_cb_f</a>) (const <a class="el" href="group__TELEBOT__API.html#ga358a9ac5454da4008703da941cf8e1e6">telebot_update_t</a> *update)</td></tr>
+<tr class="memdesc:gafeaa62b26d04aa4bbadb94c1437c1976"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function type defines callback for receiving updates. <br /></td></tr>
+<tr class="separator:gafeaa62b26d04aa4bbadb94c1437c1976"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
+<tr class="memitem:ga72e26ad36ec658059d7c612c3b31f84d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga72e26ad36ec658059d7c612c3b31f84d"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>telebot_update_type</b> { <b>UPDATE_TYPE_MESSAGE</b>, 
+<b>UPDATE_TYPE_CALLBACK_QUERY</b>
+ }</td></tr>
+<tr class="separator:ga72e26ad36ec658059d7c612c3b31f84d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gada28c25a89bbab9e32e52f657ad00904"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> { <br />
 &#160;&#160;<a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e">TELEBOT_ERROR_NONE</a> = 0, 
 <a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904a9bd99e3d09927efa09b6494498d40daa">TELEBOT_ERROR_OPERATION_FAILED</a> = -1, 
@@ -269,7 +281,7 @@ Functions</h2></td></tr>
 <tr class="memitem:ga163a45492e5e165b6d3944f296576573"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga163a45492e5e165b6d3944f296576573">telebot_destroy</a> ()</td></tr>
 <tr class="memdesc:ga163a45492e5e165b6d3944f296576573"><td class="mdescLeft">&#160;</td><td class="mdescRight">Final function to use telebo APIs.  <a href="#ga163a45492e5e165b6d3944f296576573">More...</a><br /></td></tr>
 <tr class="separator:ga163a45492e5e165b6d3944f296576573"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga047676c485246cf058c6b7a6dce185fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga047676c485246cf058c6b7a6dce185fd">telebot_start</a> (<a class="el" href="group__TELEBOT__API.html#ga4df9c260ea0c0b324f01737c5adef3b5">telebot_update_cb_f</a> update_cb, bool detach_thread, pthread_t *thread_id)</td></tr>
+<tr class="memitem:ga047676c485246cf058c6b7a6dce185fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga047676c485246cf058c6b7a6dce185fd">telebot_start</a> (<a class="el" href="group__TELEBOT__API.html#gafeaa62b26d04aa4bbadb94c1437c1976">telebot_update_cb_f</a> update_cb, bool detach_thread, pthread_t *thread_id)</td></tr>
 <tr class="memdesc:ga047676c485246cf058c6b7a6dce185fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used start to receiving Telegram bot updates. Internally, it starts thread for polling updates.  <a href="#ga047676c485246cf058c6b7a6dce185fd">More...</a><br /></td></tr>
 <tr class="separator:ga047676c485246cf058c6b7a6dce185fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga75d8b5574682c9e19ddcbf8f1f4c2bc9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga75d8b5574682c9e19ddcbf8f1f4c2bc9">telebot_stop</a> ()</td></tr>
@@ -287,52 +299,64 @@ Functions</h2></td></tr>
 <tr class="memitem:ga5c5fc50afa6e03efacf25095f0ef55bb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga5c5fc50afa6e03efacf25095f0ef55bb">telebot_download_file</a> (char *file_id, char *path)</td></tr>
 <tr class="memdesc:ga5c5fc50afa6e03efacf25095f0ef55bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to download file.  <a href="#ga5c5fc50afa6e03efacf25095f0ef55bb">More...</a><br /></td></tr>
 <tr class="separator:ga5c5fc50afa6e03efacf25095f0ef55bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga83c31cd2f8607b1e185c4686182a6435"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga83c31cd2f8607b1e185c4686182a6435">telebot_send_message</a> (char *chat_id, char *text, char *parse_mode, bool disable_web_page_preview, int reply_to_message_id, const char *reply_markup)</td></tr>
-<tr class="memdesc:ga83c31cd2f8607b1e185c4686182a6435"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send text messages.  <a href="#ga83c31cd2f8607b1e185c4686182a6435">More...</a><br /></td></tr>
-<tr class="separator:ga83c31cd2f8607b1e185c4686182a6435"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2c9cfff8560dc370ddc56d351b9ae85c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga2c9cfff8560dc370ddc56d351b9ae85c">telebot_forward_message</a> (char *chat_id, char *from_chat_id, int message_id)</td></tr>
-<tr class="memdesc:ga2c9cfff8560dc370ddc56d351b9ae85c"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to forward messages of any kind.  <a href="#ga2c9cfff8560dc370ddc56d351b9ae85c">More...</a><br /></td></tr>
-<tr class="separator:ga2c9cfff8560dc370ddc56d351b9ae85c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1104eac755af159ec269838d601cc46c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga1104eac755af159ec269838d601cc46c">telebot_send_photo</a> (char *chat_id, char *photo, bool is_file, char *caption, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga1104eac755af159ec269838d601cc46c"><td class="mdescLeft">&#160;</td><td class="mdescRight">This functionis used to send photos.  <a href="#ga1104eac755af159ec269838d601cc46c">More...</a><br /></td></tr>
-<tr class="separator:ga1104eac755af159ec269838d601cc46c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga68a44103e0347dde01d65cebfa555f94"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga68a44103e0347dde01d65cebfa555f94">telebot_send_audio</a> (char *chat_id, char *audio, bool is_file, int duration, char *performer, char *title, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga68a44103e0347dde01d65cebfa555f94"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to to send audio files. if you want Telegram clients to display them in the music player. Your audio must be in the .mp3 format. Bots can currently send audio files of up to 50 MB in size. For backward compatibility, when the fields title and performer are both empty and the mime-type of the file to be sent is not audio/mpeg, the file will be sent as a playable voice message. For this to work, the audio must be in an .ogg file encoded with OPUS.  <a href="#ga68a44103e0347dde01d65cebfa555f94">More...</a><br /></td></tr>
-<tr class="separator:ga68a44103e0347dde01d65cebfa555f94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2d2065287ac5c4e9dd271b0b220ce12d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga2d2065287ac5c4e9dd271b0b220ce12d">telebot_send_document</a> (char *chat_id, char *document, bool is_file, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga2d2065287ac5c4e9dd271b0b220ce12d"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send general files.  <a href="#ga2d2065287ac5c4e9dd271b0b220ce12d">More...</a><br /></td></tr>
-<tr class="separator:ga2d2065287ac5c4e9dd271b0b220ce12d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga33f6c0c00721feef276caa5be8ef7e52"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga33f6c0c00721feef276caa5be8ef7e52">telebot_send_sticker</a> (char *chat_id, char *sticker, bool is_file, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga33f6c0c00721feef276caa5be8ef7e52"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to to send .webp stickers.  <a href="#ga33f6c0c00721feef276caa5be8ef7e52">More...</a><br /></td></tr>
-<tr class="separator:ga33f6c0c00721feef276caa5be8ef7e52"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7e241ef048b806aec55bf7715d1dccb2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga7e241ef048b806aec55bf7715d1dccb2">telebot_send_video</a> (char *chat_id, char *video, bool is_file, int duration, char *caption, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga7e241ef048b806aec55bf7715d1dccb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send video files, Telegram clients support mp4 videos (other formats may be sent as Document).  <a href="#ga7e241ef048b806aec55bf7715d1dccb2">More...</a><br /></td></tr>
-<tr class="separator:ga7e241ef048b806aec55bf7715d1dccb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3f34ed4c9b83def294146418c15eecbe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga3f34ed4c9b83def294146418c15eecbe">telebot_send_voice</a> (char *chat_id, char *voice, bool is_file, int duration, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga3f34ed4c9b83def294146418c15eecbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send audio files, if you want Telegram clients to display the file as a playable voice message. For this to work, your audio must be in an .ogg file encoded with OPUS (other formats may be sent as Audio or Document). Bots can currently send voice messages of up to 50 MB in size.  <a href="#ga3f34ed4c9b83def294146418c15eecbe">More...</a><br /></td></tr>
-<tr class="separator:ga3f34ed4c9b83def294146418c15eecbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga117030f623ab4226356df4fbeda68bae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga117030f623ab4226356df4fbeda68bae">telebot_send_location</a> (char *chat_id, float latitude, float longitude, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga117030f623ab4226356df4fbeda68bae"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send point on the map.  <a href="#ga117030f623ab4226356df4fbeda68bae">More...</a><br /></td></tr>
-<tr class="separator:ga117030f623ab4226356df4fbeda68bae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1516df81ad755c891c9097eca56489cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga1516df81ad755c891c9097eca56489cf">telebot_send_chat_action</a> (char *chat_id, char *action)</td></tr>
-<tr class="memdesc:ga1516df81ad755c891c9097eca56489cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Example: The ImageBot needs some time to process a request and upload the image. Instead of sending a text message along the lines of "Retrieving image,
- please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot. It is only recommended to use when a response from the bot will take a noticeable amount of time to arrive.  <a href="#ga1516df81ad755c891c9097eca56489cf">More...</a><br /></td></tr>
-<tr class="separator:ga1516df81ad755c891c9097eca56489cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga40558e177422e8b6f2198577d1dc35cb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga40558e177422e8b6f2198577d1dc35cb">telebot_create_reply_keyboard</a> (bool resize, bool one_time, bool selective, <a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> **keyboard)</td></tr>
-<tr class="memdesc:ga40558e177422e8b6f2198577d1dc35cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function creates a <a class="el" href="structtelebot__reply__keyboard__t.html" title="This object represent a reply keyboard. ">telebot_reply_keyboard_t</a> object used to set a ReplyKeyboard.  <a href="#ga40558e177422e8b6f2198577d1dc35cb">More...</a><br /></td></tr>
-<tr class="separator:ga40558e177422e8b6f2198577d1dc35cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad9e3deb20e6c99f9d74a0339d8702297"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gad9e3deb20e6c99f9d74a0339d8702297">telebot_destroy_reply_keyboard</a> (<a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *keyboard)</td></tr>
-<tr class="memdesc:gad9e3deb20e6c99f9d74a0339d8702297"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to destroy a #telebot_reply_keyboard object, created using <a class="el" href="group__TELEBOT__API.html#ga40558e177422e8b6f2198577d1dc35cb" title="This function creates a telebot_reply_keyboard_t object used to set a ReplyKeyboard. ">telebot_create_reply_keyboard</a>.  <a href="#gad9e3deb20e6c99f9d74a0339d8702297">More...</a><br /></td></tr>
-<tr class="separator:gad9e3deb20e6c99f9d74a0339d8702297"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga96e88107a46bfeb3a226c9f7648f93a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga96e88107a46bfeb3a226c9f7648f93a1">telebot_reply_keyboard_add_button</a> (<a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *keyboard, char *text, bool request_contact, bool request_location)</td></tr>
-<tr class="memdesc:ga96e88107a46bfeb3a226c9f7648f93a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function adds a button to the current row of a ReplyKeyboard.  <a href="#ga96e88107a46bfeb3a226c9f7648f93a1">More...</a><br /></td></tr>
-<tr class="separator:ga96e88107a46bfeb3a226c9f7648f93a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaec693656970a66430cb237a91e56fb9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gaec693656970a66430cb237a91e56fb9b">telebot_reply_keyboard_add_row</a> (<a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *keyboard)</td></tr>
-<tr class="memdesc:gaec693656970a66430cb237a91e56fb9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function adds a button row to a ReplyKeyboard. This updates the concept of the 'current_row' where new buttons are going to be added.  <a href="#gaec693656970a66430cb237a91e56fb9b">More...</a><br /></td></tr>
-<tr class="separator:gaec693656970a66430cb237a91e56fb9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga011d389cb52961ab68e0c01d812808ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga011d389cb52961ab68e0c01d812808ac">telebot_reply_keyboard_stringify</a> (<a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *keyboard, char **keyboard_str)</td></tr>
-<tr class="memdesc:ga011d389cb52961ab68e0c01d812808ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stringify the JSON object representing the ReplyKeyboard.  <a href="#ga011d389cb52961ab68e0c01d812808ac">More...</a><br /></td></tr>
-<tr class="separator:ga011d389cb52961ab68e0c01d812808ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf9f516cee4b439e40eb871b4dd2eea7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gaf9f516cee4b439e40eb871b4dd2eea7a">telebot_send_message</a> (int chat_id, char *text, char *parse_mode, bool disable_web_page_preview, int reply_to_message_id, const char *reply_markup)</td></tr>
+<tr class="memdesc:gaf9f516cee4b439e40eb871b4dd2eea7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send text messages.  <a href="#gaf9f516cee4b439e40eb871b4dd2eea7a">More...</a><br /></td></tr>
+<tr class="separator:gaf9f516cee4b439e40eb871b4dd2eea7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae40e16bb7c931f323cfc9701ff9b66f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gae40e16bb7c931f323cfc9701ff9b66f0">telebot_delete_message</a> (int chat_id, int message_id)</td></tr>
+<tr class="memdesc:gae40e16bb7c931f323cfc9701ff9b66f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to delete messages.  <a href="#gae40e16bb7c931f323cfc9701ff9b66f0">More...</a><br /></td></tr>
+<tr class="separator:gae40e16bb7c931f323cfc9701ff9b66f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabb48cf7c1d736e5c633c88534aac9e42"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gabb48cf7c1d736e5c633c88534aac9e42">telebot_answer_callback_query</a> (const char *callback_query_id, char *text, bool show_alert, char *url, int cache_time)</td></tr>
+<tr class="memdesc:gabb48cf7c1d736e5c633c88534aac9e42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Use this method to send answers to callback queries sent from inline keyboards. The answer will be displayed to the user as a notification at the top of the chat screen or as an alert.  <a href="#gabb48cf7c1d736e5c633c88534aac9e42">More...</a><br /></td></tr>
+<tr class="separator:gabb48cf7c1d736e5c633c88534aac9e42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac637250685667e24460365a08b8f6295"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gac637250685667e24460365a08b8f6295">telebot_forward_message</a> (int chat_id, char *from_chat_id, int message_id)</td></tr>
+<tr class="memdesc:gac637250685667e24460365a08b8f6295"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to forward messages of any kind.  <a href="#gac637250685667e24460365a08b8f6295">More...</a><br /></td></tr>
+<tr class="separator:gac637250685667e24460365a08b8f6295"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae9182f1e2eb30ac93d7c242be8df5f32"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gae9182f1e2eb30ac93d7c242be8df5f32">telebot_send_photo</a> (int chat_id, char *photo, bool is_file, char *caption, int reply_to_message_id, char *reply_markup)</td></tr>
+<tr class="memdesc:gae9182f1e2eb30ac93d7c242be8df5f32"><td class="mdescLeft">&#160;</td><td class="mdescRight">This functionis used to send photos.  <a href="#gae9182f1e2eb30ac93d7c242be8df5f32">More...</a><br /></td></tr>
+<tr class="separator:gae9182f1e2eb30ac93d7c242be8df5f32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8121ecfb375ca994c51004c863f7667d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga8121ecfb375ca994c51004c863f7667d">telebot_send_audio</a> (int chat_id, char *audio, bool is_file, int duration, char *performer, char *title, int reply_to_message_id, char *reply_markup)</td></tr>
+<tr class="memdesc:ga8121ecfb375ca994c51004c863f7667d"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to to send audio files. if you want Telegram clients to display them in the music player. Your audio must be in the .mp3 format. Bots can currently send audio files of up to 50 MB in size. For backward compatibility, when the fields title and performer are both empty and the mime-type of the file to be sent is not audio/mpeg, the file will be sent as a playable voice message. For this to work, the audio must be in an .ogg file encoded with OPUS.  <a href="#ga8121ecfb375ca994c51004c863f7667d">More...</a><br /></td></tr>
+<tr class="separator:ga8121ecfb375ca994c51004c863f7667d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga56f4b8b85cf7dcdbae2553af9a63208d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga56f4b8b85cf7dcdbae2553af9a63208d">telebot_send_document</a> (int chat_id, char *document, bool is_file, int reply_to_message_id, char *reply_markup)</td></tr>
+<tr class="memdesc:ga56f4b8b85cf7dcdbae2553af9a63208d"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send general files.  <a href="#ga56f4b8b85cf7dcdbae2553af9a63208d">More...</a><br /></td></tr>
+<tr class="separator:ga56f4b8b85cf7dcdbae2553af9a63208d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1b04f749d29183f4e364e247f2111e6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga1b04f749d29183f4e364e247f2111e6e">telebot_send_sticker</a> (int chat_id, char *sticker, bool is_file, int reply_to_message_id, char *reply_markup)</td></tr>
+<tr class="memdesc:ga1b04f749d29183f4e364e247f2111e6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to to send .webp stickers.  <a href="#ga1b04f749d29183f4e364e247f2111e6e">More...</a><br /></td></tr>
+<tr class="separator:ga1b04f749d29183f4e364e247f2111e6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0a0d025c890b066589bf8491bd1576d9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga0a0d025c890b066589bf8491bd1576d9">telebot_send_video</a> (int chat_id, char *video, bool is_file, int duration, char *caption, int reply_to_message_id, char *reply_markup)</td></tr>
+<tr class="memdesc:ga0a0d025c890b066589bf8491bd1576d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send video files, Telegram clients support mp4 videos (other formats may be sent as Document).  <a href="#ga0a0d025c890b066589bf8491bd1576d9">More...</a><br /></td></tr>
+<tr class="separator:ga0a0d025c890b066589bf8491bd1576d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gada337d5000695c5241b2ee17573dc703"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gada337d5000695c5241b2ee17573dc703">telebot_send_voice</a> (int chat_id, char *voice, bool is_file, int duration, int reply_to_message_id, char *reply_markup)</td></tr>
+<tr class="memdesc:gada337d5000695c5241b2ee17573dc703"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send audio files, if you want Telegram clients to display the file as a playable voice message. For this to work, your audio must be in an .ogg file encoded with OPUS (other formats may be sent as Audio or Document). Bots can currently send voice messages of up to 50 MB in size.  <a href="#gada337d5000695c5241b2ee17573dc703">More...</a><br /></td></tr>
+<tr class="separator:gada337d5000695c5241b2ee17573dc703"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf122f955a887a687715eb54f9f4bd1be"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gaf122f955a887a687715eb54f9f4bd1be">telebot_send_location</a> (int chat_id, float latitude, float longitude, int reply_to_message_id, char *reply_markup)</td></tr>
+<tr class="memdesc:gaf122f955a887a687715eb54f9f4bd1be"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send point on the map.  <a href="#gaf122f955a887a687715eb54f9f4bd1be">More...</a><br /></td></tr>
+<tr class="separator:gaf122f955a887a687715eb54f9f4bd1be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga91f39339ac2b2e53eb6c2776562f2892"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga91f39339ac2b2e53eb6c2776562f2892">telebot_send_chat_action</a> (int chat_id, char *action)</td></tr>
+<tr class="memdesc:ga91f39339ac2b2e53eb6c2776562f2892"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Example: The ImageBot needs some time to process a request and upload the image. Instead of sending a text message along the lines of "Retrieving image,
+please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot. It is only recommended to use when a response from the bot will take a noticeable amount of time to arrive.  <a href="#ga91f39339ac2b2e53eb6c2776562f2892">More...</a><br /></td></tr>
+<tr class="separator:ga91f39339ac2b2e53eb6c2776562f2892"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga00e5d8d636aa38bc5f2179af7d0cf3fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga00e5d8d636aa38bc5f2179af7d0cf3fd">telebot_create_reply_keyboard</a> (bool resize, bool one_time, bool selective, <a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> **keyboard)</td></tr>
+<tr class="memdesc:ga00e5d8d636aa38bc5f2179af7d0cf3fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function creates a <a class="el" href="structtelebot__keyboard__t.html" title="This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard). ">telebot_keyboard_t</a> object used to set a ReplyKeyboard.  <a href="#ga00e5d8d636aa38bc5f2179af7d0cf3fd">More...</a><br /></td></tr>
+<tr class="separator:ga00e5d8d636aa38bc5f2179af7d0cf3fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8c0e1a58558d48b90a4fe49c1f6a43e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga8c0e1a58558d48b90a4fe49c1f6a43e2">telebot_create_inline_keyboard</a> (<a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> **keyboard)</td></tr>
+<tr class="memdesc:ga8c0e1a58558d48b90a4fe49c1f6a43e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function creates a <a class="el" href="structtelebot__keyboard__t.html" title="This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard). ">telebot_keyboard_t</a> object used to represent an InlineKeyboard ReplyKeyboard.  <a href="#ga8c0e1a58558d48b90a4fe49c1f6a43e2">More...</a><br /></td></tr>
+<tr class="separator:ga8c0e1a58558d48b90a4fe49c1f6a43e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga627c5f6e4b23c956f80b10c6f6a1c992"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga627c5f6e4b23c956f80b10c6f6a1c992">telebot_destroy_keyboard</a> (<a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *keyboard)</td></tr>
+<tr class="memdesc:ga627c5f6e4b23c956f80b10c6f6a1c992"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to destroy a #telebot_reply_keyboard object, created using <a class="el" href="group__TELEBOT__API.html#ga00e5d8d636aa38bc5f2179af7d0cf3fd" title="This function creates a telebot_keyboard_t object used to set a ReplyKeyboard. ">telebot_create_reply_keyboard</a>.  <a href="#ga627c5f6e4b23c956f80b10c6f6a1c992">More...</a><br /></td></tr>
+<tr class="separator:ga627c5f6e4b23c956f80b10c6f6a1c992"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2e2db5ee7085ad825581a7cbea557282"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga2e2db5ee7085ad825581a7cbea557282">telebot_keyboard_add_reply_button</a> (<a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *keyboard, char *text, bool request_contact, bool request_location)</td></tr>
+<tr class="memdesc:ga2e2db5ee7085ad825581a7cbea557282"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function adds a button to the current row of a ReplyKeyboard.  <a href="#ga2e2db5ee7085ad825581a7cbea557282">More...</a><br /></td></tr>
+<tr class="separator:ga2e2db5ee7085ad825581a7cbea557282"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad69b57c5cfa6830768fd5e8182838eac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gad69b57c5cfa6830768fd5e8182838eac">telebot_keyboard_add_inline_button</a> (<a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *keyboard, char *text, char *url, char *callback_data, char *switch_inline_query, char *switch_inline_query_current_chat, bool pay)</td></tr>
+<tr class="memdesc:gad69b57c5cfa6830768fd5e8182838eac"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function adds a button to the current row of an InlineKeyboard.  <a href="#gad69b57c5cfa6830768fd5e8182838eac">More...</a><br /></td></tr>
+<tr class="separator:gad69b57c5cfa6830768fd5e8182838eac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga275cc738948f352740b5632572435245"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga275cc738948f352740b5632572435245">telebot_reply_keyboard_add_row</a> (<a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *keyboard)</td></tr>
+<tr class="memdesc:ga275cc738948f352740b5632572435245"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function adds a button row to a ReplyKeyboard. This updates the concept of the 'current_row' where new buttons are going to be added.  <a href="#ga275cc738948f352740b5632572435245">More...</a><br /></td></tr>
+<tr class="separator:ga275cc738948f352740b5632572435245"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaba0cfab1a18f3ace41c08e4482e8e6c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gaba0cfab1a18f3ace41c08e4482e8e6c3">telebot_keyboard_stringify</a> (<a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *keyboard, char **keyboard_str)</td></tr>
+<tr class="memdesc:gaba0cfab1a18f3ace41c08e4482e8e6c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stringify the JSON object representing the ReplyKeyboard.  <a href="#gaba0cfab1a18f3ace41c08e4482e8e6c3">More...</a><br /></td></tr>
+<tr class="separator:gaba0cfab1a18f3ace41c08e4482e8e6c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Simplified APIs to create telegram bot. </p>
@@ -649,6 +673,63 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="gabb48cf7c1d736e5c633c88534aac9e42"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_answer_callback_query </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>callback_query_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>text</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>show_alert</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>url</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>cache_time</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Use this method to send answers to callback queries sent from inline keyboards. The answer will be displayed to the user as a notification at the top of the chat screen or as an alert. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">callback_query_id</td><td>Unique identifier for the query to be answered. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">text</td><td>Optional (i.e. can be NULL). Text of the notification. If not specified, nothing will be shown to the user, 0-200 characters. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">show_alert</td><td>Optional (i.e. can be NULL). If true, an alert will be shown by the client instead of a notification at the top of the chat screen. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">url</td><td>Optional (i.e. can be NULL). URL that will be opened by the user's client. If you have created a Game and accepted the conditions via , specify the URL that opens your game – note that this will only work if the query comes from a callback_game button. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">cache_time</td><td>Optional (i.e. can be NULL). The maximum amount of time in seconds that the result of the callback query may be cached client-side. Telegram apps will support caching starting in version 3.14. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="gad46dcabebf65d4fa4c51c94486bf0e27"></a>
 <div class="memitem">
 <div class="memproto">
@@ -674,7 +755,32 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga40558e177422e8b6f2198577d1dc35cb"></a>
+<a class="anchor" id="ga8c0e1a58558d48b90a4fe49c1f6a43e2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_create_inline_keyboard </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> **&#160;</td>
+          <td class="paramname"><em>keyboard</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function creates a <a class="el" href="structtelebot__keyboard__t.html" title="This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard). ">telebot_keyboard_t</a> object used to represent an InlineKeyboard ReplyKeyboard. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">keyboard</td><td>A <a class="el" href="structtelebot__keyboard__t.html" title="This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard). ">telebot_keyboard_t</a> objet representing a InlineKeyboard. It MUST be destroyed with <a class="el" href="group__TELEBOT__API.html#ga627c5f6e4b23c956f80b10c6f6a1c992" title="This function is used to destroy a #telebot_reply_keyboard object, created using telebot_create_reply...">telebot_destroy_keyboard</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga00e5d8d636aa38bc5f2179af7d0cf3fd"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -699,7 +805,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> **&#160;</td>
+          <td class="paramtype"><a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> **&#160;</td>
           <td class="paramname"><em>keyboard</em>&#160;</td>
         </tr>
         <tr>
@@ -710,17 +816,53 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>This function creates a <a class="el" href="structtelebot__reply__keyboard__t.html" title="This object represent a reply keyboard. ">telebot_reply_keyboard_t</a> object used to set a ReplyKeyboard. </p>
+<p>This function creates a <a class="el" href="structtelebot__keyboard__t.html" title="This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard). ">telebot_keyboard_t</a> object used to set a ReplyKeyboard. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">resize</td><td>Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons). Defaults to false, in which case the custom keyboard is always of the same height as the app's standard keyboard. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">one_time</td><td>Requests clients to hide the keyboard as soon as it's been used. The keyboard will still be available, but clients will automatically display the usual letter-keyboard in the chat – the user can press a special button in the input field to see the custom keyboard again. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">selective</td><td>Use this parameter if you want to show the keyboard to specific users only. Targets: 1) users that are  in the text of the Message object; 2) if the bot's message is a reply (has reply_to_message_id), sender of the original message. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">keyboard</td><td>A <a class="el" href="structtelebot__reply__keyboard__t.html" title="This object represent a reply keyboard. ">telebot_reply_keyboard_t</a> objet representing a ReplyKeyboard. It MUST be destroyed with <a class="el" href="group__TELEBOT__API.html#gad9e3deb20e6c99f9d74a0339d8702297" title="This function is used to destroy a #telebot_reply_keyboard object, created using telebot_create_reply...">telebot_destroy_reply_keyboard</a>. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">keyboard</td><td>A <a class="el" href="structtelebot__keyboard__t.html" title="This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard). ">telebot_keyboard_t</a> objet representing a ReplyKeyboard. It MUST be destroyed with <a class="el" href="group__TELEBOT__API.html#ga627c5f6e4b23c956f80b10c6f6a1c992" title="This function is used to destroy a #telebot_reply_keyboard object, created using telebot_create_reply...">telebot_destroy_keyboard</a>. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gae40e16bb7c931f323cfc9701ff9b66f0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_delete_message </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>chat_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>message_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function is used to delete messages. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">message_id</td><td>Identifier of the message to delete </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
 
 </div>
 </div>
@@ -742,27 +884,28 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gad9e3deb20e6c99f9d74a0339d8702297"></a>
+<a class="anchor" id="ga627c5f6e4b23c956f80b10c6f6a1c992"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_destroy_reply_keyboard </td>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_destroy_keyboard </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *&#160;</td>
           <td class="paramname"><em>keyboard</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>This function is used to destroy a #telebot_reply_keyboard object, created using <a class="el" href="group__TELEBOT__API.html#ga40558e177422e8b6f2198577d1dc35cb" title="This function creates a telebot_reply_keyboard_t object used to set a ReplyKeyboard. ">telebot_create_reply_keyboard</a>. </p>
+<p>This function is used to destroy a #telebot_reply_keyboard object, created using <a class="el" href="group__TELEBOT__API.html#ga00e5d8d636aa38bc5f2179af7d0cf3fd" title="This function creates a telebot_keyboard_t object used to set a ReplyKeyboard. ">telebot_create_reply_keyboard</a>. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">keyboard</td><td>The keyboard to be destroyed. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -802,14 +945,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga2c9cfff8560dc370ddc56d351b9ae85c"></a>
+<a class="anchor" id="gac637250685667e24460365a08b8f6295"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_forward_message </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -902,7 +1045,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>On success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -956,14 +1099,85 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga96e88107a46bfeb3a226c9f7648f93a1"></a>
+<a class="anchor" id="gad69b57c5cfa6830768fd5e8182838eac"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_reply_keyboard_add_button </td>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_keyboard_add_inline_button </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *&#160;</td>
+          <td class="paramname"><em>keyboard</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>text</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>url</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>callback_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>switch_inline_query</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>switch_inline_query_current_chat</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>pay</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function adds a button to the current row of an InlineKeyboard. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">keyboard</td><td>The keyboard to where the button will be added. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">text</td><td>Label text on the button. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">url</td><td>Optional (i.e. can be NULL). HTTP url to be opened when button is pressed. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">callback_data</td><td>Optional (i.e. can be NULL). Data to be sent in a callback query to the bot when button is pressed, 1-64 bytes. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">switch_inline_query</td><td>Optional (i.e. can be NULL). If set, pressing the button will prompt the user to select one of their chats, open that chat and insert the bot‘s username and the specified inline query in the input field. Can be empty, in which case just the bot’s username will be inserted. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">switch_inline_query_current_chat</td><td>Optional (i.e. can be NULL). If set, pressing the button will insert the bot‘s username and the specified inline query in the current chat's input field. Can be empty, in which case only the bot’s username will be inserted. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pay</td><td>Specify True, to send a Pay button. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2e2db5ee7085ad825581a7cbea557282"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_keyboard_add_reply_button </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *&#160;</td>
           <td class="paramname"><em>keyboard</em>, </td>
         </tr>
         <tr>
@@ -1006,39 +1220,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gaec693656970a66430cb237a91e56fb9b"></a>
+<a class="anchor" id="gaba0cfab1a18f3ace41c08e4482e8e6c3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_reply_keyboard_add_row </td>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_keyboard_stringify </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *&#160;</td>
-          <td class="paramname"><em>keyboard</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>This function adds a button row to a ReplyKeyboard. This updates the concept of the 'current_row' where new buttons are going to be added. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">keyboard</td><td>The keyboard to where the button row will be added. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ga011d389cb52961ab68e0c01d812808ac"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_reply_keyboard_stringify </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *&#160;</td>
           <td class="paramname"><em>keyboard</em>, </td>
         </tr>
         <tr>
@@ -1067,14 +1256,39 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga68a44103e0347dde01d65cebfa555f94"></a>
+<a class="anchor" id="ga275cc738948f352740b5632572435245"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_reply_keyboard_add_row </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtelebot__keyboard__t.html">telebot_keyboard_t</a> *&#160;</td>
+          <td class="paramname"><em>keyboard</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function adds a button row to a ReplyKeyboard. This updates the concept of the 'current_row' where new buttons are going to be added. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">keyboard</td><td>The keyboard to where the button row will be added. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga8121ecfb375ca994c51004c863f7667d"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_audio </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1145,14 +1359,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga1516df81ad755c891c9097eca56489cf"></a>
+<a class="anchor" id="ga91f39339ac2b2e53eb6c2776562f2892"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_chat_action </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1170,7 +1384,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>This function is used to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Example: The ImageBot needs some time to process a request and upload the image. Instead of sending a text message along the lines of "Retrieving image,
- please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot. It is only recommended to use when a response from the bot will take a noticeable amount of time to arrive. </p>
+please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot. It is only recommended to use when a response from the bot will take a noticeable amount of time to arrive. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername) </td></tr>
@@ -1182,14 +1396,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga2d2065287ac5c4e9dd271b0b220ce12d"></a>
+<a class="anchor" id="ga56f4b8b85cf7dcdbae2553af9a63208d"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_document </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1239,14 +1453,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga117030f623ab4226356df4fbeda68bae"></a>
+<a class="anchor" id="gaf122f955a887a687715eb54f9f4bd1be"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_location </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1296,14 +1510,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga83c31cd2f8607b1e185c4686182a6435"></a>
+<a class="anchor" id="gaf9f516cee4b439e40eb871b4dd2eea7a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_message </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1360,14 +1574,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga1104eac755af159ec269838d601cc46c"></a>
+<a class="anchor" id="gae9182f1e2eb30ac93d7c242be8df5f32"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_photo </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1411,7 +1625,7 @@ Functions</h2></td></tr>
 <p>This functionis used to send photos. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername).int chat_id </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">photo</td><td>Photo to send. It is either file_id as String to resend a photo that is already on the Telegram servers, or a path to photo file. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">is_file</td><td>False if photo is file_id, true, if photo is a file path. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">caption</td><td>Photo caption. (may also be used when resending photos). </td></tr>
@@ -1424,14 +1638,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga33f6c0c00721feef276caa5be8ef7e52"></a>
+<a class="anchor" id="ga1b04f749d29183f4e364e247f2111e6e"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_sticker </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1481,14 +1695,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga7e241ef048b806aec55bf7715d1dccb2"></a>
+<a class="anchor" id="ga0a0d025c890b066589bf8491bd1576d9"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_video </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1552,14 +1766,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga3f34ed4c9b83def294146418c15eecbe"></a>
+<a class="anchor" id="gada337d5000695c5241b2ee17573dc703"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_send_voice </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>chat_id</em>, </td>
         </tr>
         <tr>
@@ -1623,7 +1837,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_start </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#ga4df9c260ea0c0b324f01737c5adef3b5">telebot_update_cb_f</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#gafeaa62b26d04aa4bbadb94c1437c1976">telebot_update_cb_f</a>&#160;</td>
           <td class="paramname"><em>update_cb</em>, </td>
         </tr>
         <tr>
@@ -1680,7 +1894,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Dec 24 2017 17:27:26 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Dec 24 2017 19:32:37 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>
