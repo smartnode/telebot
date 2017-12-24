@@ -41,6 +41,5 @@ Temporary Items
 .cproject
 .project
 
-# Build and doc directory
+# Build directory
 build
-html

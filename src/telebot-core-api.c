@@ -247,7 +247,7 @@ telebot_error_e telebot_core_get_file(telebot_core_h *handler, char *file_id)
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_GET_FILE, post);
 }
 
-telebot_error_e telebot_core_send_message(telebot_core_h *handler, char *chat_id,
+telebot_error_e telebot_core_send_message(telebot_core_h *handler, int chat_id,
         char *text, char *parse_mode, bool disable_web_page_preview,
         int reply_to_message_id, const char *reply_markup)
 {
@@ -268,8 +268,10 @@ telebot_error_e telebot_core_send_message(telebot_core_h *handler, char *chat_id
     snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
             reply_to_message_id);
 
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "text",
             CURLFORM_COPYCONTENTS, text, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "parse_mode",
@@ -285,8 +287,84 @@ telebot_error_e telebot_core_send_message(telebot_core_h *handler, char *chat_id
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_MESSAGE, post);
 }
 
+telebot_error_e telebot_core_delete_message(telebot_core_h *handler, int chat_id,
+        int message_id)
+{
+    if (handler == NULL) {
+        ERR("Handler is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (handler->token == NULL) {
+        ERR("Token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    struct curl_httppost *post = NULL;
+    struct curl_httppost *last = NULL;
+
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
+    char message_id_str[16];
+    snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
+
+    curl_formadd (&post, &last, CURLFORM_COPYNAME, "chat_id",
+                  CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
+    curl_formadd (&post, &last, CURLFORM_COPYNAME, "message_id",
+                  CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
+
+    return telebot_core_curl_perform(handler, TELEBOT_METHOD_DELETE_MESSAGE, post);
+}
+
+telebot_error_e telebot_core_answer_callback_query(telebot_core_h * handler,
+        const char *callback_query_id, char *text, bool show_alert,
+        char *url, int cache_time)
+{
+    if (handler == NULL) {
+        ERR("Handler is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (handler->token == NULL) {
+        ERR("Token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    struct curl_httppost *post = NULL;
+    struct curl_httppost *last = NULL;
+
+    curl_formadd (&post, &last, CURLFORM_COPYNAME, "callback_query_id",
+                  CURLFORM_COPYCONTENTS, callback_query_id, CURLFORM_END);
+
+    if (text) {
+        curl_formadd (&post, &last, CURLFORM_COPYNAME, "text",
+                      CURLFORM_COPYCONTENTS, text, CURLFORM_END);
+    }
+
+    if (show_alert) {
+        curl_formadd (&post, &last, CURLFORM_COPYNAME, "show_alert",
+                      CURLFORM_COPYCONTENTS, "true", CURLFORM_END);
+    }
+
+    if (url) {
+        curl_formadd (&post, &last, CURLFORM_COPYNAME, "url",
+                  CURLFORM_COPYCONTENTS, url, CURLFORM_END);
+    }
+
+    if (cache_time) {
+        char cache_time_str[16];
+        snprintf(cache_time_str, sizeof(cache_time_str), "%d", cache_time);
+        curl_formadd (&post, &last, CURLFORM_COPYNAME, "cache_time",
+                      CURLFORM_COPYCONTENTS, cache_time_str, CURLFORM_END);
+    }
+
+    return telebot_core_curl_perform(handler, TELEBOT_METHOD_ANSWER_CALLBACK_QUERY,
+                                     post);
+}
+
+
 telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
-        char *chat_id, char *from_chat_id, int message_id)
+        int chat_id, char *from_chat_id, int message_id)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -304,8 +382,10 @@ telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
     char message_id_str[16];
     snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
 
-    curl_formadd (&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
+    curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
     curl_formadd (&post, &last, CURLFORM_COPYNAME, "from_chat_id",
             CURLFORM_COPYCONTENTS, from_chat_id, CURLFORM_END);
     curl_formadd (&post, &last, CURLFORM_COPYNAME, "message_id",
@@ -314,7 +394,7 @@ telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_FORWARD_MESSAGE, post);
 }
 
-telebot_error_e telebot_core_send_photo(telebot_core_h *handler, char *chat_id,
+telebot_error_e telebot_core_send_photo(telebot_core_h *handler, int chat_id,
         char *photo, bool is_file, char *caption, int reply_to_message_id,
         char *reply_markup)
 {
@@ -334,8 +414,11 @@ telebot_error_e telebot_core_send_photo(telebot_core_h *handler, char *chat_id,
     char reply_to_message_id_str[16];
     snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
             reply_to_message_id);
+
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
     if (is_file)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "photo",
@@ -354,7 +437,7 @@ telebot_error_e telebot_core_send_photo(telebot_core_h *handler, char *chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_PHOTO, post);
 }
 
-telebot_error_e telebot_core_send_audio(telebot_core_h *handler, char *chat_id,
+telebot_error_e telebot_core_send_audio(telebot_core_h *handler, int chat_id,
         char *audio, bool is_file, int duration, char *performer, char *title,
         int reply_to_message_id, char *reply_markup)
 {
@@ -376,8 +459,10 @@ telebot_error_e telebot_core_send_audio(telebot_core_h *handler, char *chat_id,
     snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
             reply_to_message_id);
 
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
     if (is_file)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "audio",
@@ -400,7 +485,7 @@ telebot_error_e telebot_core_send_audio(telebot_core_h *handler, char *chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_AUDIO, post);
 }
 
-telebot_error_e telebot_core_send_document(telebot_core_h *handler, char *chat_id,
+telebot_error_e telebot_core_send_document(telebot_core_h *handler, int chat_id,
         char *document, bool is_file, int reply_to_message_id, char *reply_markup)
 {
     if (handler == NULL) {
@@ -416,12 +501,10 @@ telebot_error_e telebot_core_send_document(telebot_core_h *handler, char *chat_i
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
-    char reply_to_message_id_str[16];
-    snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
-            reply_to_message_id);
-
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
     if (is_file)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "document",
@@ -430,6 +513,9 @@ telebot_error_e telebot_core_send_document(telebot_core_h *handler, char *chat_i
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "document",
                 CURLFORM_COPYCONTENTS, document, CURLFORM_END);
 
+    char reply_to_message_id_str[16];
+    snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
+            reply_to_message_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_to_message_id",
             CURLFORM_COPYCONTENTS, reply_to_message_id_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
@@ -438,7 +524,7 @@ telebot_error_e telebot_core_send_document(telebot_core_h *handler, char *chat_i
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_PHOTO, post);
 }
 
-telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, char *chat_id,
+telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, int chat_id,
         char *sticker, bool is_file, int reply_to_message_id, char *reply_markup)
 {
     if (handler == NULL) {
@@ -458,8 +544,10 @@ telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, char *chat_id
     snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
             reply_to_message_id);
 
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
     if (is_file)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "sticker",
@@ -476,7 +564,7 @@ telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, char *chat_id
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_STICKER, post);
 }
 
-telebot_error_e telebot_core_send_video(telebot_core_h *handler, char *chat_id,
+telebot_error_e telebot_core_send_video(telebot_core_h *handler, int chat_id,
         char *video, bool is_file, int duration, char *caption,
         int reply_to_message_id, char *reply_markup)
 {
@@ -498,8 +586,10 @@ telebot_error_e telebot_core_send_video(telebot_core_h *handler, char *chat_id,
     snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
             reply_to_message_id);
 
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
     if (is_file)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "video",
@@ -520,7 +610,7 @@ telebot_error_e telebot_core_send_video(telebot_core_h *handler, char *chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_VIDEO, post);
 }
 
-telebot_error_e telebot_core_send_voice(telebot_core_h *handler, char *chat_id,
+telebot_error_e telebot_core_send_voice(telebot_core_h *handler, int chat_id,
         char *voice, bool is_file, int duration, int reply_to_message_id,
         char *reply_markup)
 {
@@ -542,8 +632,10 @@ telebot_error_e telebot_core_send_voice(telebot_core_h *handler, char *chat_id,
     snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
             reply_to_message_id);
 
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
     if (is_file)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "voice",
@@ -563,7 +655,7 @@ telebot_error_e telebot_core_send_voice(telebot_core_h *handler, char *chat_id,
 }
 
 telebot_error_e telebot_core_send_location(telebot_core_h *handler,
-        char *chat_id, float latitude, float longitude, int reply_to_message_id,
+        int chat_id, float latitude, float longitude, int reply_to_message_id,
         char *reply_markup)
 {
     if (handler == NULL) {
@@ -586,8 +678,10 @@ telebot_error_e telebot_core_send_location(telebot_core_h *handler,
     snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
             reply_to_message_id);
 
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "latitude",
             CURLFORM_COPYCONTENTS, latitude_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "longitude",
@@ -601,7 +695,7 @@ telebot_error_e telebot_core_send_location(telebot_core_h *handler,
 }
 
 telebot_error_e telebot_core_send_chat_action(telebot_core_h *handler,
-        char *chat_id, char *action)
+        int chat_id, char *action)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -616,8 +710,10 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_h *handler,
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
-            CURLFORM_COPYCONTENTS, chat_id, CURLFORM_END);
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "action",
             CURLFORM_COPYCONTENTS, action, CURLFORM_END);
 

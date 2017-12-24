@@ -10,21 +10,19 @@
 
 #define SIZE_OF_ARRAY(array) (sizeof(array)/sizeof(array[0]))
 
-static void update_cb(const telebot_message_t *message)
+static void update_cb(const telebot_update_t *update)
 {
     telebot_error_e ret;
+    telebot_message_t message = update->message;
     char str[TELEBOT_MESSAGE_TEXT_SIZE + 3];
-    char chat_id[32];
-    if (strstr(message->text, "/start")) {
+    if (strstr(message.text, "/start")) {
         snprintf(str, SIZE_OF_ARRAY(str), "Hello %s",
-                message->from.first_name);
+                message.from.first_name);
     }
     else {
-        snprintf(str, SIZE_OF_ARRAY(str), "RE:%s", message->text);
+        snprintf(str, SIZE_OF_ARRAY(str), "RE:%s", message.text);
     }
-    snprintf(chat_id, 32, "%d", message->chat.id);
-
-    ret = telebot_send_message(chat_id, str, "", false, 0, "");
+    ret = telebot_send_message(message.chat.id, str, "", false, 0, "");
     if (ret != TELEBOT_ERROR_NONE) {
         printf("Failed to send message: %d \n", ret);
     }

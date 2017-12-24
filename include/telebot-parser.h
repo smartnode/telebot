@@ -29,6 +29,10 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj,
 telebot_error_e telebot_parser_get_message(struct json_object *obj,
         telebot_message_t *msg);
 
+/** Parse callback_query object */
+telebot_error_e telebot_parser_get_callback_query(struct json_object *obj,
+        telebot_callback_query_t *cb_query);
+
 /** Parse user object */
 telebot_error_e telebot_parser_get_user(struct json_object *obj,
         telebot_user_t *user);
@@ -82,4 +86,3 @@ telebot_error_e telebot_parser_get_file_path(struct json_object *obj,
         char **path);
 
 #endif /* __TELEBOT_PARSER_H__ */
-

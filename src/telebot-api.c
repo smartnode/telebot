@@ -22,6 +22,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <assert.h>
 #include <errno.h>
 #include <json.h>
 #include <json_object.h>
@@ -129,7 +130,7 @@ static void *telebot_polling_thread(void *data)
             continue;
 
         for (index = 0;index < count; index++) {
-            g_update_cb((const telebot_message_t *)&(updates[index].message));
+            g_update_cb(&(updates[index]));
         }
 
         free(updates);
@@ -357,13 +358,13 @@ telebot_error_e telebot_download_file(char *file_id, char *path)
     return ret;
 }
 
-telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode,
+telebot_error_e telebot_send_message(int chat_id, char *text, char *parse_mode,
         bool disable_web_page_preview, int reply_to_message_id, const char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id == NULL) || (text == NULL))
+    if ((chat_id <= 0) || (text == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_message(g_handler, chat_id, text,
@@ -379,13 +380,56 @@ telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode
     return ret;
 }
 
-telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
+telebot_error_e telebot_delete_message(int chat_id, int message_id)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if ((chat_id <= 0) || (message_id <= 0))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_delete_message(g_handler, chat_id, message_id);
+
+    if (g_handler->resp_data) {
+        free(g_handler->resp_data);
+        g_handler->resp_data = NULL;
+        g_handler->resp_size = 0;
+    }
+
+    return ret;
+}
+
+telebot_error_e telebot_answer_callback_query(const char *callback_query_id, char *text,
+        bool show_alert, char *url, int cache_time)
+{
+    if (g_handler == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (callback_query_id == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_answer_callback_query(g_handler,
+                                                             callback_query_id, text,
+                                                             show_alert, url,
+                                                             cache_time);
+
+    if (g_handler->resp_data) {
+        free(g_handler->resp_data);
+        g_handler->resp_data = NULL;
+        g_handler->resp_size = 0;
+    }
+
+    return ret;
+}
+
+
+telebot_error_e telebot_forward_message(int chat_id, char *from_chat_id,
         int message_id)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id == NULL) || (message_id <= 0))
+    if ((chat_id <= 0) || (message_id <= 0))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_forward_message(g_handler, chat_id,
@@ -400,13 +444,13 @@ telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
     return ret;
 }
 
-telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
+telebot_error_e telebot_send_photo(int chat_id, char *photo, bool is_file,
         char *caption, int reply_to_message_id, char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id == NULL) || (photo == NULL))
+    if ((chat_id <= 0) || (photo == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_photo(g_handler, chat_id, photo,
@@ -421,14 +465,14 @@ telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
     return ret;
 }
 
-telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
+telebot_error_e telebot_send_audio(int chat_id, char *audio, bool is_file,
         int duration, char *performer, char *title, int reply_to_message_id,
         char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id == NULL) ||  (audio == NULL))
+    if ((chat_id <= 0) ||  (audio == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_audio(g_handler, chat_id, audio,
@@ -444,13 +488,13 @@ telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
     return ret;
 }
 
-telebot_error_e telebot_send_document(char *chat_id, char *document,
+telebot_error_e telebot_send_document(int chat_id, char *document,
         bool is_file, int reply_to_message_id, char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id == NULL) || (document == NULL))
+    if ((chat_id <= 0) || (document == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_document(g_handler, chat_id,
@@ -465,13 +509,13 @@ telebot_error_e telebot_send_document(char *chat_id, char *document,
     return ret;
 }
 
-telebot_error_e telebot_send_sticker(char *chat_id, char *sticker,
+telebot_error_e telebot_send_sticker(int chat_id, char *sticker,
         bool is_file, int reply_to_message_id, char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id == NULL) || (sticker == NULL))
+    if ((chat_id <= 0) || (sticker == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_sticker(g_handler, chat_id, sticker,
@@ -486,13 +530,13 @@ telebot_error_e telebot_send_sticker(char *chat_id, char *sticker,
     return ret;
 }
 
-telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
+telebot_error_e telebot_send_video(int chat_id, char *video, bool is_file,
         int duration, char *caption, int reply_to_message_id, char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id == NULL) || (video == NULL))
+    if ((chat_id <= 0) || (video == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_video(g_handler, chat_id, video,
@@ -507,13 +551,13 @@ telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
     return ret;
 }
 
-telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
+telebot_error_e telebot_send_voice(int chat_id, char *voice, bool is_file,
         int duration, int reply_to_message_id, char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id == NULL) || (voice == NULL))
+    if ((chat_id <= 0) || (voice == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_voice(g_handler, chat_id, voice,
@@ -528,13 +572,13 @@ telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
     return ret;
 }
 
-telebot_error_e telebot_send_location(char *chat_id, float latitude,
+telebot_error_e telebot_send_location(int chat_id, float latitude,
         float longitude, int reply_to_message_id, char *reply_markup)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (chat_id == NULL)
+    if (chat_id <= 0)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_location(g_handler, chat_id,
@@ -549,12 +593,12 @@ telebot_error_e telebot_send_location(char *chat_id, float latitude,
     return ret;
 }
 
-telebot_error_e telebot_send_chat_action(char *chat_id, char *action)
+telebot_error_e telebot_send_chat_action(int chat_id, char *action)
 {
     if (g_handler == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (chat_id == NULL)
+    if (chat_id <= 0)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_chat_action(g_handler, chat_id,
@@ -570,14 +614,14 @@ telebot_error_e telebot_send_chat_action(char *chat_id, char *action)
 }
 
 telebot_error_e telebot_create_reply_keyboard(bool resize, bool one_time, bool selective,
-        telebot_reply_keyboard_t **keyboard)
+        telebot_keyboard_t **keyboard)
 {
     if (keyboard == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     *keyboard = NULL;
 
-    telebot_reply_keyboard_t *kbd = malloc(sizeof(telebot_reply_keyboard_t));
+    telebot_keyboard_t *kbd = malloc(sizeof(telebot_keyboard_t));
     if (kbd == NULL) {
         ERR("Failed to allocate memory for keyboard object");
         return TELEBOT_ERROR_OUT_OF_MEMORY;
@@ -626,7 +670,51 @@ telebot_error_e telebot_create_reply_keyboard(bool resize, bool one_time, bool s
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_destroy_reply_keyboard(telebot_reply_keyboard_t *keyboard)
+telebot_error_e  telebot_create_inline_keyboard(telebot_keyboard_t **keyboard)
+{
+    if (keyboard == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    *keyboard = NULL;
+
+    telebot_keyboard_t *kbd = malloc(sizeof(telebot_keyboard_t));
+    if (kbd == NULL) {
+        ERR("Failed to allocate memory for keyboard object");
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+    kbd->keyboard_obj = json_object_new_object();
+    if (kbd->keyboard_obj == NULL) {
+        ERR("Failed to allocate memory for keyboard group");
+        free(kbd);
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    kbd->rows = json_object_new_array();
+    if (kbd->rows == NULL) {
+        ERR("Failed to allocate memory for keyboard rows");
+        json_object_put(kbd->keyboard_obj);
+        free(kbd);
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    kbd->current_row = json_object_new_array();
+    if (kbd->current_row == NULL) {
+        ERR("Failed to allocate memory for keyboard current row");
+        json_object_put(kbd->keyboard_obj);
+        free(kbd);
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    json_object_array_add(kbd->rows, kbd->current_row);
+    json_object_object_add(kbd->keyboard_obj, "keyboard", kbd->rows);
+  
+
+    *keyboard = kbd;
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_destroy_keyboard(telebot_keyboard_t *keyboard)
 {
     /* TODO: Should we release all objects within keyboard object
     size_t rows = json_object_array_length(keyboard->rows);
@@ -636,11 +724,12 @@ telebot_error_e telebot_destroy_reply_keyboard(telebot_reply_keyboard_t *keyboar
     */
 
     json_object_put(keyboard->keyboard_obj);
+    free(keyboard);
 
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_reply_keyboard_add_row(telebot_reply_keyboard_t *keyboard)
+telebot_error_e telebot_keyboard_add_row(telebot_keyboard_t *keyboard)
 {
     if (keyboard == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
@@ -654,7 +743,7 @@ telebot_error_e telebot_reply_keyboard_add_row(telebot_reply_keyboard_t *keyboar
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_reply_keyboard_add_button(telebot_reply_keyboard_t* keyboard,
+telebot_error_e telebot_keyboard_add_reply_button(telebot_keyboard_t* keyboard,
         char* text, bool request_contact, bool request_location)
 {
     if ((!request_contact) && !(request_location)) {
@@ -675,7 +764,41 @@ telebot_error_e telebot_reply_keyboard_add_button(telebot_reply_keyboard_t* keyb
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_reply_keyboard_stringify(telebot_reply_keyboard_t *keyboard,
+telebot_error_e telebot_keyboard_add_inline_button(telebot_keyboard_t *keyboard,
+        char* text, char* url, char* callback_data, char* switch_inline_query,
+        char* switch_inline_query_current_chat, bool pay)
+{
+    json_object* button = json_object_new_object();
+    json_object_object_add(button, "text", json_object_new_string(text));
+    if (url) {
+        json_object_object_add(button, "url",
+                               json_object_new_string(url));
+    }
+    if (callback_data) {
+        size_t len = strlen(callback_data);
+        assert(len >= 1 && len <= 64);
+        json_object_object_add(button, "callback_data",
+                json_object_new_string(callback_data));
+    }
+    if (switch_inline_query) {
+        json_object_object_add(button, "switch_inline_query",
+            json_object_new_string(switch_inline_query));
+    }
+    if (switch_inline_query_current_chat) {
+        json_object_object_add(button, "switch_inline_query_current_chat", 
+            json_object_new_string(switch_inline_query_current_chat));
+    }
+    if (pay) {
+        json_object_object_add(button, "pay",
+            json_object_new_boolean(true));
+    }
+
+    json_object_array_add(keyboard->current_row, button);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_keyboard_stringify(telebot_keyboard_t *keyboard,
         char **keyboard_str)
 {
     if (keyboard_str == NULL)

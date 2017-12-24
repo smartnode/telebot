@@ -365,6 +365,30 @@ typedef struct telebot_message {
 
 } telebot_message_t;
 
+typedef struct telebot_callback_query {
+    char *id;
+    telebot_user_t from;
+    telebot_message_t message;
+    char *inline_message_id;
+    char *chat_instance;
+    char *data;
+    char *game_short_name;
+} telebot_callback_query_t;
+
+typedef enum telebot_update_type {
+    /* TODO: We didn't implemented the following types:
+     * edited_message
+     * channel_post
+     * edited_channel_post
+     * inline_query
+     * chosen_inline_result
+     * shipping_query
+     * pre_checkout_query
+    */
+    UPDATE_TYPE_MESSAGE,
+    UPDATE_TYPE_CALLBACK_QUERY,
+} telebot_update_type_t;
+
 /**
  * @brief This object represents an incoming update.
  */
@@ -375,13 +399,21 @@ typedef struct telebot_update {
      */
     int update_id;
 
-    /** New incoming message of any kind — text, photo, sticker, etc. */
-    telebot_message_t message;
+    /**
+     * The type of the update.
+     */
+    telebot_update_type_t update_type;
+
+    union {
+        /** New incoming message of any kind — text, photo, sticker, etc. */
+        telebot_message_t message;
+
+        telebot_callback_query_t callback_query;
+    };
 } telebot_update_t;
 
-
 /**
- * @brief This object represent a reply keyboard.
+ * @brief This object represent a keyboard (both a ReplyKeyboard and a InlineKeyboard).
  */
 typedef struct {
     /**
@@ -399,13 +431,12 @@ typedef struct {
      * Used by 'telebot_reply_keyboard_add_button()'
      */
     json_object* current_row;
-} telebot_reply_keyboard_t;
-
+} telebot_keyboard_t;
 
 /**
  * @brief This function type defines callback for receiving updates.
  */
-typedef void (*telebot_update_cb_f)(const telebot_message_t *message);
+typedef void (*telebot_update_cb_f)(const telebot_update_t *update);
 
 /**
  * @brief Initial function to use telebot APIs.
@@ -413,7 +444,7 @@ typedef void (*telebot_update_cb_f)(const telebot_message_t *message);
  * This function must be used first to call, and it creates handler. This call
  * MUST have corresponding call to telebot_destroy() when operation is complete.
  * @param[in] token Telegram Bot token to use.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_create(char *token);
 
@@ -422,7 +453,7 @@ telebot_error_e telebot_create(char *token);
  *
  * This function must be the last function to call for a telebot use.
  * It is the opposite of the telebot_create() function.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_destroy();
 
@@ -435,7 +466,7 @@ telebot_error_e telebot_destroy();
  * @param[in] update_cb Callback function to receive latest telegram update.
  * @param[in] detach_thread Set if thread should be detached.
  * @param[out] thread_id Thread identifier obtained at thread creation.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_start(telebot_update_cb_f update_cb, bool detach_thread,
         pthread_t *thread_id);
@@ -444,7 +475,7 @@ telebot_error_e telebot_start(telebot_update_cb_f update_cb, bool detach_thread,
  * @brief This function stops receiving updates by stopping internal thread.
  *
  * It is the opposite of the telebot_start() function.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_stop();
 
@@ -463,7 +494,7 @@ telebot_error_e telebot_get_me(telebot_user_t **me);
  * telebot_start() function, if you want to poll updates.
  * @param[out] updates Update objects. It MUST be freed after use.
  * @param[out] count Number of updates received.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return On success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count);
 
@@ -474,7 +505,7 @@ telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count);
  * By default, up to 10 photos are returned.
  * @param[out] photos Photo objects. It MUST be freed after use.
  * @param[out] count The number of photo objects.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
         telebot_photo_t **photos, int *count);
@@ -483,7 +514,7 @@ telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
  * @brief This function is used to download file.
  * @param[in] file_id File identifier to get info about.
  * @param[in] path A path where the file is downloaded
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_download_file(char *file_id, char *path);
 
@@ -500,9 +531,39 @@ telebot_error_e telebot_download_file(char *file_id, char *path);
  * reply keyboard, instructions to hide keyboard or to force a reply from the user.
 * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode,
+telebot_error_e telebot_send_message(int chat_id, char *text, char *parse_mode,
         bool disable_web_page_preview, int reply_to_message_id, const char *reply_markup);
 
+/**
+ * @brief This function is used to delete messages.
+ * @param[in] chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).
+ * @param[in] message_id Identifier of the message to delete
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_delete_message(int chat_id, int message_id);
+
+/**
+ * @brief Use this method to send answers to callback queries sent from
+ * inline keyboards. The answer will be displayed to the user as a notification
+ * at the top of the chat screen or as an alert.
+ * @param[in] callback_query_id Unique identifier for the query to be answered.
+ * @param[in] text Optional (i.e. can be NULL). Text of the notification. If not
+ * specified, nothing will be shown to the user, 0-200 characters.
+ * @param[in] show_alert Optional (i.e. can be NULL). If true, an alert will be
+ * shown by the client instead of a notification at the top of the chat screen.
+ * @param[in] url Optional (i.e. can be NULL). URL that will be opened by the user's
+ *  client. If you have created a Game and accepted the conditions via @Botfather,
+ * specify the URL that opens your game – note that this will only work if the
+ * query comes from a callback_game button.
+ * @param[in] cache_time Optional (i.e. can be NULL). The maximum amount of time in
+ * seconds that the result of the callback query may be cached client-side.
+ * Telegram apps will support caching starting in version 3.14.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_answer_callback_query(const char *callback_query_id, char *text,
+                                              bool show_alert, char *url,
+                                              int cache_time);
 /**
  * @brief This function is used to forward messages of any kind.
  * @param[in] chat_id Unique identifier for the target chat or username of the
@@ -510,15 +571,15 @@ telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode
  * @param[in] from_chat_id Unique identifier for the chat where the original
  * message was sent (or channel username in the format \@channelusername).
  * @param[in] message_id Unique message identifier.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
+telebot_error_e telebot_forward_message(int chat_id, char *from_chat_id,
         int message_id);
 
 /**
  * @brief This functionis used to send photos.
  * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
+ * target channel (in the format \@channelusername).int chat_id
  * @param[in] photo Photo to send. It is either file_id as String to resend a photo
  * that is already on the Telegram servers, or a path to photo file.
  * @param[in] is_file False if photo is file_id, true, if photo is a file path.
@@ -527,9 +588,9 @@ telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
  * @param[in] reply_markup Additional interface options. An object for a custom
  * reply keyboard, instructions to hide keyboard or to force a reply from
  * the user.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
+telebot_error_e telebot_send_photo(int chat_id, char *photo, bool is_file,
         char *caption, int reply_to_message_id, char *reply_markup);
 /**
  * @brief This function is used to to send audio files. if you want Telegram
@@ -550,9 +611,9 @@ telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
  * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
  * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
+telebot_error_e telebot_send_audio(int chat_id, char *audio, bool is_file,
         int duration, char *performer, char *title, int reply_to_message_id,
         char *reply_markup);
 
@@ -566,9 +627,9 @@ telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
  * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
  * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_document(char *chat_id, char *document,
+telebot_error_e telebot_send_document(int chat_id, char *document,
         bool is_file, int reply_to_message_id, char *reply_markup);
 
 /**
@@ -581,9 +642,9 @@ telebot_error_e telebot_send_document(char *chat_id, char *document,
  * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
  * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_sticker(char *chat_id, char *sticker, bool is_file,
+telebot_error_e telebot_send_sticker(int chat_id, char *sticker, bool is_file,
         int reply_to_message_id, char *reply_markup);
 
 /**
@@ -599,9 +660,9 @@ telebot_error_e telebot_send_sticker(char *chat_id, char *sticker, bool is_file,
  * @param[in] reply_to_message_id Isend_videof the message is a reply, ID of the original message.
  * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
+telebot_error_e telebot_send_video(int chat_id, char *video, bool is_file,
         int duration, char *caption, int reply_to_message_id, char *reply_markup);
 
 /**
@@ -619,9 +680,9 @@ telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
  * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
  * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
+telebot_error_e telebot_send_voice(int chat_id, char *voice, bool is_file,
         int duration, int reply_to_message_id, char *reply_markup);
 
 /**
@@ -633,9 +694,9 @@ telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
  * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
  * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_location(char *chat_id, float latitude,
+telebot_error_e telebot_send_location(int chat_id, float latitude,
         float longitude, int reply_to_message_id, char *reply_markup);
 
 /**
@@ -655,12 +716,12 @@ telebot_error_e telebot_send_location(char *chat_id, float latitude,
  * record_video or upload_video for videos, record_audio or upload_audio for
  * audio files, upload_document for general files, find_location for location
  * data.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_chat_action(char *chat_id, char *action);
+telebot_error_e telebot_send_chat_action(int chat_id, char *action);
 
 /**
- * @brief This function creates a #telebot_reply_keyboard_t object used to set
+ * @brief This function creates a #telebot_keyboard_t object used to set
  * a ReplyKeyboard.
  * @param[in] resize Requests clients to resize the keyboard vertically
  * for optimal fit (e.g., make the keyboard smaller if there are just
@@ -675,19 +736,30 @@ telebot_error_e telebot_send_chat_action(char *chat_id, char *action);
  * specific users only. Targets: 1) users that are @mentioned in the text
  * of the Message object; 2) if the bot's message is a
  * reply (has reply_to_message_id), sender of the original message.
- * @param[out] keyboard A #telebot_reply_keyboard_t objet representing a ReplyKeyboard.
- * It MUST be destroyed with #telebot_destroy_reply_keyboard.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @param[out] keyboard A #telebot_keyboard_t objet representing a ReplyKeyboard.
+ * It MUST be destroyed with #telebot_destroy_keyboard.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_create_reply_keyboard(bool resize, bool one_time,
-        bool selective, telebot_reply_keyboard_t **keyboard);
+        bool selective, telebot_keyboard_t **keyboard);
+
+
+/**
+ * @brief This function creates a #telebot_keyboard_t object used to represent
+ * an InlineKeyboard ReplyKeyboard.
+ * @param[out] keyboard A #telebot_keyboard_t objet representing a InlineKeyboard.
+ * It MUST be destroyed with #telebot_destroy_keyboard.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_create_inline_keyboard(telebot_keyboard_t **keyboard);
 
 /**
  * @brief This function is used to destroy a #telebot_reply_keyboard object,
  * created using #telebot_create_reply_keyboard.
  * @param[in] keyboard The keyboard to be destroyed.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_destroy_reply_keyboard(telebot_reply_keyboard_t *keyboard);
+telebot_error_e telebot_destroy_keyboard(telebot_keyboard_t *keyboard);
 
 /**
  * @brief This function adds a button to the current row of a ReplyKeyboard.
@@ -698,11 +770,34 @@ telebot_error_e telebot_destroy_reply_keyboard(telebot_reply_keyboard_t *keyboar
  * a contact when the button is pressed. Available in private chats only.
  * @param[in] request_location If True, the user's current location will be
  * sent when the button is pressed. Available in private chats only.
-* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_reply_keyboard_add_button(telebot_reply_keyboard_t *keyboard,
+telebot_error_e telebot_keyboard_add_reply_button(telebot_keyboard_t *keyboard,
         char *text, bool request_contact, bool request_location);
 
+/**
+ * @brief This function adds a button to the current row of an InlineKeyboard.
+ * @param[in] keyboard The keyboard to where the button will be added.
+ * @param[in] text Label text on the button.
+ * @param[in] url Optional (i.e. can be NULL). HTTP url to be opened when button
+ * is pressed.
+ * @param[in] callback_data Optional (i.e. can be NULL). Data to be sent in a
+ * callback query to the bot when button is pressed, 1-64 bytes.
+ * @param[in] switch_inline_query Optional (i.e. can be NULL). If set, pressing
+ * the button will prompt the user to select one of their chats, open that
+ * chat and insert the bot‘s username and the specified inline query in the
+ * input field. Can be empty, in which case just the bot’s username will
+ * be inserted.
+ * @param[in] switch_inline_query_current_chat Optional (i.e. can be NULL).
+ * If set, pressing the button will insert the bot‘s username and the
+ * specified inline query in the current chat's input field. Can be empty,
+ * in which case only the bot’s username will be inserted.
+ * @param[in] pay Specify True, to send a Pay button.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_keyboard_add_inline_button(telebot_keyboard_t *keyboard, char* text,
+        char *url, char *callback_data, char *switch_inline_query,
+        char *switch_inline_query_current_chat, bool pay);
 /**
  * @brief This function adds a button row to a ReplyKeyboard. This
  * updates the concept of the 'current_row' where new buttons are going to
@@ -710,7 +805,7 @@ telebot_error_e telebot_reply_keyboard_add_button(telebot_reply_keyboard_t *keyb
  * @param[in] keyboard The keyboard to where the button row will be added.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_reply_keyboard_add_row(telebot_reply_keyboard_t *keyboard);
+telebot_error_e telebot_reply_keyboard_add_row(telebot_keyboard_t *keyboard);
 
 /**
  * @brief Stringify the JSON object representing the ReplyKeyboard.
@@ -719,7 +814,7 @@ telebot_error_e telebot_reply_keyboard_add_row(telebot_reply_keyboard_t *keyboar
  * It MUST bee freed after use.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_reply_keyboard_stringify(telebot_reply_keyboard_t *keyboard,
+telebot_error_e telebot_keyboard_stringify(telebot_keyboard_t *keyboard,
         char **keyboard_str);
 /**
  * @} // end of APIs

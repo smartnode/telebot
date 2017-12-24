@@ -28,6 +28,8 @@
 #define TELEBOT_METHOD_GET_ME                "getMe"
 #define TELEBOT_METHOD_GET_UPDATES           "getUpdates"
 #define TELEBOT_METHOD_SEND_MESSAGE          "sendMessage"
+#define TELEBOT_METHOD_DELETE_MESSAGE        "deleteMessage"
+#define TELEBOT_METHOD_ANSWER_CALLBACK_QUERY "answerCallbackQuery"
 #define TELEBOT_METHOD_FORWARD_MESSAGE       "forwardMessage"
 #define TELEBOT_METHOD_SEND_PHOTO            "sendPhoto"
 #define TELEBOT_METHOD_SEND_AUDIO            "sendAudio"
@@ -51,4 +53,3 @@
 #endif
 
 #endif /* __TELEBOT_PRIVATE_H__ */
-
