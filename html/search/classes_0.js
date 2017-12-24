@@ -9,6 +9,7 @@ var searchData=
   ['telebot_5flocation',['telebot_location',['../structtelebot__location.html',1,'']]],
   ['telebot_5fmessage',['telebot_message',['../structtelebot__message.html',1,'']]],
   ['telebot_5fphoto',['telebot_photo',['../structtelebot__photo.html',1,'']]],
+  ['telebot_5freply_5fkeyboard_5ft',['telebot_reply_keyboard_t',['../structtelebot__reply__keyboard__t.html',1,'']]],
   ['telebot_5fsticker',['telebot_sticker',['../structtelebot__sticker.html',1,'']]],
   ['telebot_5fupdate',['telebot_update',['../structtelebot__update.html',1,'']]],
   ['telebot_5fuser',['telebot_user',['../structtelebot__user.html',1,'']]],

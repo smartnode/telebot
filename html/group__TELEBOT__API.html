@@ -141,6 +141,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__update.html">telebot_update</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an incoming update.  <a href="structtelebot__update.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represent a reply keyboard.  <a href="structtelebot__reply__keyboard__t.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
@@ -266,9 +269,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga163a45492e5e165b6d3944f296576573"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga163a45492e5e165b6d3944f296576573">telebot_destroy</a> ()</td></tr>
 <tr class="memdesc:ga163a45492e5e165b6d3944f296576573"><td class="mdescLeft">&#160;</td><td class="mdescRight">Final function to use telebo APIs.  <a href="#ga163a45492e5e165b6d3944f296576573">More...</a><br /></td></tr>
 <tr class="separator:ga163a45492e5e165b6d3944f296576573"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8eed72f928babfed6833534fa05446d8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga8eed72f928babfed6833534fa05446d8">telebot_start</a> (<a class="el" href="group__TELEBOT__API.html#ga4df9c260ea0c0b324f01737c5adef3b5">telebot_update_cb_f</a> update_cb)</td></tr>
-<tr class="memdesc:ga8eed72f928babfed6833534fa05446d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used start to receiving Telegram bot updates. Internally, it starts thread for polling updates.  <a href="#ga8eed72f928babfed6833534fa05446d8">More...</a><br /></td></tr>
-<tr class="separator:ga8eed72f928babfed6833534fa05446d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga047676c485246cf058c6b7a6dce185fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga047676c485246cf058c6b7a6dce185fd">telebot_start</a> (<a class="el" href="group__TELEBOT__API.html#ga4df9c260ea0c0b324f01737c5adef3b5">telebot_update_cb_f</a> update_cb, bool detach_thread, pthread_t *thread_id)</td></tr>
+<tr class="memdesc:ga047676c485246cf058c6b7a6dce185fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used start to receiving Telegram bot updates. Internally, it starts thread for polling updates.  <a href="#ga047676c485246cf058c6b7a6dce185fd">More...</a><br /></td></tr>
+<tr class="separator:ga047676c485246cf058c6b7a6dce185fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga75d8b5574682c9e19ddcbf8f1f4c2bc9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga75d8b5574682c9e19ddcbf8f1f4c2bc9">telebot_stop</a> ()</td></tr>
 <tr class="memdesc:ga75d8b5574682c9e19ddcbf8f1f4c2bc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function stops receiving updates by stopping internal thread.  <a href="#ga75d8b5574682c9e19ddcbf8f1f4c2bc9">More...</a><br /></td></tr>
 <tr class="separator:ga75d8b5574682c9e19ddcbf8f1f4c2bc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -276,7 +279,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:ga960e774bba1f6753f3966914d34905d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to get information about telegram bot itself.  <a href="#ga960e774bba1f6753f3966914d34905d6">More...</a><br /></td></tr>
 <tr class="separator:ga960e774bba1f6753f3966914d34905d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga04b37e70dcbce30c223ddacbdb2512f4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga04b37e70dcbce30c223ddacbdb2512f4">telebot_get_updates</a> (<a class="el" href="group__TELEBOT__API.html#ga358a9ac5454da4008703da941cf8e1e6">telebot_update_t</a> **updates, int *count)</td></tr>
-<tr class="memdesc:ga04b37e70dcbce30c223ddacbdb2512f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to get latest updates. It is alternative for <a class="el" href="group__TELEBOT__API.html#ga8eed72f928babfed6833534fa05446d8" title="This function is used start to receiving Telegram bot updates. Internally, it starts thread for polli...">telebot_start()</a> function, if you want to poll updates.  <a href="#ga04b37e70dcbce30c223ddacbdb2512f4">More...</a><br /></td></tr>
+<tr class="memdesc:ga04b37e70dcbce30c223ddacbdb2512f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to get latest updates. It is alternative for <a class="el" href="group__TELEBOT__API.html#ga047676c485246cf058c6b7a6dce185fd" title="This function is used start to receiving Telegram bot updates. Internally, it starts thread for polli...">telebot_start()</a> function, if you want to poll updates.  <a href="#ga04b37e70dcbce30c223ddacbdb2512f4">More...</a><br /></td></tr>
 <tr class="separator:ga04b37e70dcbce30c223ddacbdb2512f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga55ddc897d42aed4afb8b01fd11b1fc7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga55ddc897d42aed4afb8b01fd11b1fc7a">telebot_get_user_profile_photos</a> (int user_id, int offset, <a class="el" href="group__TELEBOT__API.html#ga97c03906e89430b04104f8739104e616">telebot_photo_t</a> **photos, int *count)</td></tr>
 <tr class="memdesc:ga55ddc897d42aed4afb8b01fd11b1fc7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to get user profile pictures object.  <a href="#ga55ddc897d42aed4afb8b01fd11b1fc7a">More...</a><br /></td></tr>
@@ -284,9 +287,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga5c5fc50afa6e03efacf25095f0ef55bb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga5c5fc50afa6e03efacf25095f0ef55bb">telebot_download_file</a> (char *file_id, char *path)</td></tr>
 <tr class="memdesc:ga5c5fc50afa6e03efacf25095f0ef55bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to download file.  <a href="#ga5c5fc50afa6e03efacf25095f0ef55bb">More...</a><br /></td></tr>
 <tr class="separator:ga5c5fc50afa6e03efacf25095f0ef55bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5533c6dae37933ca548e85ccb47bac6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga5533c6dae37933ca548e85ccb47bac6f">telebot_send_message</a> (char *chat_id, char *text, char *parse_mode, bool disable_web_page_preview, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga5533c6dae37933ca548e85ccb47bac6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send text messages.  <a href="#ga5533c6dae37933ca548e85ccb47bac6f">More...</a><br /></td></tr>
-<tr class="separator:ga5533c6dae37933ca548e85ccb47bac6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga83c31cd2f8607b1e185c4686182a6435"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga83c31cd2f8607b1e185c4686182a6435">telebot_send_message</a> (char *chat_id, char *text, char *parse_mode, bool disable_web_page_preview, int reply_to_message_id, const char *reply_markup)</td></tr>
+<tr class="memdesc:ga83c31cd2f8607b1e185c4686182a6435"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send text messages.  <a href="#ga83c31cd2f8607b1e185c4686182a6435">More...</a><br /></td></tr>
+<tr class="separator:ga83c31cd2f8607b1e185c4686182a6435"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2c9cfff8560dc370ddc56d351b9ae85c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga2c9cfff8560dc370ddc56d351b9ae85c">telebot_forward_message</a> (char *chat_id, char *from_chat_id, int message_id)</td></tr>
 <tr class="memdesc:ga2c9cfff8560dc370ddc56d351b9ae85c"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to forward messages of any kind.  <a href="#ga2c9cfff8560dc370ddc56d351b9ae85c">More...</a><br /></td></tr>
 <tr class="separator:ga2c9cfff8560dc370ddc56d351b9ae85c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -313,8 +316,23 @@ Functions</h2></td></tr>
 <tr class="separator:ga117030f623ab4226356df4fbeda68bae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1516df81ad755c891c9097eca56489cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga1516df81ad755c891c9097eca56489cf">telebot_send_chat_action</a> (char *chat_id, char *action)</td></tr>
 <tr class="memdesc:ga1516df81ad755c891c9097eca56489cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Example: The ImageBot needs some time to process a request and upload the image. Instead of sending a text message along the lines of "Retrieving image,
-please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot. It is only recommended to use when a response from the bot will take a noticeable amount of time to arrive.  <a href="#ga1516df81ad755c891c9097eca56489cf">More...</a><br /></td></tr>
+ please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot. It is only recommended to use when a response from the bot will take a noticeable amount of time to arrive.  <a href="#ga1516df81ad755c891c9097eca56489cf">More...</a><br /></td></tr>
 <tr class="separator:ga1516df81ad755c891c9097eca56489cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga40558e177422e8b6f2198577d1dc35cb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga40558e177422e8b6f2198577d1dc35cb">telebot_create_reply_keyboard</a> (bool resize, bool one_time, bool selective, <a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> **keyboard)</td></tr>
+<tr class="memdesc:ga40558e177422e8b6f2198577d1dc35cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function creates a <a class="el" href="structtelebot__reply__keyboard__t.html" title="This object represent a reply keyboard. ">telebot_reply_keyboard_t</a> object used to set a ReplyKeyboard.  <a href="#ga40558e177422e8b6f2198577d1dc35cb">More...</a><br /></td></tr>
+<tr class="separator:ga40558e177422e8b6f2198577d1dc35cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad9e3deb20e6c99f9d74a0339d8702297"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gad9e3deb20e6c99f9d74a0339d8702297">telebot_destroy_reply_keyboard</a> (<a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *keyboard)</td></tr>
+<tr class="memdesc:gad9e3deb20e6c99f9d74a0339d8702297"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to destroy a #telebot_reply_keyboard object, created using <a class="el" href="group__TELEBOT__API.html#ga40558e177422e8b6f2198577d1dc35cb" title="This function creates a telebot_reply_keyboard_t object used to set a ReplyKeyboard. ">telebot_create_reply_keyboard</a>.  <a href="#gad9e3deb20e6c99f9d74a0339d8702297">More...</a><br /></td></tr>
+<tr class="separator:gad9e3deb20e6c99f9d74a0339d8702297"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga96e88107a46bfeb3a226c9f7648f93a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga96e88107a46bfeb3a226c9f7648f93a1">telebot_reply_keyboard_add_button</a> (<a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *keyboard, char *text, bool request_contact, bool request_location)</td></tr>
+<tr class="memdesc:ga96e88107a46bfeb3a226c9f7648f93a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function adds a button to the current row of a ReplyKeyboard.  <a href="#ga96e88107a46bfeb3a226c9f7648f93a1">More...</a><br /></td></tr>
+<tr class="separator:ga96e88107a46bfeb3a226c9f7648f93a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaec693656970a66430cb237a91e56fb9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gaec693656970a66430cb237a91e56fb9b">telebot_reply_keyboard_add_row</a> (<a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *keyboard)</td></tr>
+<tr class="memdesc:gaec693656970a66430cb237a91e56fb9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function adds a button row to a ReplyKeyboard. This updates the concept of the 'current_row' where new buttons are going to be added.  <a href="#gaec693656970a66430cb237a91e56fb9b">More...</a><br /></td></tr>
+<tr class="separator:gaec693656970a66430cb237a91e56fb9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga011d389cb52961ab68e0c01d812808ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga011d389cb52961ab68e0c01d812808ac">telebot_reply_keyboard_stringify</a> (<a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *keyboard, char **keyboard_str)</td></tr>
+<tr class="memdesc:ga011d389cb52961ab68e0c01d812808ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stringify the JSON object representing the ReplyKeyboard.  <a href="#ga011d389cb52961ab68e0c01d812808ac">More...</a><br /></td></tr>
+<tr class="separator:ga011d389cb52961ab68e0c01d812808ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Simplified APIs to create telegram bot. </p>
@@ -648,11 +666,61 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>Initial function to use telebot APIs. </p>
 <p>This function must be used first to call, and it creates handler. This call MUST have corresponding call to <a class="el" href="group__TELEBOT__API.html#ga163a45492e5e165b6d3944f296576573" title="Final function to use telebo APIs. ">telebot_destroy()</a> when operation is complete. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">token</td><td>Telegram Bot token to use. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">token</td><td>Telegram Bot token to use. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga40558e177422e8b6f2198577d1dc35cb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_create_reply_keyboard </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>resize</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>one_time</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>selective</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> **&#160;</td>
+          <td class="paramname"><em>keyboard</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function creates a <a class="el" href="structtelebot__reply__keyboard__t.html" title="This object represent a reply keyboard. ">telebot_reply_keyboard_t</a> object used to set a ReplyKeyboard. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">resize</td><td>Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons). Defaults to false, in which case the custom keyboard is always of the same height as the app's standard keyboard. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">one_time</td><td>Requests clients to hide the keyboard as soon as it's been used. The keyboard will still be available, but clients will automatically display the usual letter-keyboard in the chat – the user can press a special button in the input field to see the custom keyboard again. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">selective</td><td>Use this parameter if you want to show the keyboard to specific users only. Targets: 1) users that are  in the text of the Message object; 2) if the bot's message is a reply (has reply_to_message_id), sender of the original message. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">keyboard</td><td>A <a class="el" href="structtelebot__reply__keyboard__t.html" title="This object represent a reply keyboard. ">telebot_reply_keyboard_t</a> objet representing a ReplyKeyboard. It MUST be destroyed with <a class="el" href="group__TELEBOT__API.html#gad9e3deb20e6c99f9d74a0339d8702297" title="This function is used to destroy a #telebot_reply_keyboard object, created using telebot_create_reply...">telebot_destroy_reply_keyboard</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -670,7 +738,31 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 </div><div class="memdoc">
 
 <p>Final function to use telebo APIs. </p>
-<p>This function must be the last function to call for a telebot use. It is the opposite of the <a class="el" href="group__TELEBOT__API.html#gad46dcabebf65d4fa4c51c94486bf0e27" title="Initial function to use telebot APIs. ">telebot_create()</a> function. </p><dl class="section return"><dt>Returns</dt><dd>On success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<p>This function must be the last function to call for a telebot use. It is the opposite of the <a class="el" href="group__TELEBOT__API.html#gad46dcabebf65d4fa4c51c94486bf0e27" title="Initial function to use telebot APIs. ">telebot_create()</a> function. </p><dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gad9e3deb20e6c99f9d74a0339d8702297"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_destroy_reply_keyboard </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *&#160;</td>
+          <td class="paramname"><em>keyboard</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function is used to destroy a #telebot_reply_keyboard object, created using <a class="el" href="group__TELEBOT__API.html#ga40558e177422e8b6f2198577d1dc35cb" title="This function creates a telebot_reply_keyboard_t object used to set a ReplyKeyboard. ">telebot_create_reply_keyboard</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">keyboard</td><td>The keyboard to be destroyed. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -701,12 +793,12 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to download file. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">file_id</td><td>File identifier to get info about. </td></tr>
-    <tr><td class="paramname">path</td><td>A path where the file is downloaded </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">file_id</td><td>File identifier to get info about. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>A path where the file is downloaded </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -743,13 +835,13 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to forward messages of any kind. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
-    <tr><td class="paramname">from_chat_id</td><td>Unique identifier for the chat where the original message was sent (or channel username in the format @channelusername). </td></tr>
-    <tr><td class="paramname">message_id</td><td>Unique message identifier. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">from_chat_id</td><td>Unique identifier for the chat where the original message was sent (or channel username in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">message_id</td><td>Unique message identifier. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -770,7 +862,7 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to get information about telegram bot itself. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">me</td><td>Pointer to the telegram user object address. This pointer MUST be freed after use. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">me</td><td>Pointer to the telegram user object address. It MUST be freed after use. </td></tr>
   </table>
   </dd>
 </dl>
@@ -802,15 +894,15 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
       </table>
 </div><div class="memdoc">
 
-<p>This function is used to get latest updates. It is alternative for <a class="el" href="group__TELEBOT__API.html#ga8eed72f928babfed6833534fa05446d8" title="This function is used start to receiving Telegram bot updates. Internally, it starts thread for polli...">telebot_start()</a> function, if you want to poll updates. </p>
+<p>This function is used to get latest updates. It is alternative for <a class="el" href="group__TELEBOT__API.html#ga047676c485246cf058c6b7a6dce185fd" title="This function is used start to receiving Telegram bot updates. Internally, it starts thread for polli...">telebot_start()</a> function, if you want to poll updates. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">updates</td><td>Pointer to the updates object address. It MUST be freed. </td></tr>
-    <tr><td class="paramname">count</td><td>Pointer to put number of updates received. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">updates</td><td>Update objects. It MUST be freed after use. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">count</td><td>Number of updates received. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -853,14 +945,125 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to get user profile pictures object. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">user_id</td><td>Unique identifier of the target user. </td></tr>
-    <tr><td class="paramname">offset</td><td>Sequential number of the first photo to be returned. By default, up to 10 photos are returned. </td></tr>
-    <tr><td class="paramname">photos</td><td>Pointer to the photos object address. This pointer MUST be freed after use. </td></tr>
-    <tr><td class="paramname">count</td><td>Pointer to the number of photos object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">user_id</td><td>Unique identifier of the target user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">offset</td><td>Sequential number of the first photo to be returned. By default, up to 10 photos are returned. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">photos</td><td>Photo objects. It MUST be freed after use. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">count</td><td>The number of photo objects. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga96e88107a46bfeb3a226c9f7648f93a1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_reply_keyboard_add_button </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *&#160;</td>
+          <td class="paramname"><em>keyboard</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>text</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>request_contact</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>request_location</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function adds a button to the current row of a ReplyKeyboard. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">keyboard</td><td>The keyboard to where the button will be added. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">text</td><td>Text of the button. If none of the other fields are true, it will be sent as a message when the button is pressed. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">request_contact</td><td>If True, the user's phone number will be sent as a contact when the button is pressed. Available in private chats only. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">request_location</td><td>If True, the user's current location will be sent when the button is pressed. Available in private chats only. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaec693656970a66430cb237a91e56fb9b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_reply_keyboard_add_row </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *&#160;</td>
+          <td class="paramname"><em>keyboard</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This function adds a button row to a ReplyKeyboard. This updates the concept of the 'current_row' where new buttons are going to be added. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">keyboard</td><td>The keyboard to where the button row will be added. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga011d389cb52961ab68e0c01d812808ac"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_reply_keyboard_stringify </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtelebot__reply__keyboard__t.html">telebot_reply_keyboard_t</a> *&#160;</td>
+          <td class="paramname"><em>keyboard</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>keyboard_str</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Stringify the JSON object representing the ReplyKeyboard. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">keyboard</td><td>The keyboard. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">keyboard_str</td><td>the string representation of the JSON object. It MUST bee freed after use. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -927,18 +1130,18 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to to send audio files. if you want Telegram clients to display them in the music player. Your audio must be in the .mp3 format. Bots can currently send audio files of up to 50 MB in size. For backward compatibility, when the fields title and performer are both empty and the mime-type of the file to be sent is not audio/mpeg, the file will be sent as a playable voice message. For this to work, the audio must be in an .ogg file encoded with OPUS. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
-    <tr><td class="paramname">audio</td><td>Audio file to send. It is either a file_id as String to resend an audio that is already on the Telegram servers, or a path to audio file. </td></tr>
-    <tr><td class="paramname">is_file</td><td>False if audio is file_id, true, if audio is a file path. </td></tr>
-    <tr><td class="paramname">duration</td><td>Duration of sent audio in seconds. </td></tr>
-    <tr><td class="paramname">performer</td><td>The performer of the audio. </td></tr>
-    <tr><td class="paramname">title</td><td>The track name of the audio. </td></tr>
-    <tr><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
-    <tr><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">audio</td><td>Audio file to send. It is either a file_id as String to resend an audio that is already on the Telegram servers, or a path to audio file. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">is_file</td><td>False if audio is file_id, true, if audio is a file path. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">duration</td><td>Duration of sent audio in seconds. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">performer</td><td>The performer of the audio. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">title</td><td>The track name of the audio. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -967,15 +1170,15 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 </div><div class="memdoc">
 
 <p>This function is used to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Example: The ImageBot needs some time to process a request and upload the image. Instead of sending a text message along the lines of "Retrieving image,
-please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot. It is only recommended to use when a response from the bot will take a noticeable amount of time to arrive. </p>
+ please wait...", the bot may use sendChatAction with action = upload_photo. The user will see a "sending photo" status for the bot. It is only recommended to use when a response from the bot will take a noticeable amount of time to arrive. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername) </td></tr>
-    <tr><td class="paramname">action</td><td>Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for text messages, upload_photo for photos, record_video or upload_video for videos, record_audio or upload_audio for audio files, upload_document for general files, find_location for location data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">action</td><td>Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for text messages, upload_photo for photos, record_video or upload_video for videos, record_audio or upload_audio for audio files, upload_document for general files, find_location for location data. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -1024,15 +1227,15 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to send general files. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
-    <tr><td class="paramname">document</td><td>Document file to send. It is either a file_id as String to resend a file that is already on the Telegram servers, or a path to file. </td></tr>
-    <tr><td class="paramname">is_file</td><td>False if document is file_id, true, if document is a file path. </td></tr>
-    <tr><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
-    <tr><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">document</td><td>Document file to send. It is either a file_id as String to resend a file that is already on the Telegram servers, or a path to file. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">is_file</td><td>False if document is file_id, true, if document is a file path. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -1081,19 +1284,19 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to send point on the map. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
-    <tr><td class="paramname">latitude</td><td>Latitude of location. </td></tr>
-    <tr><td class="paramname">longitude</td><td>Longitude of location. </td></tr>
-    <tr><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
-    <tr><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">latitude</td><td>Latitude of location. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">longitude</td><td>Longitude of location. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga5533c6dae37933ca548e85ccb47bac6f"></a>
+<a class="anchor" id="ga83c31cd2f8607b1e185c4686182a6435"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1130,7 +1333,7 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>reply_markup</em>&#160;</td>
         </tr>
         <tr>
@@ -1144,16 +1347,16 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to send text messages. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
-    <tr><td class="paramname">text</td><td>Text of the message to be sent. </td></tr>
-    <tr><td class="paramname">parse_mode</td><td>Send Markdown, if you want Telegram apps to show bold, italic and inline URLs in your bot's message. </td></tr>
-    <tr><td class="paramname">disable_web_page_preview</td><td>Disables link previews for links in this message. </td></tr>
-    <tr><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
-    <tr><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">text</td><td>Text of the message to be sent. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">parse_mode</td><td>Send Markdown, if you want Telegram apps to show bold, italic and inline URLs in your bot's message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">disable_web_page_preview</td><td>Disables link previews for links in this message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -1208,16 +1411,16 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This functionis used to send photos. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
-    <tr><td class="paramname">photo</td><td>Photo to send. It is either file_id as String to resend a photo that is already on the Telegram servers, or a path to photo file. </td></tr>
-    <tr><td class="paramname">is_file</td><td>False if photo is file_id, true, if photo is a file path. </td></tr>
-    <tr><td class="paramname">caption</td><td>Photo caption. (may also be used when resending photos). </td></tr>
-    <tr><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
-    <tr><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">photo</td><td>Photo to send. It is either file_id as String to resend a photo that is already on the Telegram servers, or a path to photo file. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">is_file</td><td>False if photo is file_id, true, if photo is a file path. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">caption</td><td>Photo caption. (may also be used when resending photos). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -1266,15 +1469,15 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to to send .webp stickers. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername) </td></tr>
-    <tr><td class="paramname">sticker</td><td>Sticker file to send. It is either a file_id as String to resend a sticker that is already on the Telegram servers, or a path to file. </td></tr>
-    <tr><td class="paramname">is_file</td><td>False if sticker is file_id, true, if sticker is a file path. </td></tr>
-    <tr><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
-    <tr><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sticker</td><td>Sticker file to send. It is either a file_id as String to resend a sticker that is already on the Telegram servers, or a path to file. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">is_file</td><td>False if sticker is file_id, true, if sticker is a file path. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -1335,17 +1538,17 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to send video files, Telegram clients support mp4 videos (other formats may be sent as Document). </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
-    <tr><td class="paramname">video</td><td>Video file to send. It is either a file_id as String to resend a video that is already on the Telegram servers, or a path to video file. </td></tr>
-    <tr><td class="paramname">is_file</td><td>False if video is file_id, true, if video is a file path. </td></tr>
-    <tr><td class="paramname">duration</td><td>Duration of sent video in seconds. </td></tr>
-    <tr><td class="paramname">caption</td><td>Video caption (may also be used when resending videos). </td></tr>
-    <tr><td class="paramname">reply_to_message_id</td><td>Isend_videof the message is a reply, ID of the original message. </td></tr>
-    <tr><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">video</td><td>Video file to send. It is either a file_id as String to resend a video that is already on the Telegram servers, or a path to video file. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">is_file</td><td>False if video is file_id, true, if video is a file path. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">duration</td><td>Duration of sent video in seconds. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">caption</td><td>Video caption (may also be used when resending videos). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_to_message_id</td><td>Isend_videof the message is a reply, ID of the original message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -1400,20 +1603,20 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used to send audio files, if you want Telegram clients to display the file as a playable voice message. For this to work, your audio must be in an .ogg file encoded with OPUS (other formats may be sent as Audio or Document). Bots can currently send voice messages of up to 50 MB in size. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
-    <tr><td class="paramname">voice</td><td>Audio file to send. It is either a file_id as String to resend a audio that is already on the Telegram servers, or a path to audio file. </td></tr>
-    <tr><td class="paramname">is_file</td><td>False if voice is file_id, true, if voice is a file path. </td></tr>
-    <tr><td class="paramname">duration</td><td>Duration of sent audio in seconds. </td></tr>
-    <tr><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
-    <tr><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">chat_id</td><td>Unique identifier for the target chat or username of the target channel (in the format @channelusername). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">voice</td><td>Audio file to send. It is either a file_id as String to resend a audio that is already on the Telegram servers, or a path to audio file. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">is_file</td><td>False if voice is file_id, true, if voice is a file path. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">duration</td><td>Duration of sent audio in seconds. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_to_message_id</td><td>If the message is a reply, ID of the original message. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">reply_markup</td><td>Additional interface options. An object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga8eed72f928babfed6833534fa05446d8"></a>
+<a class="anchor" id="ga047676c485246cf058c6b7a6dce185fd"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -1421,8 +1624,24 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
           <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_start </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#ga4df9c260ea0c0b324f01737c5adef3b5">telebot_update_cb_f</a>&#160;</td>
-          <td class="paramname"><em>update_cb</em></td><td>)</td>
+          <td class="paramname"><em>update_cb</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>detach_thread</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">pthread_t *&#160;</td>
+          <td class="paramname"><em>thread_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1430,11 +1649,13 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 <p>This function is used start to receiving Telegram bot updates. Internally, it starts thread for polling updates. </p>
 <p>This call MUST have corresponding call to <a class="el" href="group__TELEBOT__API.html#ga75d8b5574682c9e19ddcbf8f1f4c2bc9" title="This function stops receiving updates by stopping internal thread. ">telebot_stop()</a> when receiving update is needed to terminate. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">update_cb</td><td>Callback function to receive latest telegram update. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">update_cb</td><td>Callback function to receive latest telegram update. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">detach_thread</td><td>Set if thread should be detached. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">thread_id</td><td>Thread identifier obtained at thread creation. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -1452,14 +1673,14 @@ please wait...", the bot may use sendChatAction with action = upload_photo. The 
 </div><div class="memdoc">
 
 <p>This function stops receiving updates by stopping internal thread. </p>
-<p>It is the opposite of the <a class="el" href="group__TELEBOT__API.html#ga8eed72f928babfed6833534fa05446d8" title="This function is used start to receiving Telegram bot updates. Internally, it starts thread for polli...">telebot_start()</a> function. </p><dl class="section return"><dt>Returns</dt><dd>On success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<p>It is the opposite of the <a class="el" href="group__TELEBOT__API.html#ga047676c485246cf058c6b7a6dce185fd" title="This function is used start to receiving Telegram bot updates. Internally, it starts thread for polli...">telebot_start()</a> function. </p><dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 12 2016 00:30:16 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Dec 24 2017 17:27:26 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

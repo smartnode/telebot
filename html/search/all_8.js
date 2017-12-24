@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['message',['message',['../structtelebot__update.html#ad9fdf9986d210f3ca3d3dfce35ad0dc1',1,'telebot_update']]],
-  ['message_5fid',['message_id',['../structtelebot__message.html#ae1ade0ee3a98cc0a7b29ae5863c6b740',1,'telebot_message']]],
-  ['migrate_5ffrom_5fchat_5fid',['migrate_from_chat_id',['../structtelebot__message.html#a07e412edeeabfb9e192818975ecf97c0',1,'telebot_message']]],
-  ['migrate_5fto_5fchat_5fid',['migrate_to_chat_id',['../structtelebot__message.html#ae04dd29ca41969b880f29e2cb28fddaa',1,'telebot_message']]],
-  ['mime_5ftype',['mime_type',['../structtelebot__audio.html#a5645e1fc3053b80ebe57c72e92c35347',1,'telebot_audio::mime_type()'],['../structtelebot__document.html#a502ea8bb51a27754c8929d3e4509dac9',1,'telebot_document::mime_type()'],['../structtelebot__video.html#a8259bf2d22ee8a33f58a87ac3be8fa12',1,'telebot_video::mime_type()'],['../structtelebot__voice.html#aa9d18033bda69e13e77dd579c607fac2',1,'telebot_voice::mime_type()']]]
+  ['last_5fname',['last_name',['../structtelebot__user.html#af3a8e0b6ec2fa3f2fec5486c48608ad4',1,'telebot_user::last_name()'],['../structtelebot__chat.html#aa7b4a85d8c171fa4b46395e17509de5e',1,'telebot_chat::last_name()'],['../structtelebot__contact.html#aa09141d6e52e20a4b55934c2d8303193',1,'telebot_contact::last_name()']]],
+  ['latitude',['latitude',['../structtelebot__location.html#aa59cdc92ba76770596e05b0bf1076ec9',1,'telebot_location']]],
+  ['left_5fchat_5fparticipant',['left_chat_participant',['../structtelebot__message.html#aa856024a1f8d2b13f8a81b7289e95489',1,'telebot_message']]],
+  ['location',['location',['../structtelebot__message.html#abab727c8cb8ce77efecc2a88b1af175b',1,'telebot_message']]],
+  ['longitude',['longitude',['../structtelebot__location.html#a26d73d87d28a2663f5f360a466dc184f',1,'telebot_location']]]
 ];

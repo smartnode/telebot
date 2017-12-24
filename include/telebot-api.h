@@ -399,7 +399,7 @@ typedef struct {
      * Used by 'telebot_reply_keyboard_add_button()'
      */
     json_object* current_row;
-} telebot_reply_keyboard;
+} telebot_reply_keyboard_t;
 
 
 /**
@@ -412,8 +412,8 @@ typedef void (*telebot_update_cb_f)(const telebot_message_t *message);
  *
  * This function must be used first to call, and it creates handler. This call
  * MUST have corresponding call to telebot_destroy() when operation is complete.
- * @param token Telegram Bot token to use.
- * @return On success, TELEBOT_ERROR_NONE is returned.
+ * @param[in] token Telegram Bot token to use.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_create(char *token);
 
@@ -422,7 +422,7 @@ telebot_error_e telebot_create(char *token);
  *
  * This function must be the last function to call for a telebot use.
  * It is the opposite of the telebot_create() function.
- * @return On success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_destroy();
 
@@ -432,25 +432,27 @@ telebot_error_e telebot_destroy();
  *
  * This call MUST have corresponding call to telebot_stop() when receiving
  * update is needed to terminate.
- * @param update_cb Callback function to receive latest telegram update.
- * @return On success, TELEBOT_ERROR_NONE is returned.
+ * @param[in] update_cb Callback function to receive latest telegram update.
+ * @param[in] detach_thread Set if thread should be detached.
+ * @param[out] thread_id Thread identifier obtained at thread creation.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_start(telebot_update_cb_f update_cb, bool should_deatach_thread, pthread_t* thread_id);
-
+telebot_error_e telebot_start(telebot_update_cb_f update_cb, bool detach_thread,
+        pthread_t *thread_id);
 
 /**
  * @brief This function stops receiving updates by stopping internal thread.
  *
  * It is the opposite of the telebot_start() function.
- * @return On success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_stop();
 
 /**
  * @brief This function is used to get information about telegram bot itself.
  *
- * @param me Pointer to the telegram user object address. This pointer MUST be
- * freed after use.
+ * @param[out] me Pointer to the telegram user object address. It MUST be freed
+ * after use.
  * @return On success, TELEBOT_ERROR_NONE is returned, and user object is
  * stored in input parameter.
  */
@@ -459,74 +461,73 @@ telebot_error_e telebot_get_me(telebot_user_t **me);
 /**
  * @brief This function is used to get latest updates. It is alternative for
  * telebot_start() function, if you want to poll updates.
- * @param updates Pointer to the updates object address. It MUST be freed.
- * @param count Pointer to put number of updates received.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+ * @param[out] updates Update objects. It MUST be freed after use.
+ * @param[out] count Number of updates received.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_get_updates(telebot_update_t **updates, int *count);
 
 /**
  * @brief This function is used to get user profile pictures object
- * @param user_id Unique identifier of the target user.
- * @param offset Sequential number of the first photo to be returned.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] offset Sequential number of the first photo to be returned.
  * By default, up to 10 photos are returned.
- * @param photos Pointer to the photos object address. This pointer MUST
- * be freed after use.
- * @param count Pointer to the number of photos object.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+ * @param[out] photos Photo objects. It MUST be freed after use.
+ * @param[out] count The number of photo objects.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_get_user_profile_photos(int user_id, int offset,
         telebot_photo_t **photos, int *count);
 
 /**
  * @brief This function is used to download file.
- * @param file_id File identifier to get info about.
- * @param path A path where the file is downloaded
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+ * @param[in] file_id File identifier to get info about.
+ * @param[in] path A path where the file is downloaded
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_download_file(char *file_id, char *path);
 
 /**
  * @brief This function is used to send text messages.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername).
- * @param text Text of the message to be sent.
- * @param parse_mode Send Markdown, if you want Telegram apps to show bold,
+ * @param[in] text Text of the message to be sent.
+ * @param[in] parse_mode Send Markdown, if you want Telegram apps to show bold,
  * italic and inline URLs in your bot's message.
- * @param disable_web_page_preview Disables link previews for links in this message.
- * @param reply_to_message_id If the message is a reply, ID of the original message.
- * @param reply_markup Additional interface options. An object for a custom
+ * @param[in] disable_web_page_preview Disables link previews for links in this message.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] reply_markup Additional interface options. An object for a custom
  * reply keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_message(char *chat_id, char *text, char *parse_mode,
         bool disable_web_page_preview, int reply_to_message_id, const char *reply_markup);
 
 /**
  * @brief This function is used to forward messages of any kind.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername).
- * @param from_chat_id Unique identifier for the chat where the original
+ * @param[in] from_chat_id Unique identifier for the chat where the original
  * message was sent (or channel username in the format \@channelusername).
- * @param message_id Unique message identifier.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+ * @param[in] message_id Unique message identifier.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_forward_message(char *chat_id, char *from_chat_id,
         int message_id);
 
 /**
  * @brief This functionis used to send photos.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername).
- * @param photo Photo to send. It is either file_id as String to resend a photo
+ * @param[in] photo Photo to send. It is either file_id as String to resend a photo
  * that is already on the Telegram servers, or a path to photo file.
- * @param is_file False if photo is file_id, true, if photo is a file path.
- * @param caption Photo caption. (may also be used when resending photos).
- * @param reply_to_message_id If the message is a reply, ID of the original message.
- * @param reply_markup Additional interface options. An object for a custom
+ * @param[in] is_file False if photo is file_id, true, if photo is a file path.
+ * @param[in] caption Photo caption. (may also be used when resending photos).
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] reply_markup Additional interface options. An object for a custom
  * reply keyboard, instructions to hide keyboard or to force a reply from
  * the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
         char *caption, int reply_to_message_id, char *reply_markup);
@@ -538,18 +539,18 @@ telebot_error_e telebot_send_photo(char *chat_id, char *photo, bool is_file,
  * mime-type of the file to be sent is not audio/mpeg, the file will be sent as
  * a playable voice message. For this to work, the audio must be in an .ogg
  * file encoded with OPUS.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername).
- * @param audio Audio file to send. It is either a file_id as String to resend an
+ * @param[in] audio Audio file to send. It is either a file_id as String to resend an
  * audio that is already on the Telegram servers, or a path to audio file.
- * @param is_file False if audio is file_id, true, if audio is a file path.
- * @param duration Duration of sent audio in seconds.
- * @param performer The performer of the audio.
- * @param title The track name of the audio.
- * @param reply_to_message_id If the message is a reply, ID of the original message.
- * @param reply_markup Additional interface options. An object for a custom reply
+ * @param[in] is_file False if audio is file_id, true, if audio is a file path.
+ * @param[in] duration Duration of sent audio in seconds.
+ * @param[in] performer The performer of the audio.
+ * @param[in] title The track name of the audio.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
         int duration, char *performer, char *title, int reply_to_message_id,
@@ -557,30 +558,30 @@ telebot_error_e telebot_send_audio(char *chat_id, char *audio, bool is_file,
 
 /**
  * @brief This function is used to send general files.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername).
- * @param document Document file to send. It is either a file_id as String to
+ * @param[in] document Document file to send. It is either a file_id as String to
  * resend a file that is already on the Telegram servers, or a path to file.
- * @param is_file False if document is file_id, true, if document is a file path.
- * @param reply_to_message_id If the message is a reply, ID of the original message.
- * @param reply_markup Additional interface options. An object for a custom reply
+ * @param[in] is_file False if document is file_id, true, if document is a file path.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_document(char *chat_id, char *document,
         bool is_file, int reply_to_message_id, char *reply_markup);
 
 /**
  * @brief This function is used to to send .webp stickers.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername)
- * @param sticker Sticker file to send. It is either a file_id as String to
+ * @param[in] sticker Sticker file to send. It is either a file_id as String to
  * resend a sticker that is already on the Telegram servers, or a path to file.
- * @param is_file False if sticker is file_id, true, if sticker is a file path.
- * @param reply_to_message_id If the message is a reply, ID of the original message.
- * @param reply_markup Additional interface options. An object for a custom reply
+ * @param[in] is_file False if sticker is file_id, true, if sticker is a file path.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_sticker(char *chat_id, char *sticker, bool is_file,
         int reply_to_message_id, char *reply_markup);
@@ -588,17 +589,17 @@ telebot_error_e telebot_send_sticker(char *chat_id, char *sticker, bool is_file,
 /**
  * @brief This function is used to send video files, Telegram clients support
  * mp4 videos (other formats may be sent as Document).
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername).
- * @param video Video file to send. It is either a file_id as String to resend
+ * @param[in] video Video file to send. It is either a file_id as String to resend
  * a video that is already on the Telegram servers, or a path to video file.
- * @param is_file False if video is file_id, true, if video is a file path.
- * @param duration Duration of sent video in seconds.
- * @param caption Video caption (may also be used when resending videos).
- * @param reply_to_message_id Isend_videof the message is a reply, ID of the original message.
- * @param reply_markup Additional interface options. An object for a custom reply
+ * @param[in] is_file False if video is file_id, true, if video is a file path.
+ * @param[in] duration Duration of sent video in seconds.
+ * @param[in] caption Video caption (may also be used when resending videos).
+ * @param[in] reply_to_message_id Isend_videof the message is a reply, ID of the original message.
+ * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
         int duration, char *caption, int reply_to_message_id, char *reply_markup);
@@ -609,30 +610,30 @@ telebot_error_e telebot_send_video(char *chat_id, char *video, bool is_file,
  * your audio must be in an .ogg file encoded with OPUS (other formats may be
  * sent as Audio or Document). Bots can currently send voice messages of up to
  * 50 MB in size.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername).
- * @param voice Audio file to send. It is either a file_id as String to resend
+ * @param[in] voice Audio file to send. It is either a file_id as String to resend
  * a audio that is already on the Telegram servers, or a path to audio file.
- * @param is_file False if voice is file_id, true, if voice is a file path.
- * @param duration Duration of sent audio in seconds.
- * @param reply_to_message_id If the message is a reply, ID of the original message.
- * @param reply_markup Additional interface options. An object for a custom reply
+ * @param[in] is_file False if voice is file_id, true, if voice is a file path.
+ * @param[in] duration Duration of sent audio in seconds.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_voice(char *chat_id, char *voice, bool is_file,
         int duration, int reply_to_message_id, char *reply_markup);
 
 /**
  * @brief This function is used to send point on the map.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername).
- * @param latitude Latitude of location.
- * @param longitude Longitude of location.
- * @param reply_to_message_id If the message is a reply, ID of the original message.
- * @param reply_markup Additional interface options. An object for a custom reply
+ * @param[in] latitude Latitude of location.
+ * @param[in] longitude Longitude of location.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_location(char *chat_id, float latitude,
         float longitude, int reply_to_message_id, char *reply_markup);
@@ -647,71 +648,79 @@ telebot_error_e telebot_send_location(char *chat_id, float latitude,
  * The user will see a "sending photo" status for the bot.
  * It is only recommended to use when a response from the bot will take a
  * noticeable amount of time to arrive.
- * @param chat_id Unique identifier for the target chat or username of the
+ * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername)
- * @param action Type of action to broadcast. Choose one, depending on what the
+ * @param[in] action Type of action to broadcast. Choose one, depending on what the
  * user is about to receive: typing for text messages, upload_photo for photos,
  * record_video or upload_video for videos, record_audio or upload_audio for
  * audio files, upload_document for general files, find_location for location
  * data.
- * @return on Success, TELEBOT_ERROR_NONE is returned.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_send_chat_action(char *chat_id, char *action);
 
-
 /**
- * @brief This function creates a 'telebot_reply_keyboard' struct used to set
+ * @brief This function creates a #telebot_reply_keyboard_t object used to set
  * a ReplyKeyboard.
- * @param resize Requests clients to resize the keyboard vertically
+ * @param[in] resize Requests clients to resize the keyboard vertically
  * for optimal fit (e.g., make the keyboard smaller if there are just
  * two rows of buttons). Defaults to false, in which case the custom
  * keyboard is always of the same height as the app's standard keyboard.
- * @param one_time Requests clients to hide the keyboard as soon as it's
+ * @param[in] one_time Requests clients to hide the keyboard as soon as it's
  * been used. The keyboard will still be available, but clients will
  * automatically display the usual letter-keyboard in the chat – the user
  * can press a special button in the input field to see the custom
  * keyboard again.
- * @param selective Use this parameter if you want to show the keyboard to
+ * @param[in] selective Use this parameter if you want to show the keyboard to
  * specific users only. Targets: 1) users that are @mentioned in the text
  * of the Message object; 2) if the bot's message is a
  * reply (has reply_to_message_id), sender of the original message.
- * @return  a 'telebot_reply_keyboard' struct representing a ReplyKeyboard.
+ * @param[out] keyboard A #telebot_reply_keyboard_t objet representing a ReplyKeyboard.
+ * It MUST be destroyed with #telebot_destroy_reply_keyboard.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_reply_keyboard create_reply_keyboard(bool resize, bool one_time, bool selective);
+telebot_error_e telebot_create_reply_keyboard(bool resize, bool one_time,
+        bool selective, telebot_reply_keyboard_t **keyboard);
 
 /**
- * @brief This function is used to destroy a 'telebot_reply_keyboard' struct.
- * @param keyboard The keyboard to be destroyed.
+ * @brief This function is used to destroy a #telebot_reply_keyboard object,
+ * created using #telebot_create_reply_keyboard.
+ * @param[in] keyboard The keyboard to be destroyed.
  */
-void destroy_telebot_reply_keyboard(telebot_reply_keyboard* keyboard);
+telebot_error_e telebot_destroy_reply_keyboard(telebot_reply_keyboard_t *keyboard);
 
 /**
  * @brief This function adds a button to the current row of a ReplyKeyboard.
- * @param keyboard The keyboard to where the button will be added.
- * @param text Text of the button. If none of the other fields are true, it
+ * @param[in] keyboard The keyboard to where the button will be added.
+ * @param[in] text Text of the button. If none of the other fields are true, it
  * will be sent as a message when the button is pressed.
- * @param request_contact If True, the user's phone number will be sent as
+ * @param[in] request_contact If True, the user's phone number will be sent as
  * a contact when the button is pressed. Available in private chats only.
- * @param request_location If True, the user's current location will be
+ * @param[in] request_location If True, the user's current location will be
  * sent when the button is pressed. Available in private chats only.
+* @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-void telebot_reply_keyboard_add_button(telebot_reply_keyboard* keyboard, char* text,
-                                       bool request_contact, bool request_location);
+telebot_error_e telebot_reply_keyboard_add_button(telebot_reply_keyboard_t *keyboard,
+        char *text, bool request_contact, bool request_location);
 
 /**
  * @brief This function adds a button row to a ReplyKeyboard. This
  * updates the concept of the 'current_row' where new buttons are going to
  * be added.
- * @param keyboard The keyboard to where the button row will be added.
+ * @param[in] keyboard The keyboard to where the button row will be added.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-void telebot_reply_keyboard_add_row(telebot_reply_keyboard* keyboard);
+telebot_error_e telebot_reply_keyboard_add_row(telebot_reply_keyboard_t *keyboard);
 
 /**
- * @brief Stringfy the JSON object representing the ReplyKeyboard.
- * @param keyboard The keyboard.
- * @return the string representation of the JSON object.
+ * @brief Stringify the JSON object representing the ReplyKeyboard.
+ * @param[in] keyboard The keyboard.
+ * @param[out] keyboard_str the string representation of the JSON object.
+ * It MUST bee freed after use.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-const char* reply_keyboard_string(telebot_reply_keyboard* keyboard);
+telebot_error_e telebot_reply_keyboard_stringify(telebot_reply_keyboard_t *keyboard,
+        char **keyboard_str);
 /**
  * @} // end of APIs
  */

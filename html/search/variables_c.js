@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['reply_5fto_5fmessage',['reply_to_message',['../structtelebot__message.html#a10930758976ee70ca73e77de7cf5bf45',1,'telebot_message']]],
-  ['resp_5fdata',['resp_data',['../structtelebot__core__handler.html#af73863dffdf67abc242c41851fd6d1f3',1,'telebot_core_handler']]],
-  ['resp_5fsize',['resp_size',['../structtelebot__core__handler.html#a0f4bcbf43b7e09c10fe5adbd70f4cc53',1,'telebot_core_handler']]]
+  ['performer',['performer',['../structtelebot__audio.html#a8e4c041320b044a27134cbb696e14f85',1,'telebot_audio']]],
+  ['phone_5fnumber',['phone_number',['../structtelebot__contact.html#a8dd2dc90ba0708fdcc545f73702d1abe',1,'telebot_contact']]],
+  ['photo',['photo',['../structtelebot__message.html#a534d6e22b9449850de6d69a48dae7242',1,'telebot_message']]]
 ];

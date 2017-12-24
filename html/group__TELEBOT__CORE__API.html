@@ -131,9 +131,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga7e2b83a2e979046a14c24dbe3ff9dff4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__CORE__API.html#ga7e2b83a2e979046a14c24dbe3ff9dff4">telebot_core_download_file</a> (<a class="el" href="group__TELEBOT__CORE__API.html#gafe6380ebf72ca159c848b9fc86975c3e">telebot_core_h</a> *handler, char *file_path, char *out_file)</td></tr>
 <tr class="memdesc:ga7e2b83a2e979046a14c24dbe3ff9dff4"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used download file using file_path obtained with <a class="el" href="group__TELEBOT__CORE__API.html#ga5136f4b32e0cd76039ceef7611eff256" title="This function is used get basic info about a file and prepare it for downloading. For the moment...">telebot_core_get_file()</a>. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling <a class="el" href="group__TELEBOT__CORE__API.html#ga5136f4b32e0cd76039ceef7611eff256" title="This function is used get basic info about a file and prepare it for downloading. For the moment...">telebot_core_get_file()</a> again.  <a href="#ga7e2b83a2e979046a14c24dbe3ff9dff4">More...</a><br /></td></tr>
 <tr class="separator:ga7e2b83a2e979046a14c24dbe3ff9dff4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7ded1f851bc3dd938aea33b21a174fbc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__CORE__API.html#ga7ded1f851bc3dd938aea33b21a174fbc">telebot_core_send_message</a> (<a class="el" href="group__TELEBOT__CORE__API.html#gafe6380ebf72ca159c848b9fc86975c3e">telebot_core_h</a> *handler, char *chat_id, char *text, char *parse_mode, bool disable_web_page_preview, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:ga7ded1f851bc3dd938aea33b21a174fbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send text messages.  <a href="#ga7ded1f851bc3dd938aea33b21a174fbc">More...</a><br /></td></tr>
-<tr class="separator:ga7ded1f851bc3dd938aea33b21a174fbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3b9143acb413025e5a5f5dab64e89449"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__CORE__API.html#ga3b9143acb413025e5a5f5dab64e89449">telebot_core_send_message</a> (<a class="el" href="group__TELEBOT__CORE__API.html#gafe6380ebf72ca159c848b9fc86975c3e">telebot_core_h</a> *handler, char *chat_id, char *text, char *parse_mode, bool disable_web_page_preview, int reply_to_message_id, const char *reply_markup)</td></tr>
+<tr class="memdesc:ga3b9143acb413025e5a5f5dab64e89449"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to send text messages.  <a href="#ga3b9143acb413025e5a5f5dab64e89449">More...</a><br /></td></tr>
+<tr class="separator:ga3b9143acb413025e5a5f5dab64e89449"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga67cc0614301ae85ab39e925694e04dbd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__CORE__API.html#ga67cc0614301ae85ab39e925694e04dbd">telebot_core_forward_message</a> (<a class="el" href="group__TELEBOT__CORE__API.html#gafe6380ebf72ca159c848b9fc86975c3e">telebot_core_h</a> *handler, char *chat_id, char *from_chat_id, int message_id)</td></tr>
 <tr class="memdesc:ga67cc0614301ae85ab39e925694e04dbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to forward messages of any kind.  <a href="#ga67cc0614301ae85ab39e925694e04dbd">More...</a><br /></td></tr>
 <tr class="separator:ga67cc0614301ae85ab39e925694e04dbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -200,7 +200,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -225,7 +225,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -268,7 +268,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -318,7 +318,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -354,7 +354,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data, which contains a File object. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data, which contains a File object. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -379,7 +379,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>On success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data. All core API responses are JSON objects. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data. All core API responses are JSON objects. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -430,7 +430,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -480,7 +480,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -565,7 +565,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -671,7 +671,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -735,11 +735,11 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga7ded1f851bc3dd938aea33b21a174fbc"></a>
+<a class="anchor" id="ga3b9143acb413025e5a5f5dab64e89449"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -782,7 +782,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>reply_markup</em>&#160;</td>
         </tr>
         <tr>
@@ -806,7 +806,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -877,7 +877,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -941,7 +941,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -1019,7 +1019,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -1090,7 +1090,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. Response is placed in handler-&gt;resp_data that contains the sent message. It MUST be freed after use. </dd></dl>
 
 </div>
 </div>
@@ -1139,7 +1139,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 12 2016 00:30:16 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Dec 24 2017 17:27:26 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>
