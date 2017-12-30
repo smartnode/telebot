@@ -49,7 +49,7 @@ typedef struct telebot_core_handler {
     int  offset; /**< Telegam last update id */
     char *resp_data; /**< Telegam response object */
     size_t resp_size; /**< Telegam response size */
-} telebot_core_h;
+} telebot_core_handler_t;
 
 /**
  * @brief Start function to use telebot core APIs.
@@ -61,7 +61,7 @@ typedef struct telebot_core_handler {
  * @param token Telegram bot token to use.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_core_create(telebot_core_h *handler, char *token);
+telebot_error_e telebot_core_create(telebot_core_handler_t *handler, char *token);
 
 /**
  * @brief Final function to use telebot core APIs
@@ -73,7 +73,7 @@ telebot_error_e telebot_core_create(telebot_core_h *handler, char *token);
  * @param handler The telebot handler created with telebot_core_create().
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_core_destroy(telebot_core_h *handler);
+telebot_error_e telebot_core_destroy(telebot_core_handler_t *handler);
 
 /**
  * @brief This function gets basic information about the bot.
@@ -82,7 +82,7 @@ telebot_error_e telebot_core_destroy(telebot_core_h *handler);
  * Response is placed in handler->resp_data. All core API responses are JSON objects.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_get_me(telebot_core_h *handler);
+telebot_error_e telebot_core_get_me(telebot_core_handler_t *handler);
 
 /**
  * @brief This function is used to receive incoming updates (long polling).
@@ -102,7 +102,7 @@ telebot_error_e telebot_core_get_me(telebot_core_h *handler);
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  * Response is placed in handler->resp_data. It MUST be freed after use.
  */
-telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset,
+telebot_error_e telebot_core_get_updates(telebot_core_handler_t *handler, int offset,
         int limit, int timeout);
 
 /**
@@ -116,7 +116,7 @@ telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  * Response is placed in handler->resp_data. It MUST be freed after use.
  */
-telebot_error_e telebot_core_get_user_profile_photos(telebot_core_h *handler,
+telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *handler,
         int user_id, int offset, int limit);
 
 /**
@@ -128,7 +128,7 @@ telebot_error_e telebot_core_get_user_profile_photos(telebot_core_h *handler,
  * Response is placed in handler->resp_data, which contains a File object.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_get_file(telebot_core_h *handler, char *file_id);
+telebot_error_e telebot_core_get_file(telebot_core_handler_t *handler, char *file_id);
 
 /**
  * @brief This function is used download file using file_path obtained with
@@ -140,7 +140,7 @@ telebot_error_e telebot_core_get_file(telebot_core_h *handler, char *file_id);
  * @param out_file Full path to download and save file.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_core_download_file(telebot_core_h *handler, char *file_path,
+telebot_error_e telebot_core_download_file(telebot_core_handler_t *handler, char *file_path,
     char *out_file);
 
 /**
@@ -158,7 +158,7 @@ telebot_error_e telebot_core_download_file(telebot_core_h *handler, char *file_p
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  * Response is placed in handler->resp_data. It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_message(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_send_message(telebot_core_handler_t *handler, int chat_id,
         char *text, char *parse_mode, bool disable_web_page_preview,
         int reply_to_message_id, const char *reply_markup);
 
@@ -170,10 +170,10 @@ telebot_error_e telebot_core_send_message(telebot_core_h *handler, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. 
  * Response is placed in handler->resp_data. It MUST be freed after use.
  */
-telebot_error_e telebot_core_delete_message(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_delete_message(telebot_core_handler_t *handler, int chat_id,
         int message_id);
 
-telebot_error_e telebot_core_answer_callback_query(telebot_core_h *handler,
+telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *handler,
         const char *callback_query_id,char *text, bool show_alert,
         char *url, int cache_time);
 
@@ -189,7 +189,7 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_h *handler,
  * Response is placed in handler->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
+telebot_error_e telebot_core_forward_message(telebot_core_handler_t *handler,
         int chat_id, char *from_chat_id, int message_id);
 
 /**
@@ -209,7 +209,7 @@ telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
  * Response is placed in handler->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_photo(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_send_photo(telebot_core_handler_t *handler, int chat_id,
         char *photo, bool is_file, char *caption, int reply_to_message_id,
         char *reply_markup);
 /**
@@ -237,7 +237,7 @@ telebot_error_e telebot_core_send_photo(telebot_core_h *handler, int chat_id,
  * Response is placed in handler->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_audio(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_send_audio(telebot_core_handler_t *handler, int chat_id,
         char *audio, bool is_file, int duration, char *performer, char *title,
     int reply_to_message_id, char *reply_markup);
 
@@ -256,7 +256,7 @@ telebot_error_e telebot_core_send_audio(telebot_core_h *handler, int chat_id,
  * Response is placed in handler->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_document(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_send_document(telebot_core_handler_t *handler, int chat_id,
         char *document, bool is_file, int reply_to_message_id,
         char *reply_markup);
 
@@ -276,7 +276,7 @@ telebot_error_e telebot_core_send_document(telebot_core_h *handler, int chat_id,
  * It MUST be freed after use.
  */
 
-telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *handler, int chat_id,
         char *sticker, bool is_file, int reply_to_message_id, char *reply_markup);
 
 /**
@@ -297,7 +297,7 @@ telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, int chat_id,
  * Response is placed in handler->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_video(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_send_video(telebot_core_handler_t *handler, int chat_id,
         char *video, bool is_file, int duration, char *caption,
         int reply_to_message_id, char *reply_markup);
 /**
@@ -321,7 +321,7 @@ telebot_error_e telebot_core_send_video(telebot_core_h *handler, int chat_id,
  * It MUST be freed after use.
  */
 
-telebot_error_e telebot_core_send_voice(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_send_voice(telebot_core_handler_t *handler, int chat_id,
         char *voice, bool is_file, int duration, int reply_to_message_id,
         char *reply_markup);
 
@@ -339,7 +339,7 @@ telebot_error_e telebot_core_send_voice(telebot_core_h *handler, int chat_id,
  * Response is placed in handler->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_location(telebot_core_h *handler, int chat_id,
+telebot_error_e telebot_core_send_location(telebot_core_handler_t *handler, int chat_id,
         float latitude, float longitude, int reply_to_message_id,
         char *reply_markup);
 
@@ -362,7 +362,7 @@ telebot_error_e telebot_core_send_location(telebot_core_h *handler, int chat_id,
  * audio files, upload_document for general files, find_location for location
  * data.
  */
-telebot_error_e telebot_core_send_chat_action(telebot_core_h *handler,
+telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *handler,
         int chat_id, char *action);
 
 /**
@@ -376,7 +376,7 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_h *handler,
  * integration
  * @param certificate A path to to a public key certificate to upload server.
  */
-telebot_error_e telebot_core_set_web_hook(telebot_core_h *handler, char *url,
+telebot_error_e telebot_core_set_web_hook(telebot_core_handler_t *handler, char *url,
         char *certificate);
 
 /**

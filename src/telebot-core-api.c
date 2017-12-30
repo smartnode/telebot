@@ -30,7 +30,7 @@
 static size_t write_data_cb(void *contents, size_t size, size_t nmemb,
         void *userp)
 {
-    telebot_core_h *handler = (telebot_core_h *) userp;
+    telebot_core_handler_t *handler = (telebot_core_handler_t *) userp;
     size_t r_size = size * nmemb;
 
     handler->resp_data = realloc(handler->resp_data, handler->resp_size +
@@ -47,7 +47,7 @@ static size_t write_data_cb(void *contents, size_t size, size_t nmemb,
     return r_size;
 }
 
-static telebot_error_e telebot_core_curl_perform(telebot_core_h *handler,
+static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *handler,
         const char *method, struct curl_httppost *post)
 {
     CURL *curl_h;
@@ -104,7 +104,7 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_h *handler,
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_create(telebot_core_h *handler, char *token)
+telebot_error_e telebot_core_create(telebot_core_handler_t *handler, char *token)
 {
     if ((token == NULL) || (handler == NULL)) {
         ERR("Token(0x%p) or handler(0x%p) is NULL",
@@ -122,7 +122,7 @@ telebot_error_e telebot_core_create(telebot_core_h *handler, char *token)
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_destroy(telebot_core_h *handler)
+telebot_error_e telebot_core_destroy(telebot_core_handler_t *handler)
 {
     curl_global_cleanup();
 
@@ -143,7 +143,7 @@ telebot_error_e telebot_core_destroy(telebot_core_h *handler)
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_get_me(telebot_core_h *handler)
+telebot_error_e telebot_core_get_me(telebot_core_handler_t *handler)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -158,7 +158,7 @@ telebot_error_e telebot_core_get_me(telebot_core_h *handler)
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_GET_ME, NULL);
 }
 
-telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset,
+telebot_error_e telebot_core_get_updates(telebot_core_handler_t *handler, int offset,
         int limit, int timeout)
 {
     if (handler == NULL) {
@@ -192,7 +192,7 @@ telebot_error_e telebot_core_get_updates(telebot_core_h *handler, int offset,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_GET_UPDATES, post);
 }
 
-telebot_error_e telebot_core_get_user_profile_photos(telebot_core_h *handler,
+telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *handler,
         int user_id, int offset, int limit)
 {
     if (handler == NULL) {
@@ -223,7 +223,7 @@ telebot_error_e telebot_core_get_user_profile_photos(telebot_core_h *handler,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_GET_USERPHOTOS, post);
 }
 
-telebot_error_e telebot_core_get_file(telebot_core_h *handler, char *file_id)
+telebot_error_e telebot_core_get_file(telebot_core_handler_t *handler, char *file_id)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -247,8 +247,8 @@ telebot_error_e telebot_core_get_file(telebot_core_h *handler, char *file_id)
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_GET_FILE, post);
 }
 
-telebot_error_e telebot_core_send_message(telebot_core_h *handler, int chat_id,
-        char *text, char *parse_mode, bool disable_web_page_preview,
+telebot_error_e telebot_core_send_message(telebot_core_handler_t *handler,
+        int chat_id, char *text, char *parse_mode, bool disable_web_page_preview,
         int reply_to_message_id, const char *reply_markup)
 {
     if (handler == NULL) {
@@ -287,8 +287,8 @@ telebot_error_e telebot_core_send_message(telebot_core_h *handler, int chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_MESSAGE, post);
 }
 
-telebot_error_e telebot_core_delete_message(telebot_core_h *handler, int chat_id,
-        int message_id)
+telebot_error_e telebot_core_delete_message(telebot_core_handler_t *handler,
+        int chat_id, int message_id)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -316,7 +316,7 @@ telebot_error_e telebot_core_delete_message(telebot_core_h *handler, int chat_id
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_DELETE_MESSAGE, post);
 }
 
-telebot_error_e telebot_core_answer_callback_query(telebot_core_h * handler,
+telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t * handler,
         const char *callback_query_id, char *text, bool show_alert,
         char *url, int cache_time)
 {
@@ -363,7 +363,7 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_h * handler,
 }
 
 
-telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
+telebot_error_e telebot_core_forward_message(telebot_core_handler_t *handler,
         int chat_id, char *from_chat_id, int message_id)
 {
     if (handler == NULL) {
@@ -394,9 +394,9 @@ telebot_error_e telebot_core_forward_message(telebot_core_h *handler,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_FORWARD_MESSAGE, post);
 }
 
-telebot_error_e telebot_core_send_photo(telebot_core_h *handler, int chat_id,
-        char *photo, bool is_file, char *caption, int reply_to_message_id,
-        char *reply_markup)
+telebot_error_e telebot_core_send_photo(telebot_core_handler_t *handler,
+        int chat_id, char *photo, bool is_file, char *caption,
+        int reply_to_message_id, char *reply_markup)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -437,9 +437,9 @@ telebot_error_e telebot_core_send_photo(telebot_core_h *handler, int chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_PHOTO, post);
 }
 
-telebot_error_e telebot_core_send_audio(telebot_core_h *handler, int chat_id,
-        char *audio, bool is_file, int duration, char *performer, char *title,
-        int reply_to_message_id, char *reply_markup)
+telebot_error_e telebot_core_send_audio(telebot_core_handler_t *handler,
+        int chat_id, char *audio, bool is_file, int duration, char *performer,
+        char *title, int reply_to_message_id, char *reply_markup)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -485,8 +485,9 @@ telebot_error_e telebot_core_send_audio(telebot_core_h *handler, int chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_AUDIO, post);
 }
 
-telebot_error_e telebot_core_send_document(telebot_core_h *handler, int chat_id,
-        char *document, bool is_file, int reply_to_message_id, char *reply_markup)
+telebot_error_e telebot_core_send_document(telebot_core_handler_t *handler,
+        int chat_id, char *document, bool is_file, int reply_to_message_id,
+        char *reply_markup)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -524,8 +525,9 @@ telebot_error_e telebot_core_send_document(telebot_core_h *handler, int chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_PHOTO, post);
 }
 
-telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, int chat_id,
-        char *sticker, bool is_file, int reply_to_message_id, char *reply_markup)
+telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *handler,
+        int chat_id, char *sticker, bool is_file, int reply_to_message_id,
+        char *reply_markup)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -564,8 +566,8 @@ telebot_error_e telebot_core_send_sticker(telebot_core_h *handler, int chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_STICKER, post);
 }
 
-telebot_error_e telebot_core_send_video(telebot_core_h *handler, int chat_id,
-        char *video, bool is_file, int duration, char *caption,
+telebot_error_e telebot_core_send_video(telebot_core_handler_t *handler,
+        int chat_id, char *video, bool is_file, int duration, char *caption,
         int reply_to_message_id, char *reply_markup)
 {
     if (handler == NULL) {
@@ -610,9 +612,9 @@ telebot_error_e telebot_core_send_video(telebot_core_h *handler, int chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_VIDEO, post);
 }
 
-telebot_error_e telebot_core_send_voice(telebot_core_h *handler, int chat_id,
-        char *voice, bool is_file, int duration, int reply_to_message_id,
-        char *reply_markup)
+telebot_error_e telebot_core_send_voice(telebot_core_handler_t *handler,
+        int chat_id, char *voice, bool is_file, int duration,
+        int reply_to_message_id, char *reply_markup)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -654,7 +656,7 @@ telebot_error_e telebot_core_send_voice(telebot_core_h *handler, int chat_id,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_VOICE, post);
 }
 
-telebot_error_e telebot_core_send_location(telebot_core_h *handler,
+telebot_error_e telebot_core_send_location(telebot_core_handler_t *handler,
         int chat_id, float latitude, float longitude, int reply_to_message_id,
         char *reply_markup)
 {
@@ -694,7 +696,7 @@ telebot_error_e telebot_core_send_location(telebot_core_h *handler,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_LOCATION, post);
 }
 
-telebot_error_e telebot_core_send_chat_action(telebot_core_h *handler,
+telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *handler,
         int chat_id, char *action)
 {
     if (handler == NULL) {
@@ -720,8 +722,8 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_h *handler,
     return telebot_core_curl_perform(handler, TELEBOT_METHOD_SEND_CHATACTION, post);
 }
 
-telebot_error_e telebot_core_set_web_hook(telebot_core_h *handler, char *url,
-        char *certificate_file)
+telebot_error_e telebot_core_set_web_hook(telebot_core_handler_t *handler,
+        char *url, char *certificate_file)
 {
     if (handler == NULL) {
         ERR("Handler is NULL");
@@ -753,7 +755,7 @@ static size_t write_file_cb(void *contents, size_t size, size_t nmemb,
     return written;
 }
 
-telebot_error_e telebot_core_download_file(telebot_core_h *handler,
+telebot_error_e telebot_core_download_file(telebot_core_handler_t *handler,
         char *file_path, char *out_file)
 {
     if ((handler == NULL) || (handler->token == NULL))

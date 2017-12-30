@@ -33,13 +33,13 @@
 #include <telebot-parser.h>
 
 static telebot_update_cb_f g_update_cb;
-static telebot_core_h *g_handler;
+static telebot_core_handler_t *g_handler;
 static bool g_run_telebot;
 static void *telebot_polling_thread(void *data);
 
 telebot_error_e telebot_create(char *token)
 {
-    g_handler = (telebot_core_h *)malloc(sizeof(telebot_core_h));
+    g_handler = (telebot_core_handler_t *)malloc(sizeof(telebot_core_handler_t));
     if (g_handler == NULL) {
         ERR("Failed to allocate memory");
         return TELEBOT_ERROR_OUT_OF_MEMORY;
@@ -707,7 +707,7 @@ telebot_error_e  telebot_create_inline_keyboard(telebot_keyboard_t **keyboard)
 
     json_object_array_add(kbd->rows, kbd->current_row);
     json_object_object_add(kbd->keyboard_obj, "keyboard", kbd->rows);
-  
+
 
     *keyboard = kbd;
 
@@ -785,7 +785,7 @@ telebot_error_e telebot_keyboard_add_inline_button(telebot_keyboard_t *keyboard,
             json_object_new_string(switch_inline_query));
     }
     if (switch_inline_query_current_chat) {
-        json_object_object_add(button, "switch_inline_query_current_chat", 
+        json_object_object_add(button, "switch_inline_query_current_chat",
             json_object_new_string(switch_inline_query_current_chat));
     }
     if (pay) {
