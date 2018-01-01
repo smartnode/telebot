@@ -41,5 +41,8 @@ Temporary Items
 .cproject
 .project
 
+# Visual studio code
+.vscode
+
 # Build directory
 build

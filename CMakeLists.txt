@@ -6,14 +6,14 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "${PREFIX}/bin")
 SET(INCLUDEDIR "${PREFIX}/include/${PROJECT_NAME}")
 SET(LIBDIR "${PREFIX}/lib")
-SET(VERSION 0.2.3)
+SET(VERSION 0.3.1)
 
 SET(CMAKE_MACOSX_RPATH 1)
 
 SET(SRCS
     src/telebot-parser.c
-    src/telebot-core-api.c
-    src/telebot-api.c
+    src/telebot-core.c
+    src/telebot.c
 )
 
 ADD_DEFINITIONS("-DDEBUG=1")
@@ -25,7 +25,7 @@ pkg_check_modules(PKGS REQUIRED ${DEPENDENTS})
 FOREACH(flag ${PKGS_CFLAGS})
     SET(EXTRA_LIB_CFLAGS "${EXTRA_LIB_CFLAGS} ${flag}")
 ENDFOREACH(flag)
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_LIB_CFLAGS} -Werror -Wall" )
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_LIB_CFLAGS} -Werror -Wall -Wno-unused-function" )
 
 # libtelebot
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${SRCS})
