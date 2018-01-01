@@ -307,7 +307,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *chat;
     if (json_object_object_get_ex(obj, "chat", &chat)) {
-        msg->chat = malloc(sizeof(chat));
+        msg->chat = malloc(sizeof(telebot_chat_t));
         ret = telebot_parser_get_chat(chat , msg->chat);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <chat> from message object");
@@ -938,6 +938,7 @@ telebot_error_e telebot_parser_get_location(struct json_object *obj,
 telebot_error_e telebot_parser_get_venue(struct json_object *obj,
         telebot_venue_t *venue)
 {
+    //TODO: implement
     return TELEBOT_ERROR_NONE;
 }
 
