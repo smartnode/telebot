@@ -61,31 +61,6 @@ telebot_error_e telebot_create(telebot_handler_t *handle, char *token);
 telebot_error_e telebot_destroy(telebot_handler_t handle);
 
 /**
- * @brief This function is used start to receiving Telegram bot updates.
- * Internally, it starts thread for polling updates.
- *
- * This call MUST have corresponding call to telebot_stop() when receiving
- * update is needed to terminate.
- * @param[in] handle The telebot handler created with #telebot_create().
- * @param[in] cb Callback function to receive latest telegram update.
- * @param[in] interval Update polling interval in seconds
- * @param[in] detach_thread Set if thread should be detached.
- * @param[out] thread_id Thread identifier obtained at thread creation.
- * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
- */
-telebot_error_e telebot_start(telebot_handler_t handle, telebot_update_cb_f cb,
-        int interval, bool detach_thread, pthread_t *thread_id);
-
-/**
- * @brief This function stops receiving updates by stopping internal thread.
- * It is the opposite of the telebot_start() function.
- *
- * @param[in] handle The telebot handler created with #telebot_create().
- * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
- */
-telebot_error_e telebot_stop(telebot_handler_t handle);
-
-/**
  * @brief This function is used to get latest updates. It is alternative for
  * telebot_start() function, if you want to poll updates.
  *
@@ -97,9 +72,9 @@ telebot_error_e telebot_stop(telebot_handler_t handle);
  * @param[out] count Number of updates received.
  * @return On success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_get_updates(telebot_handler_t handle,
-        telebot_update_type_e allowed_updates[], int allowed_updates_count,
-        telebot_update_t **updates, int *count);
+telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
+        int limit, int timeout, telebot_update_type_e allowed_updates[],
+        int allowed_updates_count, telebot_update_t **updates, int *count);
 
 /**
  * @brief This function is used to get information about telegram bot itself.

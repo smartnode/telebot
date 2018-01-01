@@ -32,13 +32,9 @@
 #include <telebot-parser.h>
 
 typedef struct telebot_handler_s {
-    telebot_update_cb_f cb;
     telebot_core_handler_t *core_h;
-    bool run_telebot;
-    int polling_interval;
     int offset;
 } telebot_hdata_t;
-
 
 static const char *telebot_update_type_str[UPDATE_TYPE_MAX] = { 
         "message", "edited_message", "channel_post",
@@ -46,37 +42,6 @@ static const char *telebot_update_type_str[UPDATE_TYPE_MAX] = {
         "chonse_inline_result", "callback_query",
         "shipping_query", "pre_checkout_query"
 };
-
-static void *telebot_polling_thread(void *data)
-{
-    int index;
-    telebot_error_e ret;
-    telebot_hdata_t *handle = (telebot_hdata_t *)data;
-    if (handle == NULL) {
-        ERR("Invalid user data, this should never happen!");
-        return NULL;
-    }
-
-    while (handle->run_telebot) {
-        int count;
-        telebot_update_t *updates;
-        ret = telebot_get_updates(handle, NULL, 0, &updates, &count);
-        if (ret != TELEBOT_ERROR_NONE)
-            continue;
-
-        for (index = 0;index < count; index++) {
-            handle->cb(&(updates[index]));
-        }
-
-        free(updates);
-        updates = NULL;
-        sleep(handle->polling_interval);
-    }
-
-    pthread_exit(NULL);
-
-    return NULL;
-}
 
 telebot_error_e telebot_create(telebot_handler_t *handle, char *token)
 {
@@ -95,13 +60,9 @@ telebot_error_e telebot_create(telebot_handler_t *handle, char *token)
         return ret;
     }
 
-    _handle->cb = NULL;
-    _handle->run_telebot = false;
-    _handle->polling_interval = TELEBOT_UPDATE_POLLING_INTERVAL;
     _handle->offset = 0;
-
+    
     *handle = _handle;
-
     return TELEBOT_ERROR_NONE;
 }
 
@@ -111,7 +72,6 @@ telebot_error_e telebot_destroy(telebot_handler_t handle)
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    telebot_stop(_handle);
     telebot_core_destroy(_handle->core_h);
 
     free(_handle);
@@ -120,64 +80,9 @@ telebot_error_e telebot_destroy(telebot_handler_t handle)
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_start(telebot_handler_t handle, telebot_update_cb_f cb,
-        int interval, bool detach_thread, pthread_t *thread_id)
-{
-    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
-    if (_handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
-
-    if ((cb == NULL) || (thread_id == NULL))
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    pthread_attr_t attr;
-    int ret = pthread_attr_init(&attr);
-    if (ret != 0) {
-        ERR("Failed to init pthread attributes, error: %d", errno);
-        return TELEBOT_ERROR_OPERATION_FAILED;
-    }
-
-    if(detach_thread) {
-        ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-        if (ret != 0) {
-            ERR("Failed to set pthread detatched attribute, error: %d", errno);
-            return TELEBOT_ERROR_OPERATION_FAILED;
-        }
-    }
-
-    if (interval <= 0)
-        interval = TELEBOT_UPDATE_POLLING_INTERVAL;
-
-    _handle->cb = cb;
-    _handle->run_telebot = true;
-    _handle->polling_interval = interval;
-
-    ret = pthread_create(thread_id, &attr, telebot_polling_thread, _handle);
-    if (ret != 0) {
-        ERR("Failed to create thread, error: %d", errno);
-        _handle->cb = NULL;
-        _handle->run_telebot = false;
-        return TELEBOT_ERROR_OPERATION_FAILED;
-    }
-
-    return TELEBOT_ERROR_NONE;
-}
-
-telebot_error_e telebot_stop(telebot_handler_t handle)
-{
-    telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
-    if (_handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
-
-    _handle->run_telebot = false;
-    _handle->cb = NULL;
-
-    return TELEBOT_ERROR_NONE;
-}
-
-telebot_error_e telebot_get_updates(telebot_handler_t handle,
-        telebot_update_type_e allowed_updates[], int allowed_updates_count,
-        telebot_update_t **updates, int *count)
+telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
+        int limit, int timeout, telebot_update_type_e allowed_updates[],
+        int allowed_updates_count, telebot_update_t **updates, int *count)
 {
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
@@ -204,8 +109,14 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle,
         snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str,"]");
     }
 
-    int ret = telebot_core_get_updates(_handle->core_h, _handle->offset,
-            TELEBOT_UPDATE_COUNT_PER_REQUEST, 0, allowed_updates_str);
+    int _offset = offset != 0 ? offset : _handle->offset;
+    int _timeout = timeout > 0 ? timeout : 0;
+    int _limit = TELEBOT_UPDATE_COUNT_MAX_LIMIT;
+    if ((limit > 0) && (limit < TELEBOT_UPDATE_COUNT_MAX_LIMIT))
+        _limit = limit; 
+    
+    int ret = telebot_core_get_updates(_handle->core_h, _offset,
+            _limit, _timeout, allowed_updates_str);
     if (ret != TELEBOT_ERROR_NONE)
         return ret;
 

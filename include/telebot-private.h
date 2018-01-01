@@ -21,9 +21,7 @@
 
 #define TELEBOT_API_URL                      "https://api.telegram.org"
 #define TELEBOT_URL_SIZE                     1024
-#define TELEBOT_UPDATE_POLLING_INTERVAL      1 /* seconds */
 #define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
-#define TELEBOT_UPDATE_COUNT_PER_REQUEST     10
 #define TELEBOT_USER_PROFILE_PHOTOS_LIMIT    100
 
 #define TELEBOT_METHOD_GET_ME                   "getMe"
