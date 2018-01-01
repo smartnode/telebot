@@ -191,13 +191,13 @@ telebot_error_e telebot_core_get_updates(telebot_core_handler_t *core_h, int off
             CURLFORM_COPYCONTENTS, timeout_str, CURLFORM_END);
     if (allowed_updates)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "allowed_updates",
-            CURLFORM_COPYCONTENTS, allowed_updates, CURLFORM_END);
-    
+                CURLFORM_COPYCONTENTS, allowed_updates, CURLFORM_END);
+
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_UPDATES, post);
 }
 
-telebot_error_e telebot_core_set_web_hook(telebot_core_handler_t *core_h,
-        char *url, char *certificate_file)
+telebot_error_e telebot_core_set_webhook(telebot_core_handler_t *core_h,
+        char *url, char *certificate_file, int max_connections, char *allowed_updates)
 {
     if (core_h == NULL) {
         ERR("Handler is NULL");
@@ -214,14 +214,49 @@ telebot_error_e telebot_core_set_web_hook(telebot_core_handler_t *core_h,
 
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "url",
             CURLFORM_COPYCONTENTS, url, CURLFORM_END);
-
     if (certificate_file != NULL)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "certificate",
                 CURLFORM_FILE, certificate_file, CURLFORM_END);
+    char max_conn_str[16];
+    snprintf(max_conn_str, sizeof(max_conn_str), "%d", max_connections);
+    curl_formadd(&post, &last, CURLFORM_COPYNAME, "max_connections",
+            CURLFORM_COPYCONTENTS, max_conn_str, CURLFORM_END);
+    if (allowed_updates)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "allowed_updates",
+                CURLFORM_COPYCONTENTS, allowed_updates, CURLFORM_END);
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_WEBHOOK, post);
 }
 
+telebot_error_e telebot_core_delete_webhook(telebot_core_handler_t *core_h)
+{
+    if (core_h == NULL) {
+        ERR("Handler is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (core_h->token == NULL) {
+        ERR("Token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_WEBHOOK, NULL);
+}
+
+telebot_error_e telebot_core_get_webhook_info(telebot_core_handler_t *core_h)
+{
+    if (core_h == NULL) {
+        ERR("Handler is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (core_h->token == NULL) {
+        ERR("Token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_WEBHOOK_INFO, NULL);
+}
 
 telebot_error_e telebot_core_get_me(telebot_core_handler_t *core_h)
 {

@@ -528,6 +528,62 @@ typedef struct telebot_file {
     char *file_path;
 } telebot_file_t;
 
+typedef struct telebot_callback_query {
+    /** Unique identifier for this query */
+    char *id;
+
+    /** Sender */
+    struct telebot_user *from;
+
+    /**
+     * Optional. Message with the callback button that originated the query.
+     * Note that message content and message date will not be available
+     * if the message is too old.
+     */
+    struct telebot_message *message;
+
+    /**
+     * Optional. Identifier of the message sent via the bot in inline mode,
+     * that originated the query.
+     */
+    char *inline_message_id;
+
+    /**
+     * Global identifier, uniquely corresponding to the chat to which the
+     * message with the callback button was sent. Useful for high scores in
+     * games.
+     */
+    char *chat_instance;
+
+    /**
+     * Optional. Data associated with the callback button. Be aware that a bad
+     * client can send arbitrary data in this field.
+     */
+    char *data;
+
+    /**
+     * Optional. Short name of a Game to be returned, serves as the unique
+     * identifier for the game.
+     */
+    char *game_short_name;
+} telebot_callback_query_t;
+
+/**
+ * @brief This object represents a chat photo.
+ */
+typedef struct telebot_chat_photo {
+    /**
+     * Unique file identifier of small (160x160) chat photo.
+     * This file_id can be used only for photo download.
+     */
+    char *small_file_id;
+
+    /**
+     * Unique file identifier of small (640x640) chat photo.
+     * This file_id can be used only for photo download.
+     */
+    char *big_file_id;
+} telebot_chat_photo_t;
 
 /**
  * @brief This object describes the position on faces where a mask should be
@@ -588,34 +644,6 @@ typedef struct telebot_sticker {
     int file_size;
 } telebot_sticker_t;
 
-typedef struct telebot_callback_query {
-    /** Unique identifier for this query */
-    char *id;
-    struct telebot_user *from;
-    struct telebot_message *message;
-    char *inline_message_id;
-    char *chat_instance;
-    char *data;
-    char *game_short_name;
-} telebot_callback_query_t;
-
-/**
- * @brief This object represents a chat photo.
- */
-typedef struct telebot_chat_photo {
-    /**
-     * Unique file identifier of small (160x160) chat photo.
-     * This file_id can be used only for photo download.
-     */
-    char *small_file_id;
-
-    /**
-     * Unique file identifier of small (640x640) chat photo.
-     * This file_id can be used only for photo download.
-     */
-    char *big_file_id;
-} telebot_chat_photo_t;
-
 /**
  * @brief This object represents an incoming update.
  */
@@ -667,12 +695,45 @@ typedef struct telebot_update {
 } telebot_update_t;
 
 /**
- * @brief This function type defines callback for receiving updates.
+ * @brief Thi object represetns information about the current status of a webhook.
  */
-typedef void (*telebot_update_cb_f)(const telebot_update_t *update);
+typedef struct telebot_webhook_info {
+    /** Webhook URL, may be empty if webhook is not set up */
+    char *url;
+
+    /** True, if a custom certificate was provided for webhook certificate checks */
+    bool has_custom_certificate;
+
+    /** Number of updates awaiting delivery */
+    int pending_update_count;
+
+    /**
+     * Optional. Unix time for the most recent error that happened when
+     * trying to deliver an update via webhook
+     */
+    long last_error_date;
+
+    /**
+     * Optional. Error message in human-readable format for the most recent
+     * error that happened when trying to deliver an update via webhook
+     */
+    char *last_error_message;
+
+    /**
+     * Optional. Maximum allowed number of simultaneous HTTPS connections
+     * to the webhook for update delivery
+     */
+    int max_connections;
+
+    /**
+     * Optional. A list of update types the bot is subscribed to.
+     * Defaults to all update types.
+     */
+    char *allowed_updates;
+} telebot_webhook_info_t;
 
 /**
- * @brief This opaque object to represetn a telebot handler.
+ * @brief This is opaque object to represent a telebot handler.
  */
 typedef struct telebot_handler_s *telebot_handler_t;
 

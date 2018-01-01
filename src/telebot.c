@@ -36,11 +36,11 @@ typedef struct telebot_handler_s {
     int offset;
 } telebot_hdata_t;
 
-static const char *telebot_update_type_str[UPDATE_TYPE_MAX] = { 
-        "message", "edited_message", "channel_post",
-        "edited_channel_post", "inline_query",
-        "chonse_inline_result", "callback_query",
-        "shipping_query", "pre_checkout_query"
+static const char *telebot_update_type_str[UPDATE_TYPE_MAX] = {
+    "message", "edited_message", "channel_post",
+    "edited_channel_post", "inline_query",
+    "chonse_inline_result", "callback_query",
+    "shipping_query", "pre_checkout_query"
 };
 
 telebot_error_e telebot_create(telebot_handler_t *handle, char *token)
@@ -61,7 +61,7 @@ telebot_error_e telebot_create(telebot_handler_t *handle, char *token)
     }
 
     _handle->offset = 0;
-    
+
     *handle = _handle;
     return TELEBOT_ERROR_NONE;
 }
@@ -100,11 +100,11 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
         snprintf(allowed_updates_str, 1024, "%s", "[");
         for (i=0;i<allowed_updates_count;i++) {
             if (i < (allowed_updates_count-1)) //intermediate element
-                snprintf(allowed_updates_str, 1024, "%s%s,", allowed_updates_str, 
-                    telebot_update_type_str[allowed_updates[i]]);
+                snprintf(allowed_updates_str, 1024, "%s%s,", allowed_updates_str,
+                        telebot_update_type_str[allowed_updates[i]]);
             else // last element
-                snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str, 
-                    telebot_update_type_str[allowed_updates[i]]);
+                snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str,
+                        telebot_update_type_str[allowed_updates[i]]);
         }
         snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str,"]");
     }
@@ -113,8 +113,8 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
     int _timeout = timeout > 0 ? timeout : 0;
     int _limit = TELEBOT_UPDATE_COUNT_MAX_LIMIT;
     if ((limit > 0) && (limit < TELEBOT_UPDATE_COUNT_MAX_LIMIT))
-        _limit = limit; 
-    
+        _limit = limit;
+
     int ret = telebot_core_get_updates(_handle->core_h, _offset,
             _limit, _timeout, allowed_updates_str);
     if (ret != TELEBOT_ERROR_NONE)
@@ -346,7 +346,7 @@ telebot_error_e telebot_send_video(telebot_handler_t handle, int chat_id,
     telebot_error_e ret = telebot_core_send_video(_handle->core_h, chat_id, video,
             is_file, duration, caption, disable_notification, reply_to_message_id,
             reply_markup);
-   
+
     if (_handle->core_h->resp_data) {
         free(_handle->core_h->resp_data);
         _handle->core_h->resp_data = NULL;
@@ -471,7 +471,7 @@ telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle,
     free(_handle->core_h->resp_data);
     _handle->core_h->resp_data = NULL;
     _handle->core_h->resp_size = 0;
-    
+
     if (obj == NULL)
         return TELEBOT_ERROR_OPERATION_FAILED;
 

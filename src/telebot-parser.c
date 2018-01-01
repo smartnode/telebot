@@ -992,7 +992,7 @@ telebot_error_e telebot_parser_get_user_profile_photos(struct json_object *obj,
     if (ret != TELEBOT_ERROR_NONE) {
         for (i=0;i<4;i++) {
             free(photos->photos[i]);
-            photos->photos[i] = NULL; 
+            photos->photos[i] = NULL;
         }
         photos->current_count = 0;
         return TELEBOT_ERROR_OPERATION_FAILED;

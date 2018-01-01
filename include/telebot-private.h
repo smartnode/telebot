@@ -24,8 +24,11 @@
 #define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
 #define TELEBOT_USER_PROFILE_PHOTOS_LIMIT    100
 
-#define TELEBOT_METHOD_GET_ME                   "getMe"
 #define TELEBOT_METHOD_GET_UPDATES              "getUpdates"
+#define TELEBOT_METHOD_SET_WEBHOOK              "setWebhook"
+#define TELEBOT_METHOD_DELETE_WEBHOOK           "deleteWebhook"
+#define TELEBOT_METHOD_GET_WEBHOOK_INFO         "getWebhookInfo"
+#define TELEBOT_METHOD_GET_ME                   "getMe"
 #define TELEBOT_METHOD_SEND_MESSAGE             "sendMessage"
 #define TELEBOT_METHOD_FORWARD_MESSAGE          "forwardMessage"
 #define TELEBOT_METHOD_SEND_PHOTO               "sendPhoto"
@@ -44,7 +47,6 @@
 #define TELEBOT_METHOD_ANSWER_CALLBACK_QUERY    "answerCallbackQuery"
 #define TELEBOT_METHOD_DELETE_MESSAGE           "deleteMessage"
 #define TELEBOT_METHOD_SEND_STICKER             "sendSticker"
-#define TELEBOT_METHOD_SET_WEBHOOK              "setWebhook"
 
 #ifdef DEBUG
     #define ERR(fmt, args...) printf("[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)

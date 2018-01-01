@@ -107,9 +107,36 @@ telebot_error_e telebot_core_get_updates(telebot_core_handler_t *core_h,
  * @param url HTTPS url to send updates to. Use an empty string to remove webhook
  * integration
  * @param certificate A path to to a public key certificate to upload server.
+ * @param max_connections Optional  Maximum allowed number of simultaneous
+ * HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40.
+ * Use lower values to limit the load on your bot's server, and higher values
+ * to increase your bot's throughput.
+ * @param allowed_updates List the types of updates you want your bot to
+ * receive. For example, specify ["message", "edited_channel_post",
+ * "callback_query"] to only receive updates of these types.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * Response is placed in core_h->resp_data. All core API responses are JSON objects.
+ * It MUST be freed after use.
  */
-telebot_error_e telebot_core_set_web_hook(telebot_core_handler_t *core_h, char *url,
-        char *certificate);
+telebot_error_e telebot_core_set_webhook(telebot_core_handler_t *core_h, char *url,
+        char *certificate, int max_connections, char *allowed_updates);
+
+/**
+ * @brief This function is used to remove webhook integration if you decide to
+ * switch back to getUpdates.
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * Response is placed in core_h->resp_data. It MUST be freed after use.
+ */
+telebot_error_e telebot_core_delete_webhook(telebot_core_handler_t *core_h);
+
+/**
+ * @brief This function is used to get current webhook status.
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * Response is placed in core_h->resp_data. It MUST be freed after use.
+ */
+telebot_error_e telebot_core_get_webhook_info(telebot_core_handler_t *core_h);
 
 /**
  * @brief This function gets basic information about the bot.
@@ -129,7 +156,7 @@ telebot_error_e telebot_core_get_me(telebot_core_handler_t *core_h);
  * @param parse_mode Send Markdown, if you want Telegram apps to show bold,
  * italic and inline URLs in your bot's message.
  * @param disable_web_page_preview Disables link previews for links in this message.
- * @param disable_notification Sends the message silently. Users will receive a 
+ * @param disable_notification Sends the message silently. Users will receive a
  * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom
@@ -148,7 +175,7 @@ telebot_error_e telebot_core_send_message(telebot_core_handler_t *core_h, int ch
  * target channel (in the format \@channelusername).
  * @param from_chat_id Unique identifier for the chat where the original
  * message was sent (or channel username in the format \@channelusername).
- * @param disable_notification Sends the message silently. Users will receive a 
+ * @param disable_notification Sends the message silently. Users will receive a
  * notification with no sound.
  * @param message_id Unique message identifier.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
@@ -167,7 +194,7 @@ telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
  * that is already on the Telegram servers, or a path to photo file.
  * @param is_file False if photo is file_id, true, if photo is a file path.
  * @param caption Photo caption. (may also be used when resending photos).
- * @param disable_notification Sends the message silently. Users will receive a 
+ * @param disable_notification Sends the message silently. Users will receive a
  * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom
@@ -198,7 +225,7 @@ telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h, int chat
  * @param duration Duration of sent audio in seconds.
  * @param performer The performer of the audio.
  * @param title The track name of the audio.
- * @param disable_notification Sends the message silently. Users will receive a 
+ * @param disable_notification Sends the message silently. Users will receive a
  * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
@@ -219,7 +246,7 @@ telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h, int chat
  * @param document Document file to send. It is either a file_id as String to
  * resend a file that is already on the Telegram servers, or a path to file.
  * @param is_file False if document is file_id, true, if document is a file path.
- * @param disable_notification Sends the message silently. Users will receive a 
+ * @param disable_notification Sends the message silently. Users will receive a
  * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
@@ -228,9 +255,9 @@ telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h, int chat
  * Response is placed in core_h->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h, int chat_id,
-        char *document, bool is_file, bool disable_notification, int reply_to_message_id,
-        char *reply_markup);
+telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h,
+        int chat_id, char *document, bool is_file, bool disable_notification,
+        int reply_to_message_id, char *reply_markup);
 
 /**
  * @brief This function is used to send video files, Telegram clients support
@@ -243,7 +270,7 @@ telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h, int c
  * @param is_file False if video is file_id, true, if video is a file path.
  * @param duration Duration of sent video in seconds.
  * @param caption Video caption (may also be used when resending videos).
- * @param disable_notification Sends the message silently. Users will receive a 
+ * @param disable_notification Sends the message silently. Users will receive a
  * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
@@ -252,9 +279,10 @@ telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h, int c
  * Response is placed in core_h->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h, int chat_id,
-        char *video, bool is_file, int duration, char *caption, bool disable_notification,
-        int reply_to_message_id, char *reply_markup);
+telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
+        int chat_id, char *video, bool is_file, int duration, char *caption,
+        bool disable_notification, int reply_to_message_id, char *reply_markup);
+
 /**
  * @brief This function is used to send audio files, if you want Telegram
  * clients to display the file as a playable voice message. For this to work,
@@ -268,7 +296,7 @@ telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h, int chat
  * a audio that is already on the Telegram servers, or a path to audio file.
  * @param is_file False if voice is file_id, true, if voice is a file path.
  * @param duration Duration of sent voice/audio in seconds.
- * @param disable_notification Sends the message silently. Users will receive a 
+ * @param disable_notification Sends the message silently. Users will receive a
  * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
@@ -278,13 +306,13 @@ telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h, int chat
  * It MUST be freed after use.
  */
 
-telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h, int chat_id,
-        char *voice, bool is_file, int duration, bool disable_notification,
-        int reply_to_message_id, char *reply_markup);
+telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h,
+        int chat_id, char *voice, bool is_file, int duration,
+        bool disable_notification, int reply_to_message_id, char *reply_markup);
 
 
 /**
- * @brief This function is used to send video messages. 
+ * @brief This function is used to send video messages.
  * As of v.4.0, Telegram clients support rounded square mp4 videos of up to 1 minute long.
  * @param core_h The telebot core handler created with #telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
@@ -293,7 +321,7 @@ telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h, int chat
  * a audio that is already on the Telegram servers, or a path to audio file.
  * @param is_file False if voice is file_id, true, if voice is a file path.
  * @param duration Duration of sent voice/audio in seconds.
- * @param disable_notification Sends the message silently. Users will receive a 
+ * @param disable_notification Sends the message silently. Users will receive a
  * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
@@ -381,8 +409,8 @@ telebot_error_e telebot_core_get_file(telebot_core_handler_t *core_h, char *file
  * @param out_file Full path to download and save file.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h, char *file_path,
-    char *out_file);
+telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h,
+        char *file_path, char *out_file);
 
 
 /**
@@ -393,8 +421,8 @@ telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h, char 
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  * Response is placed in core_h->resp_data. It MUST be freed after use.
  */
-telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h, int chat_id,
-        int message_id);
+telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
+        int chat_id, int message_id);
 
 /**
  * @brief This function is used to to send .webp stickers.
@@ -411,8 +439,9 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h, int 
  * Response is placed in core_h->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *core_h, int chat_id,
-        char *sticker, bool is_file, int reply_to_message_id, char *reply_markup);
+telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *core_h,
+        int chat_id, char *sticker, bool is_file, int reply_to_message_id,
+        char *reply_markup);
 
 
 telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_h,
