@@ -394,7 +394,8 @@ telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h, int chat
 
 telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h,
         int chat_id, char *audio, bool is_file, int duration, char *performer,
-        char *title, bool disable_notification, int reply_to_message_id, char *reply_markup)
+        char *title, bool disable_notification, int reply_to_message_id,
+        char *reply_markup)
 {
     if (core_h == NULL) {
         ERR("Handler is NULL");

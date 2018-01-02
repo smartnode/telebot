@@ -29,6 +29,14 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj,
 telebot_error_e telebot_parser_get_message(struct json_object *obj,
         telebot_message_t *msg);
 
+/** Parse message entity object */
+telebot_error_e telebot_parser_get_message_entity(struct json_object *obj,
+        telebot_message_entity_t *entity);
+
+/** Parse message entity array object */
+telebot_error_e telebot_parser_get_message_entities(struct json_object *obj,
+        telebot_message_entity_t **entities, int *count);
+
 /** Parse user object */
 telebot_error_e telebot_parser_get_user(struct json_object *obj,
         telebot_user_t *user);
@@ -69,17 +77,29 @@ telebot_error_e telebot_parser_get_contact(struct json_object *obj,
 telebot_error_e telebot_parser_get_location(struct json_object *obj,
         telebot_location_t *location);
 
+/** Prase location object */
+telebot_error_e telebot_parser_get_venue(struct json_object *obj,
+        telebot_venue_t *venue);
+
 /** Prase profile photos object */
 telebot_error_e telebot_parser_get_user_profile_photos(struct json_object *obj,
         telebot_user_profile_photos_t *photos);
 
-/** Prase location object */
+/** Prase file path object */
 telebot_error_e telebot_parser_get_file_path(struct json_object *obj,
         char **path);
+
+/** Prase chat photo object */
+telebot_error_e  telebot_parser_get_chat_photo(struct json_object *obj,
+        telebot_chat_photo_t *photo);
 
 /** Prase sticker object */
 telebot_error_e telebot_parser_get_sticker(struct json_object *obj,
         telebot_sticker_t *sticker);
+
+/** Prase sticker mask position object */
+telebot_error_e telebot_parser_get_mask_position(struct json_object *obj,
+        telebot_mask_position_t *mask_position);
 
 /** Parse callback_query object */
 telebot_error_e telebot_parser_get_callback_query(struct json_object *obj,

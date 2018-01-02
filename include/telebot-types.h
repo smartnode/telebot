@@ -309,7 +309,7 @@ typedef struct telebot_message_entity {
     char *url;
 
     /** Optional. For "text_mention" only, the mentioned user */
-    telebot_user_t user;
+    telebot_user_t *user;
 } telebot_message_entity_t;
 
 
