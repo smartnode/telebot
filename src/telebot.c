@@ -173,7 +173,6 @@ telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t *me)
     if (me == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    memset(me, 0, sizeof(telebot_user_t));
     telebot_error_e ret = telebot_core_get_me(_handle->core_h);
     if (ret != TELEBOT_ERROR_NONE)
         return ret;
@@ -240,7 +239,7 @@ telebot_error_e telebot_send_message(telebot_handler_t handle, int chat_id,
 }
 
 telebot_error_e telebot_forward_message(telebot_handler_t handle, int chat_id,
-        char *from_chat_id, bool disable_notification, int message_id)
+        int from_chat_id, bool disable_notification, int message_id)
 {
     telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
@@ -415,6 +414,30 @@ telebot_error_e telebot_send_location(telebot_handler_t handle, int chat_id,
 
     telebot_error_e ret = telebot_core_send_location(_handle->core_h, chat_id,
             latitude, longitude, disable_notification, reply_to_message_id, reply_markup);
+
+    if (_handle->core_h->resp_data) {
+        free(_handle->core_h->resp_data);
+        _handle->core_h->resp_data = NULL;
+        _handle->core_h->resp_size = 0;
+    }
+
+    return ret;
+}
+
+telebot_error_e telebot_send_contact(telebot_handler_t handle, int chat_id,
+        char *phone_number, char *first_name, char *last_name,
+        bool disable_notification, int reply_to_message_id, char *reply_markup)
+{
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if ((chat_id <= 0) || (phone_number == NULL) || (first_name == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_contact(_handle->core_h, chat_id,
+            phone_number, first_name, last_name, disable_notification,
+            reply_to_message_id, reply_markup);
 
     if (_handle->core_h->resp_data) {
         free(_handle->core_h->resp_data);

@@ -122,7 +122,7 @@ telebot_error_e telebot_send_message(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_forward_message(telebot_handler_t handle, int chat_id,
-        char *from_chat_id, bool disable_notification, int message_id);
+        int from_chat_id, bool disable_notification, int message_id);
 
 /**
  * @brief This functionis used to send photos.
@@ -312,7 +312,7 @@ telebot_error_e telebot_send_location(telebot_handler_t handle, int chat_id,
 
 
 /**
- * @brief Use this method to edit live location messages sent by the bot or via
+ * @brief This function is used to edit live location messages sent by the bot or via
  * the bot (for inline bots). A location can be edited until its live_period
  * expires or editing is explicitly disabled by a call to
  * #telebot_stop_message_live_location().
@@ -336,7 +336,7 @@ telebot_error_e telebot_edit_message_live_location(telebot_handler_t handle,
         float longitude, bool disable_notification, char *reply_markup);
 
 /**
- * @brief Use this method to stop updating a live location message sent by the
+ * @brief This function is used to stop updating a live location message sent by the
  * bot or via the bot (for inline bots) before live_period expires.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
@@ -353,7 +353,7 @@ telebot_error_e telebot_stop_message_live_location(telebot_handler_t handle,
         int chat_id, int message_id, char *inline_message_id, char *reply_markup);
 
 /**
- * @brief Use this method to send information about a venue.
+ * @brief This function is used to send information about a venue.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] chat_id Unique identifier for the target chat or username of the
@@ -376,7 +376,7 @@ telebot_error_e telebot_send_venue(telebot_handler_t handle, int chat_id,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
 
 /**
- * @brief Use this method to send phone contacts.
+ * @brief This function is used to send phone contacts.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] chat_id Unique identifier for the target chat or username of the
@@ -456,9 +456,10 @@ telebot_error_e telebot_delete_message(telebot_handler_t handle, int chat_id,
 
 
 /**
- * @brief Use this method to send answers to callback queries sent from
+ * @brief This function is used to send answers to callback queries sent from
  * inline keyboards. The answer will be displayed to the user as a notification
  * at the top of the chat screen or as an alert.
+ * 
  * @param[in] callback_query_id Unique identifier for the query to be answered.
  * @param[in] text Optional (i.e. can be NULL). Text of the notification. If not
  * specified, nothing will be shown to the user, 0-200 characters.
@@ -479,6 +480,7 @@ telebot_error_e telebot_answer_callback_query(telebot_handler_t handle,
 
 /**
  * @brief This function is used to to send .webp stickers.
+ * 
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] chat_id Unique identifier for the target chat or username of the
  * target channel (in the format \@channelusername)

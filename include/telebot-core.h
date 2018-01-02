@@ -183,7 +183,7 @@ telebot_error_e telebot_core_send_message(telebot_core_handler_t *core_h, int ch
  * It MUST be freed after use.
  */
 telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
-        int chat_id, char *from_chat_id, bool disable_notification, int message_id);
+        int chat_id, int from_chat_id, bool disable_notification, int message_id);
 
 /**
  * @brief This functionis used to send photos.
@@ -305,7 +305,6 @@ telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
  * Response is placed in core_h->resp_data that contains the sent message.
  * It MUST be freed after use.
  */
-
 telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h,
         int chat_id, char *voice, bool is_file, int duration,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
@@ -341,6 +340,8 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
  * target channel (in the format \@channelusername).
  * @param latitude Latitude of location.
  * @param longitude Longitude of location.
+ * @param disable_notification Sends the message silently. Users will receive a
+ * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
@@ -350,6 +351,95 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
  */
 telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
         int chat_id, float latitude, float longitude, bool disable_notification,
+        int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to edit live location messages sent by the bot or via
+ * the bot (for inline bots). A location can be edited until its live_period
+ * expires or editing is explicitly disabled by a call to
+ * #telebot_core_stop_message_live_location().
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).
+ * @param message_id Required if inline_message_id is not specified.
+ * Identifier of the sent message.
+ * @param inline_message_id Required if chat_id and message_id are not
+ * specified. Identifier of the inline message.
+ * @param latitude Latitude of location.
+ * @param longitude Longitude of location.
+ * @param disable_notification Sends the message silently. Users will receive
+ * a notification with no sound.
+ * @param reply_markup A JSON-serialized object for a new inline keyboard.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * Response is placed in core_h->resp_data that contains the sent message.
+ * It MUST be freed after use.
+ */
+telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *core_h,
+        int chat_id, int message_id, char *inline_message_id, float latitude,
+        float longitude, bool disable_notification, char *reply_markup);
+
+/**
+ * @brief This function is used to stop updating a live location message sent by the
+ * bot or via the bot (for inline bots) before live_period expires.
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).
+ * @param message_id Required if inline_message_id is not specified.
+ * Identifier of the sent message.
+ * @param inline_message_id Required if chat_id and message_id are not
+ * specified. Identifier of the inline message.
+ * @param reply_markup A JSON-serialized object for a new inline keyboard.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * Response is placed in core_h->resp_data that contains the sent message.
+ * It MUST be freed after use.
+ */
+telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *core_h,
+        int chat_id, int message_id, char *inline_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to send information about a venue.
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).
+ * @param latitude Latitude of venue.
+ * @param longitude Longitude of venue.
+ * @param title Name of the venue
+ * @param address Address of the venue.
+ * @param foursquare_id Foursquare identifier of the venue.
+ * @param disable_notification Sends the message silently. Users will receive
+ * a notification with no sound.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. A JSON-serialized
+ * object for an inline keyboard, custom reply keyboard, instructions to remove
+ * reply keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * Response is placed in core_h->resp_data that contains the sent message.
+ * It MUST be freed after use.
+ */
+telebot_error_e telebot_core_send_venue(telebot_core_handler_t *core_h, int chat_id,
+        float latitude, float longitude, char *title, char *foursquare_id,
+        bool disable_notification, int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to send phone contacts.
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).
+ * @param phone_number Contact's phone numbers.
+ * @param first_name Contact's first name.
+ * @param last_name Contact's last name.
+ * @param disable_notification Sends the message silently. Users will receive
+ * a notification with no sound.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. A JSON-serialized
+ * object for an inline keyboard, custom reply keyboard, instructions to remove
+ * reply keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * Response is placed in core_h->resp_data that contains the sent message.
+ * It MUST be freed after use.
+ */
+telebot_error_e telebot_core_send_contact(telebot_core_handler_t *core_h, int chat_id,
+        char *phone_number, char *first_name, char *last_name, bool disable_notification,
         int reply_to_message_id, char *reply_markup);
 
 /**
@@ -370,6 +460,9 @@ telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
  * record_video or upload_video for videos, record_audio or upload_audio for
  * audio files, upload_document for general files, find_location for location
  * data.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * Response is placed in core_h->resp_data that contains the sent message.
+ * It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
         int chat_id, char *action);
@@ -411,7 +504,6 @@ telebot_error_e telebot_core_get_file(telebot_core_handler_t *core_h, char *file
  */
 telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h,
         char *file_path, char *out_file);
-
 
 /**
  * @brief This function is used to delete messages.
