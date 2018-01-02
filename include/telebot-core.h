@@ -534,7 +534,7 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
  * It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *core_h,
-        int chat_id, char *sticker, bool is_file, bool disable_notification
+        int chat_id, char *sticker, bool is_file, bool disable_notification,
         int reply_to_message_id, char *reply_markup);
 
 

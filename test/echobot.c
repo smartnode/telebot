@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[])
 {
-    printf ("Telebot test code\n");
+    printf("Welcome to Echobot\n");
 
     FILE *fp = fopen(".token", "r");
     if (fp == NULL) {
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
         fclose(fp);
         return -1;
     }
-    printf ("Token: %s\n", token);
+    printf("Token: %s\n", token);
     fclose(fp);
 
     telebot_handler_t handle;
@@ -48,32 +48,36 @@ int main(int argc, char *argv[])
     char str[4096];
     telebot_error_e ret;
     telebot_message_t message;
-    
+
     while (1) {
+        /* busy wait */
+        sleep(1);
+
         telebot_update_t *updates;
         ret = telebot_get_updates(handle, 1, 20, 0, NULL, 0, &updates, &count);
         if (ret != TELEBOT_ERROR_NONE)
             continue;
 
         printf("Number of updates: %d\n", count);
-        for (index = 0;index < count; index++) {    
+        for (index = 0;index < count; index++) {
             message = updates[index].message;
-            printf("%s says :\n\r %s\n\r", message.from->first_name, message.text);
+            printf("=======================================================\n");
+            printf("%s: %s \n", message.from->first_name, message.text);
             if (strstr(message.text, "/start")) {
                 snprintf(str, SIZE_OF_ARRAY(str), "Hello %s",
-                    message.from->first_name);
+                        message.from->first_name);
             }
             else {
                 snprintf(str, SIZE_OF_ARRAY(str), "RE:%s", message.text);
             }
-            ret = telebot_send_message(handle, message.chat->id, str, "", false, false, 0, "");
+            ret = telebot_send_message(handle, message.chat->id, str, "",
+                    false, false, 0, "");
             if (ret != TELEBOT_ERROR_NONE) {
                 printf("Failed to send message: %d \n", ret);
             }
         }
         //telebot_free_updates(updates, count);
         free(updates);
-        sleep(10);
     }
 
     telebot_destroy(handle);

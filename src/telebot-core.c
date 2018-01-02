@@ -684,7 +684,7 @@ telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NUL)) {
+    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
@@ -700,7 +700,7 @@ telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *
     }
     if (message_id > 0) {
         char message_id_str[16];
-        snprintf(message_id_str, sizeof(message_id_str), "%d", message_id_str);
+        snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "message_id",
                 CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
     }
@@ -718,13 +718,6 @@ telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "disable_notification",
             CURLFORM_COPYCONTENTS, (disable_notification) ? "true" : "false",
             CURLFORM_END);
-    if (reply_to_message_id > 0) {
-        char reply_to_message_id_str[16];
-        snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
-                reply_to_message_id);
-        curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_to_message_id",
-                CURLFORM_COPYCONTENTS, reply_to_message_id_str, CURLFORM_END);
-    }
     if (reply_markup)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
@@ -740,7 +733,7 @@ telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NUL)) {
+    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
@@ -756,7 +749,7 @@ telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *
     }
     if (message_id > 0) {
         char message_id_str[16];
-        snprintf(message_id_str, sizeof(message_id_str), "%d", message_id_str);
+        snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "message_id",
                 CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
     }
