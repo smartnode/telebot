@@ -417,7 +417,7 @@ telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *
  * It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_venue(telebot_core_handler_t *core_h, int chat_id,
-        float latitude, float longitude, char *title, char *foursquare_id,
+        float latitude, float longitude, char *title, char *address, char *foursquare_id,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
 
 /**
@@ -524,6 +524,8 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
  * @param sticker Sticker file to send. It is either a file_id as String to
  * resend a sticker that is already on the Telegram servers, or a path to file.
  * @param is_file False if sticker is file_id, true, if sticker is a file path.
+ * @param disable_notification Sends the message silently. Users will receive a
+ * notification with no sound.
  * @param reply_to_message_id If the message is a reply, ID of the original message.
  * @param reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
@@ -532,8 +534,8 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
  * It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *core_h,
-        int chat_id, char *sticker, bool is_file, int reply_to_message_id,
-        char *reply_markup);
+        int chat_id, char *sticker, bool is_file, bool disable_notification
+        int reply_to_message_id, char *reply_markup);
 
 
 telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_h,
