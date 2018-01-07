@@ -33,16 +33,18 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    telebot_user_t me;
+    telebot_user_t *me;
     if (telebot_get_me(handle, &me) != TELEBOT_ERROR_NONE) {
         printf("Failed to get bot information\n");
         telebot_destroy(handle);
         return -1;
     }
 
-    printf("ID: %d\n", me.id);
-    printf("First Name: %s\n", me.first_name);
-    printf("User Name: %s\n", me.username);
+    printf("ID: %d\n", me->id);
+    printf("First Name: %s\n", me->first_name);
+    printf("User Name: %s\n", me->username);
+
+    telebot_free_me(me);
 
     int index, count;
     char str[4096];
@@ -76,8 +78,7 @@ int main(int argc, char *argv[])
                 printf("Failed to send message: %d \n", ret);
             }
         }
-        //telebot_free_updates(updates, count);
-        free(updates);
+        telebot_free_updates(updates, count);
     }
 
     telebot_destroy(handle);

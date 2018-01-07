@@ -377,7 +377,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *entities;
     if (json_object_object_get_ex(obj, "entities", &entities)) {
-        ret = telebot_parser_get_message_entities(entities, msg->entities,
+        ret = telebot_parser_get_message_entities(entities, &(msg->entities),
                 &(msg->count_entities));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <entities> from message object");
@@ -387,7 +387,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
     struct json_object *caption_entities;
     if (json_object_object_get_ex(obj, "caption_entities", &caption_entities)) {
         ret = telebot_parser_get_message_entities(caption_entities,
-                msg->caption_entities, &(msg->count_caption_entities));
+                &(msg->caption_entities), &(msg->count_caption_entities));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <caption_entities> from message object");
         json_object_put(caption_entities);
@@ -421,7 +421,8 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *photo;
     if (json_object_object_get_ex(obj, "photo", &photo)) {
-        ret = telebot_parser_get_photos(photo, msg->photos, &(msg->count_photos));
+        ret = telebot_parser_get_photos(photo, &(msg->photos),
+                &(msg->count_photos));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <photo> from message object");
         json_object_put(photo);
@@ -519,7 +520,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *ncm;
     if (json_object_object_get_ex(obj, "new_chat_members", &ncm)) {
-        ret = telebot_parser_get_users(ncm, msg->new_chat_members,
+        ret = telebot_parser_get_users(ncm, &(msg->new_chat_members),
                 &(msg->count_new_chat_members));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <new_chat_members> from message object");
@@ -528,7 +529,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *lcm;
     if (json_object_object_get_ex(obj, "left_chat_members", &lcm)) {
-        ret = telebot_parser_get_users(lcm, msg->left_chat_members,
+        ret = telebot_parser_get_users(lcm, &(msg->left_chat_members),
                 &(msg->count_left_chat_members));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <left_chat_members> from message object");
@@ -543,7 +544,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *new_chat_photo;
     if (json_object_object_get_ex(obj, "new_chat_photo", &new_chat_photo)) {
-        ret = telebot_parser_get_photos(new_chat_photo, msg->new_chat_photos,
+        ret = telebot_parser_get_photos(new_chat_photo, &(msg->new_chat_photos),
                 &(msg->count_new_chat_photos));
         if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <new_chat_photo> from message object");

@@ -169,14 +169,14 @@ typedef struct telebot_message {
      * Optional. For text messages, special entities like usernames, URLs, bot
      * commands, etc. that appear in the text.
      */
-    struct telebot_message_entity **entities;
+    struct telebot_message_entity *entities;
     int count_entities;
 
     /**
      * Optional. For messages with a caption, special entities like usernames,
      * URLs, bot commands, etc. that appear in the caption.
      */
-    struct telebot_message_entity **caption_entities;
+    struct telebot_message_entity *caption_entities;
     int count_caption_entities;
 
     /** Optional. Message is an audio file, information about the file */
@@ -189,7 +189,7 @@ typedef struct telebot_message {
     struct telebot_game *game; //TODO:define type
 
     /** Optional. Message is a photo, available sizes of the photo */
-    struct telebot_photo **photos;
+    struct telebot_photo *photos;
     int count_photos;
 
     /** Optional. Message is a sticker, information about the sticker */
@@ -220,21 +220,21 @@ typedef struct telebot_message {
      * Optional. New members that were added to the group or supergroup and
      * information about them (the bot itself may be one of these members)
      */
-    struct telebot_user **new_chat_members;
+    struct telebot_user *new_chat_members;
     int count_new_chat_members;
 
     /**
      * Optional. A member was removed from the group, information about them
      * (this member may be the bot itself)
      */
-    struct telebot_user **left_chat_members;
+    struct telebot_user *left_chat_members;
     int count_left_chat_members;
 
     /** Optional. A chat title was changed to this value */
     char *new_chat_title;
 
     /** Optional. A chat photo was change to this value */
-    struct telebot_photo **new_chat_photos;
+    struct telebot_photo *new_chat_photos;
     int count_new_chat_photos;
 
     /** Optional. Informs that the chat photo was deleted */
@@ -278,7 +278,7 @@ typedef struct telebot_message {
      * Optional. Message is a service message about a successful payment,
      * information about the payment.
      */
-    struct telebot_sucessful_payment *successful_payment; //TODO:define type
+    struct telebot_successful_payment *successful_payment; //TODO:define type
 
 } telebot_message_t;
 
