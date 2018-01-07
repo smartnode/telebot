@@ -319,12 +319,13 @@ telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "message_id",
             CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_FORWARD_MESSAGE, post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_FORWARD_MESSAGE, post);
 }
 
-telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h, int chat_id,
-        char *photo, bool is_file, char *caption, bool disable_notification,
-        int reply_to_message_id, char *reply_markup)
+telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h,
+        int chat_id, char *photo, bool is_file, char *caption,
+        bool disable_notification, int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (photo == NULL)) {
         ERR("Handler, token or photo is NULL");
@@ -626,7 +627,8 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO_NOTE, post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_SEND_VIDEO_NOTE, post);
 }
 
 telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
@@ -722,8 +724,8 @@ telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MSG_LIVE_LOCATION,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_EDIT_MESSAGE_LIVE_LOCATION, post);
 }
 
 telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *core_h,
@@ -761,8 +763,8 @@ telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_STOP_MSG_LIVE_LOCATION,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_STOP_MESSAGE_LIVE_LOCATION, post);
 }
 
 telebot_error_e telebot_core_send_venue(telebot_core_handler_t *core_h,
@@ -889,7 +891,7 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "action",
             CURLFORM_COPYCONTENTS, action, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CHATACTION, post);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CHAT_ACTION, post);
 }
 
 telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *core_h,
@@ -1102,8 +1104,8 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "can_add_web_page_previews",
                 CURLFORM_COPYCONTENTS, "true", CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_RESTRICT_CHAT_MEMBER,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, post);
 }
 
 telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
@@ -1154,8 +1156,8 @@ telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "can_promote_members",
                 CURLFORM_COPYCONTENTS, "true", CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_RESTRICT_CHAT_MEMBER,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, post);
 }
 
 telebot_error_e telebot_core_export_chat_invite_link(telebot_core_handler_t *core_h,
@@ -1178,8 +1180,8 @@ telebot_error_e telebot_core_export_chat_invite_link(telebot_core_handler_t *cor
     snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EXPORT_CHAT_INV_LINK,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_EXPORT_CHAT_INVITE_LINK, post);
 }
 
 telebot_error_e telebot_core_set_chat_photo(telebot_core_handler_t *core_h,
@@ -1204,8 +1206,8 @@ telebot_error_e telebot_core_set_chat_photo(telebot_core_handler_t *core_h,
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "photo",
             CURLFORM_FILE, photo, CURLFORM_END);
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_PHOTO,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_SET_CHAT_PHOTO, post);
 }
 
 
@@ -1229,8 +1231,8 @@ telebot_error_e telebot_core_delete_chat_photo(telebot_core_handler_t *core_h,
     snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_CHAT_PHOTO,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_DELETE_CHAT_PHOTO, post);
 }
 
 
@@ -1256,8 +1258,8 @@ telebot_error_e telebot_core_set_chat_title(telebot_core_handler_t *core_h,
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "title",
             CURLFORM_COPYCONTENTS, title, CURLFORM_END);
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_TITLE,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_SET_CHAT_TITLE, post);
 }
 
 
@@ -1284,8 +1286,8 @@ telebot_error_e telebot_core_set_chat_description(telebot_core_handler_t *core_h
     if (description)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "description",
                 CURLFORM_COPYCONTENTS, description, CURLFORM_END);
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_DESCRIPTION,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_SET_CHAT_DESCRIPTION, post);
 }
 
 telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
@@ -1316,8 +1318,8 @@ telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "disable_notification",
                 CURLFORM_COPYCONTENTS, "true", CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_PIN_CHAT_MESSAGE,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_PIN_CHAT_MESSAGE, post);
 }
 
 telebot_error_e telebot_core_unpin_chat_message(telebot_core_handler_t *core_h,
@@ -1341,8 +1343,8 @@ telebot_error_e telebot_core_unpin_chat_message(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNPIN_CHAT_MESSAGE,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_UNPIN_CHAT_MESSAGE, post);
 }
 
 
@@ -1440,7 +1442,8 @@ telebot_error_e telebot_core_get_chat_members_count(telebot_core_handler_t *core
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBERS_COUNT, post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_GET_CHAT_MEMBERS_COUNT, post);
 }
 
 telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
@@ -1464,7 +1467,8 @@ telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBER, post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_GET_CHAT_MEMBER, post);
 }
 
 telebot_error_e telebot_core_set_chat_sticker_set(telebot_core_handler_t *core_h,
@@ -1490,8 +1494,8 @@ telebot_error_e telebot_core_set_chat_sticker_set(telebot_core_handler_t *core_h
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "sticker_set_name",
             CURLFORM_COPYCONTENTS, sticker_set_name, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_STICKER_SET,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_SET_CHAT_STICKER_SET, post);
 }
 
 telebot_error_e telebot_core_delete_chat_sticker_set(telebot_core_handler_t *core_h,
@@ -1515,8 +1519,8 @@ telebot_error_e telebot_core_delete_chat_sticker_set(telebot_core_handler_t *cor
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DEL_CHAT_STICKER_SET,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_DEL_CHAT_STICKER_SET, post);
 }
 
 telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t * core_h,
@@ -1550,8 +1554,139 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t * core
                 CURLFORM_COPYCONTENTS, cache_time_str, CURLFORM_END);
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_CALLBACK_QUERY,
-            post);
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_ANSWER_CALLBACK_QUERY, post);
+}
+
+telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
+        int chat_id, int message_id, char *inline_message_id, char *text,
+        char *parse_mode, bool disable_web_page_preview, char *reply_markup)
+{
+    if ((core_h == NULL) || (core_h->token == NULL) || (text == NULL)) {
+        ERR("Handler, token, or text is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
+        ERR("Either valid chat_id & message_id or inline_message_id required");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    struct curl_httppost *post = NULL;
+    struct curl_httppost *last = NULL;
+
+    if (chat_id > 0) {
+        char chat_id_str[16];
+        snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
+                CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
+    }
+    if (message_id > 0) {
+        char message_id_str[16];
+        snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "message_id",
+                CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
+    }
+    if (inline_message_id)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "inline_message_id",
+                CURLFORM_COPYCONTENTS, inline_message_id, CURLFORM_END);
+    curl_formadd(&post, &last, CURLFORM_COPYNAME, "text",
+            CURLFORM_COPYCONTENTS, text, CURLFORM_END);
+    if (parse_mode)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "parse_mode",
+                CURLFORM_COPYCONTENTS, parse_mode, CURLFORM_END);
+    if (disable_web_page_preview)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "disable_web_page_preview",
+                CURLFORM_COPYCONTENTS, "true", CURLFORM_END);
+    if (reply_markup)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
+                CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
+
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_EDIT_MESSAGE_TEXT, post);
+}
+
+telebot_error_e telebot_core_edit_message_caption(telebot_core_handler_t *core_h,
+        int chat_id, int message_id, char *inline_message_id, char *caption,
+        char *reply_markup)
+{
+    if ((core_h == NULL) || (core_h->token == NULL)) {
+        ERR("Handler or token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
+        ERR("Either valid chat_id & message_id or inline_message_id required");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    struct curl_httppost *post = NULL;
+    struct curl_httppost *last = NULL;
+
+    if (chat_id > 0) {
+        char chat_id_str[16];
+        snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
+                CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
+    }
+    if (message_id > 0) {
+        char message_id_str[16];
+        snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "message_id",
+                CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
+    }
+    if (inline_message_id)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "inline_message_id",
+                CURLFORM_COPYCONTENTS, inline_message_id, CURLFORM_END);
+    if (caption)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "caption",
+                CURLFORM_COPYCONTENTS, caption, CURLFORM_END);
+    if (reply_markup)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
+                CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
+
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_EDIT_MESSAGE_CAPTION, post);
+}
+
+
+telebot_error_e telebot_core_edit_message_reply_markup(telebot_core_handler_t *core_h,
+        int chat_id, int message_id, char *inline_message_id, char *reply_markup)
+{
+    if ((core_h == NULL) || (core_h->token == NULL)) {
+        ERR("Handler or token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
+        ERR("Either valid chat_id & message_id or inline_message_id required");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    struct curl_httppost *post = NULL;
+    struct curl_httppost *last = NULL;
+
+    if (chat_id > 0) {
+        char chat_id_str[16];
+        snprintf(chat_id_str, sizeof(chat_id_str), "%d", chat_id);
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
+                CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
+    }
+    if (message_id > 0) {
+        char message_id_str[16];
+        snprintf(message_id_str, sizeof(message_id_str), "%d", message_id);
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "message_id",
+                CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
+    }
+    if (inline_message_id)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "inline_message_id",
+                CURLFORM_COPYCONTENTS, inline_message_id, CURLFORM_END);
+    if (reply_markup)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
+                CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
+
+    return telebot_core_curl_perform(core_h,
+            TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP, post);
 }
 
 telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,

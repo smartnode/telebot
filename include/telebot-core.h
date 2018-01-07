@@ -837,12 +837,83 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_
         char *url, int cache_time);
 
 /**
- * @brief This function is used to delete messages.
+ * @brief This function is used to edit text and game messages sent by the bot
+ * or via the bot (for inline bots).
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Required if inline_message_id. Unique identifier for the target
+ * chat or username of the target channel (in the format \@channelusername).
+ * @param message_id Required if inline_message_id is not specified.
+ * Identifier of the sent message.
+ * @param inline_message_id Required if chat_id and message_id are not
+ * specified. Identifier of the inline message.
+ * @param text New text of the message.
+ * @param parse_mode Send Markdown or HTML, if you want Telegram apps to show
+ * bold, italic, fixed-width text or inline URLs in your bot's message.
+ * @param disable_web_page_priview Disables link previews for links in this message.
+ * @param reply_markup A JSON-serialized object for an inline keyboard.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value. Response is placed in core_h->resp_data, that contains the edited
+ * message, if the message is edited, otherwise "true". It MUST be freed after use.
+ */
+telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
+        int chat_id, int message_id, char *inline_message_id, char *text,
+        char *parse_mode, bool disable_web_page_preview, char *reply_markup);
+
+/**
+ * @brief This function is used to edit captions of messages sent by the bot or
+ * via the bot (for inline bots).
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Required if inline_message_id. Unique identifier for the target
+ * chat or username of the target channel (in the format \@channelusername).
+ * @param message_id Required if inline_message_id is not specified.
+ * Identifier of the sent message.
+ * @param inline_message_id Required if chat_id and message_id are not
+ * specified. Identifier of the inline message.
+ * @param caption New caption of the message.
+ * @param reply_markup A JSON-serialized object for an inline keyboard.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value. Response is placed in core_h->resp_data, that contains the edited
+ * message, if the message is edited, otherwise "true". It MUST be freed after use.
+ */
+telebot_error_e telebot_core_edit_message_caption(telebot_core_handler_t *core_h,
+        int chat_id, int message_id, char *inline_message_id, char *caption,
+        char *reply_markup);
+
+/**
+ * @brief This function is used to edit only the reply markup of messages sent
+ * by the bot or via the bot (for inline bots).
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Required if inline_message_id. Unique identifier for the target
+ * chat or username of the target channel (in the format \@channelusername).
+ * @param message_id Required if inline_message_id is not specified.
+ * Identifier of the sent message.
+ * @param inline_message_id Required if chat_id and message_id are not
+ * specified. Identifier of the inline message.
+ * @param reply_markup A JSON-serialized object for an inline keyboard.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value. Response is placed in core_h->resp_data, that contains the edited
+ * message, if the message is edited, otherwise "true". It MUST be freed after use.
+ */
+
+telebot_error_e telebot_core_edit_message_reply_markup(telebot_core_handler_t *core_h,
+        int chat_id, int message_id, char *inline_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to delete a message, including service messages,
+ * with the following limitations:
+ *  - A message can only be deleted if it was sent less than 48 hours ago.
+ *  - Bots can delete outgoing messages in groups and supergroups.
+ *  - Bots granted can_post_messages permissions can delete outgoing messages
+ *    in channels.
+ *  - If the bot is an administrator of a group, it can delete any message there.
+ *  - If the bot has can_delete_messages permission in a supergroup or a channel,
+ *    it can delete any message there.
  * @param core_h The telebot core handler created with #telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
  * target message_id Message identifier to be deleted.
- * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
- * Response is placed in core_h->resp_data. It MUST be freed after use.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value. Response (True) is placed in core_h->resp_data, if operation is
+ * successfull. It MUST be freed after use.
  */
 telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
         int chat_id, int message_id);
@@ -861,8 +932,9 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
  * @param reply_markup Additional interface options. An object for a custom reply
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
- * Response is placed in core_h->resp_data that contains the sent message.
- * It MUST be freed after use.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value. Response (True) is placed in core_h->resp_data, if operation is
+ * successfull. It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *core_h,
         int chat_id, char *sticker, bool is_file, bool disable_notification,
