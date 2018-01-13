@@ -6,7 +6,7 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "${PREFIX}/bin")
 SET(INCLUDEDIR "${PREFIX}/include/${PROJECT_NAME}")
 SET(LIBDIR "${PREFIX}/lib")
-SET(VERSION 0.4.4)
+SET(VERSION 0.4.5)
 
 SET(CMAKE_MACOSX_RPATH 1)
 
@@ -44,8 +44,10 @@ ADD_SUBDIRECTORY(test)
 INSTALL(FILES telebot.pc DESTINATION lib/pkgconfig)
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib COMPONENT RuntimeLibraries)
 INSTALL(FILES
-    include/telebot-api.h
+    include/telebot.h
     include/telebot-common.h
-    include/telebot-core-api.h
+    include/telebot-methods.h
+    include/telebot-types.h
+    include/telebot-core.h
     DESTINATION include/telebot/)
 
