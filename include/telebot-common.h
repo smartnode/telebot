@@ -53,22 +53,6 @@ typedef enum {
 
 
 /**
- * @brief Enumerations of telegram update times.
- */
-typedef enum telebot_update_type {
-    UPDATE_TYPE_MESSAGE = 0,
-    UPDATE_TYPE_EDITED_MESSAGE,
-    UPDATE_TYPE_CHANNEL_POST,
-    UPDATE_TYPE_EDITED_CHANNEL_POST,
-    UPDATE_TYPE_INLINE_QUERY,
-    UPDATE_TYPE_CHOSEN_INLINE_RESULT,
-    UPDATE_TYPE_CALLBACK_QUERY,
-    UPDATE_TYPE_SHIPPING_QUERY,
-    UPDATE_TYPE_PRE_CHECKOUT_QUERY,
-    UPDATE_TYPE_MAX
-} telebot_update_type_e;
-
-/**
  * @} // end of APIs
  */
 

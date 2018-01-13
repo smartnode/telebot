@@ -36,12 +36,13 @@ typedef struct telebot_handler_s {
     int offset;
 } telebot_hdata_t;
 
-static const char *telebot_update_type_str[UPDATE_TYPE_MAX] = {
+const char *telebot_update_type_str[UPDATE_TYPE_MAX] = {
     "message", "edited_message", "channel_post",
     "edited_channel_post", "inline_query",
     "chonse_inline_result", "callback_query",
     "shipping_query", "pre_checkout_query"
 };
+
 
 /* Free and nullify and zero count */
 static inline void tb_sfree(void *addr)
@@ -198,6 +199,7 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
 
     return TELEBOT_ERROR_NONE;
 }
+
 telebot_error_e telebot_free_updates(telebot_update_t *updates, int count)
 {
     int index;
@@ -291,6 +293,124 @@ telebot_error_e telebot_free_me(telebot_user_t *me)
 
     telebot_free_user(me);
     tb_sfree(me);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_set_webhook(telebot_handler_t handle, char *url,
+        char *certificate, int max_connections,
+        telebot_update_type_e allowed_updates[], int allowed_updates_count)
+{
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (url == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    int i = 0;
+    char allowed_updates_str[1024] = "";
+    if (allowed_updates_count > 0) {
+        snprintf(allowed_updates_str, 1024, "%s", "[");
+        for (i=0;i<allowed_updates_count;i++) {
+            if (i < (allowed_updates_count-1)) //intermediate element
+                snprintf(allowed_updates_str, 1024, "%s%s,", allowed_updates_str,
+                        telebot_update_type_str[allowed_updates[i]]);
+            else // last element
+                snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str,
+                        telebot_update_type_str[allowed_updates[i]]);
+        }
+        snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str, "]");
+    }
+
+    telebot_error_e ret = telebot_core_set_webhook(_handle->core_h, url,
+            certificate, max_connections, allowed_updates_str);
+
+    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+
+    return ret;
+}
+
+telebot_error_e telebot_delete_webhook(telebot_handler_t handle)
+{
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_error_e ret = telebot_core_delete_webhook(_handle->core_h);
+
+    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+
+    return ret;
+}
+
+
+telebot_error_e telebot_get_webhook_info(telebot_handler_t handle,
+        telebot_webhook_info_t **info)
+{
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    *info = (telebot_webhook_info_t*)malloc(sizeof(telebot_webhook_info_t));
+    if (*info == NULL)
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+
+    telebot_error_e ret = telebot_core_get_webhook_info(_handle->core_h);
+    if (ret != TELEBOT_ERROR_NONE) {
+        tb_sfree(*info);
+        return ret;
+    }
+
+    struct json_object *obj = telebot_parser_str_to_obj(_handle->core_h->resp_data);
+    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+
+    if (obj == NULL) {
+        tb_sfree(*info);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    struct json_object *ok;
+    if (!json_object_object_get_ex(obj, "ok", &ok)) {
+        json_object_put(obj);
+        tb_sfree(*info);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    if (!json_object_get_boolean(ok)) {
+        json_object_put(ok);
+        json_object_put(obj);
+        tb_sfree(*info);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+    json_object_put(ok);
+
+    struct json_object *result;
+    if (!json_object_object_get_ex(obj, "result", &result)){
+        json_object_put(obj);
+        tb_sfree(*info);
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    ret = telebot_parser_get_webhook_info(result, *info);
+    json_object_put(result);
+    json_object_put(obj);
+
+    if (ret != TELEBOT_ERROR_NONE) {
+        tb_sfree(*info);
+        return ret;
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_free_webhook_info(telebot_webhook_info_t *info)
+{
+    if (info == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    tb_sfree(info->url);
+    tb_sfree(info->last_error_message);
 
     return TELEBOT_ERROR_NONE;
 }

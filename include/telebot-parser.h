@@ -25,6 +25,10 @@ struct json_object *telebot_parser_str_to_obj(char *data);
 telebot_error_e telebot_parser_get_updates(struct json_object *obj,
         telebot_update_t **updates, int *count);
 
+/** Parse webhook info object */
+telebot_error_e telebot_parser_get_webhook_info(struct json_object *obj,
+        telebot_webhook_info_t *info);
+
 /** Parse message object */
 telebot_error_e telebot_parser_get_message(struct json_object *obj,
         telebot_message_t *msg);

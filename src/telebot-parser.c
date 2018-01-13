@@ -28,6 +28,8 @@
 #include <telebot-methods.h>
 #include <telebot-parser.h>
 
+extern const char *telebot_update_type_str[UPDATE_TYPE_MAX];
+
 static telebot_error_e telebot_parser_get_photos(struct json_object *obj,
         telebot_photo_t **photos, int *count);
 
@@ -98,6 +100,78 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj,
         }
 
         json_object_put(item);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_webhook_info(struct json_object *obj,
+        telebot_webhook_info_t *info)
+{
+    if ((obj == NULL) || (info == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(info, 0, sizeof(telebot_webhook_info_t));
+    struct json_object *url;
+    if (!json_object_object_get_ex(obj, "url", &url)) {
+        ERR("Object is not json webhook info type, url not found");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+    info->url = strdup_s(json_object_get_string(url));
+    json_object_put(url);
+
+    struct json_object *certificate;
+    if (!json_object_object_get_ex(obj, "has_custom_certificate", &certificate)) {
+        ERR("Object is not webhook info type, has_custom_certificate not found");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+    info->has_custom_certificate = json_object_get_boolean(certificate);
+    json_object_put(certificate);
+
+    struct json_object *update_count;
+    if (!json_object_object_get_ex(obj, "pending_update_count", &update_count)) {
+        ERR("Object is not webook info type, pending_update_count not found");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+    info->pending_update_count = json_object_get_int(update_count);
+    json_object_put(update_count);
+
+    struct json_object *last_error_date;
+    if (json_object_object_get_ex(obj, "last_error_date", &last_error_date)) {
+        info->last_error_date = json_object_get_double(last_error_date);
+        json_object_put(last_error_date);
+    }
+
+    struct json_object *last_error_message;
+    if (json_object_object_get_ex(obj, "last_error_message", &last_error_message)) {
+        info->last_error_message = strdup_s(json_object_get_string(last_error_message));
+    }
+
+    struct json_object *max_connections;
+    if (json_object_object_get_ex(obj, "max_connections", &max_connections)) {
+        info->max_connections = json_object_get_int(max_connections);
+        json_object_put(max_connections);
+    }
+
+    struct json_object *allowed_updates;
+    if (json_object_object_get_ex(obj, "allowed_updates", &allowed_updates)) {
+        int i, j, cnt = 0;
+        int array_len = json_object_array_length(allowed_updates);
+        for (i=0;i<array_len;i++) {
+            struct json_object *item = json_object_array_get_idx(allowed_updates, i);
+            const char *update_type = json_object_get_string(item);
+            for (j=0;j<UPDATE_TYPE_MAX;j++)
+                if (strstr(update_type, telebot_update_type_str[j]))
+                    info->allowed_updates[cnt++] = j;
+            json_object_put(item);
+        }
+        json_object_put(allowed_updates);
+        info->allowed_updates_count = cnt;
+    } else {
+        int i;
+        for (i=0;i<UPDATE_TYPE_MAX;i++)
+            info->allowed_updates[i] = i;
+        info->allowed_updates_count = UPDATE_TYPE_MAX;
     }
 
     return TELEBOT_ERROR_NONE;

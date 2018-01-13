@@ -89,12 +89,63 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
  */
 telebot_error_e telebot_free_updates(telebot_update_t *updates, int count);
 
-//TODO: Webhook here
+
+/**
+ * @brief This function is used to specify a url and receive incoming updates
+ * via an outgoing webhook. Whenever there is an update for the bot, we will
+ * send an HTTPS POST request to the specified url, containing a JSON-serialized
+ * Update. In case of an unsuccessful request, we will give up after a reasonable
+ * amount of attempts.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] url HTTPS url to send updates to. Use an empty string to remove
+ * webhook integration
+ * @param[in] certificate A path to to a public key certificate to upload server.
+ * @param[in] max_connections Optional  Maximum allowed number of simultaneous
+ * HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40.
+ * Use lower values to limit the load on your bot's server, and higher values
+ * to increase your bot's throughput.
+ * @param[in] allowed_updates Array of the update types you want your bot to
+ * receive.
+ * @param[in] allowed_updates_count Size of array of the update types.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
 telebot_error_e telebot_set_webhook(telebot_handler_t handle, char *url,
-        int max_connections, telebot_update_type_e allowed_updates[],
-        int allowed_updates_count);
+        char *certificate, int max_connections,
+        telebot_update_type_e allowed_updates[], int allowed_updates_count);
+
+/**
+ * @brief This function is used to remove webhook integration if you decide to
+ * switch back to getUpdates.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
 telebot_error_e telebot_delete_webhook(telebot_handler_t handle);
-telebot_error_e telebot_get_webhook_info(telebot_handler_t handle, telebot_webhook_info_t **info);
+
+
+/**
+ * @brief This function is used to get information about telegram bot itself.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[out] info Telegram webhoook information, it needs to be released with
+ * #telebot_free_webhook_info after use.
+ * @return On success, TELEBOT_ERROR_NONE is returned, and webhook information is
+ * stored in input parameter.
+ */
+telebot_error_e telebot_get_webhook_info(telebot_handler_t handle,
+        telebot_webhook_info_t **info);
+
+/**
+ * @brief This function is used to release memory used for obtained information
+ * about telegram bot itself.
+ *
+ * @param[in] info Telegram webhook information object obtained with
+ * #telebot_get_webhook_info.
+ * @return on Success, TELEBOT_ERROR_NONE is returned.
+ */
 telebot_error_e telebot_free_webhook_info(telebot_webhook_info_t *info);
 
 /**
@@ -103,7 +154,7 @@ telebot_error_e telebot_free_webhook_info(telebot_webhook_info_t *info);
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[out] me Telegram user object, it needs to be released with
  * #telebot_free_me after use.
- * @return On success, TELEBOT_ERROR_NONE is returned, and user object is
+ * @return on Success, TELEBOT_ERROR_NONE is returned, and user object is
  * stored in input parameter.
  */
 telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t **me);
@@ -112,10 +163,8 @@ telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t **me);
  * @brief This function is used to release memory used for obtained information
  * about telegram bot itself.
  *
- * @param[int] me Pointer to telegram user object obtained with #telebot_get_me.
- * after use.
- * @return On success, TELEBOT_ERROR_NONE is returned, and user object is
- * stored in input parameter.
+ * @param[in] me Pointer to telegram user object obtained with #telebot_get_me.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  */
 telebot_error_e telebot_free_me(telebot_user_t *me);
 

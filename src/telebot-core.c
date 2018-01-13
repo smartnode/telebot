@@ -191,7 +191,7 @@ telebot_error_e telebot_core_get_updates(telebot_core_handler_t *core_h,
 }
 
 telebot_error_e telebot_core_set_webhook(telebot_core_handler_t *core_h,
-        char *url, char *certificate_file, int max_connections,
+        char *url, char *certificate, int max_connections,
         char *allowed_updates)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (url == NULL)) {
@@ -204,9 +204,9 @@ telebot_error_e telebot_core_set_webhook(telebot_core_handler_t *core_h,
 
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "url",
             CURLFORM_COPYCONTENTS, url, CURLFORM_END);
-    if (certificate_file != NULL)
+    if (certificate != NULL)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "certificate",
-                CURLFORM_FILE, certificate_file, CURLFORM_END);
+                CURLFORM_FILE, certificate, CURLFORM_END);
     char max_conn_str[16];
     snprintf(max_conn_str, sizeof(max_conn_str), "%d", max_connections);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "max_connections",

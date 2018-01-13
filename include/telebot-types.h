@@ -37,6 +37,22 @@ extern "C" {
  */
 
 /**
+ * @brief Enumerations of telegram update types.
+ */
+typedef enum telebot_update_type {
+    UPDATE_TYPE_MESSAGE = 0,
+    UPDATE_TYPE_EDITED_MESSAGE,
+    UPDATE_TYPE_CHANNEL_POST,
+    UPDATE_TYPE_EDITED_CHANNEL_POST,
+    UPDATE_TYPE_INLINE_QUERY,
+    UPDATE_TYPE_CHOSEN_INLINE_RESULT,
+    UPDATE_TYPE_CALLBACK_QUERY,
+    UPDATE_TYPE_SHIPPING_QUERY,
+    UPDATE_TYPE_PRE_CHECKOUT_QUERY,
+    UPDATE_TYPE_MAX
+} telebot_update_type_e;
+
+/**
  * @brief This object represents a Telegram user or bot.
  */
 typedef struct telebot_user {
@@ -729,7 +745,13 @@ typedef struct telebot_webhook_info {
      * Optional. A list of update types the bot is subscribed to.
      * Defaults to all update types.
      */
-    char *allowed_updates;
+    telebot_update_type_e allowed_updates[UPDATE_TYPE_MAX];
+
+    /**
+     * Optional. Number of updates types.
+     */
+    int allowed_updates_count;
+
 } telebot_webhook_info_t;
 
 /**
