@@ -18,7 +18,7 @@ SET(SRCS
 
 ADD_DEFINITIONS("-DDEBUG=1")
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
-SET(DEPENDENTS "libcurl json")
+SET(DEPENDENTS "libcurl json-c")
 INCLUDE(FindPkgConfig)
 pkg_check_modules(PKGS REQUIRED ${DEPENDENTS})
 
