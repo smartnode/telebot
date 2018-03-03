@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     telebot_free_me(me);
 
-    int index, count;
+    int index, count, offset = 1;
     char str[4096];
     telebot_error_e ret;
     telebot_message_t message;
@@ -56,10 +56,9 @@ int main(int argc, char *argv[])
         sleep(1);
 
         telebot_update_t *updates;
-        ret = telebot_get_updates(handle, 1, 20, 0, NULL, 0, &updates, &count);
+        ret = telebot_get_updates(handle, offset, 20, 0, NULL, 0, &updates, &count);
         if (ret != TELEBOT_ERROR_NONE)
             continue;
-
         printf("Number of updates: %d\n", count);
         for (index = 0;index < count; index++) {
             message = updates[index].message;
@@ -77,6 +76,7 @@ int main(int argc, char *argv[])
             if (ret != TELEBOT_ERROR_NONE) {
                 printf("Failed to send message: %d \n", ret);
             }
+            offset = updates[index].update_id + 1;
         }
         telebot_free_updates(updates, count);
     }
