@@ -171,11 +171,9 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
     }
 
     if (!json_object_get_boolean(ok)) {
-        json_object_put(ok);
         json_object_put(obj);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    json_object_put(ok);
 
     struct json_object *result;
     if (!json_object_object_get_ex(obj, "result", &result)) {
@@ -184,7 +182,6 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
     }
 
     ret = telebot_parser_get_updates(result, updates, count);
-    json_object_put(result);
     json_object_put(obj);
 
     if (ret != TELEBOT_ERROR_NONE)
@@ -260,12 +257,10 @@ telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t **me)
     }
 
     if (!json_object_get_boolean(ok)) {
-        json_object_put(ok);
         json_object_put(obj);
         tb_sfree(*me);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    json_object_put(ok);
 
     struct json_object *result;
     if (!json_object_object_get_ex(obj, "result", &result)){
@@ -275,7 +270,6 @@ telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t **me)
     }
 
     ret = telebot_parser_get_user(result, *me);
-    json_object_put(result);
     json_object_put(obj);
 
     if (ret != TELEBOT_ERROR_NONE) {
@@ -378,12 +372,10 @@ telebot_error_e telebot_get_webhook_info(telebot_handler_t handle,
     }
 
     if (!json_object_get_boolean(ok)) {
-        json_object_put(ok);
         json_object_put(obj);
         tb_sfree(*info);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    json_object_put(ok);
 
     struct json_object *result;
     if (!json_object_object_get_ex(obj, "result", &result)){
@@ -393,7 +385,6 @@ telebot_error_e telebot_get_webhook_info(telebot_handler_t handle,
     }
 
     ret = telebot_parser_get_webhook_info(result, *info);
-    json_object_put(result);
     json_object_put(obj);
 
     if (ret != TELEBOT_ERROR_NONE) {
@@ -669,12 +660,10 @@ telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle,
     }
 
     if (!json_object_get_boolean(ok)) {
-        json_object_put(ok);
         json_object_put(obj);
         tb_sfree(*photos);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    json_object_put(ok);
 
     struct json_object *result;
     if (!json_object_object_get_ex(obj, "result", &result)) {
@@ -684,7 +673,6 @@ telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle,
     }
 
     ret = telebot_parser_get_user_profile_photos(result, *photos);
-    json_object_put(result);
     json_object_put(obj);
 
     if (ret != TELEBOT_ERROR_NONE) {
