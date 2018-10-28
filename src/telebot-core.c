@@ -297,8 +297,8 @@ telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) || (from_chat_id <= 0) || (message_id <= 0)) {
-        ERR("Valid chat_id, from_chat_id and message_id is required.");
+    if (message_id <= 0) {
+        ERR("Valid message_id is required.");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -329,11 +329,6 @@ telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (photo == NULL)) {
         ERR("Handler, token or photo is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -377,11 +372,6 @@ telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (audio == NULL)) {
         ERR("Handler, token or audio is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -436,11 +426,6 @@ telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -477,11 +462,6 @@ telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (video == NULL)) {
         ERR("Handler, token or document is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -533,11 +513,6 @@ telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -580,11 +555,6 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (video_note == NULL)) {
         ERR("Handler, token or video_note is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -640,11 +610,6 @@ telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -686,7 +651,7 @@ telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
+    if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
@@ -694,7 +659,7 @@ telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
-    if (chat_id > 0) {
+    if (chat_id != 0) {
         char chat_id_str[16];
         snprintf(chat_id_str, sizeof(chat_id_str), "%lld", chat_id);
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
@@ -736,7 +701,7 @@ telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
+    if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
@@ -744,7 +709,7 @@ telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
-    if (chat_id > 0) {
+    if (chat_id != 0) {
         char chat_id_str[16];
         snprintf(chat_id_str, sizeof(chat_id_str), "%lld", chat_id);
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
@@ -775,11 +740,6 @@ telebot_error_e telebot_core_send_venue(telebot_core_handler_t *core_h,
     if ((core_h == NULL) || (core_h->token == NULL) || (title == NULL) ||
             (address == NULL)) {
         ERR("Handler, token, title, or address is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -832,11 +792,6 @@ telebot_error_e telebot_core_send_contact(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -873,11 +828,6 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (action == NULL)) {
         ERR("Handler, token or action is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1007,8 +957,8 @@ telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) && (user_id <= 0)) {
-        ERR("Valid chat_id and user_id is required");
+    if (user_id <= 0) {
+        ERR("Valid user_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1040,8 +990,8 @@ telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) && (user_id <= 0)) {
-        ERR("Valid chat_id and user_id is required");
+    if (user_id <= 0) {
+        ERR("Valid user_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1071,8 +1021,8 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) && (user_id <= 0)) {
-        ERR("Valid chat_id and user_id is required");
+    if (user_id <= 0) {
+        ERR("Valid user_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1118,8 +1068,8 @@ telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) && (user_id <= 0)) {
-        ERR("Valid chat_id and user_id is required");
+    if (user_id <= 0) {
+        ERR("Valid user_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1168,11 +1118,6 @@ telebot_error_e telebot_core_export_chat_invite_link(telebot_core_handler_t *cor
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -1192,8 +1137,8 @@ telebot_error_e telebot_core_set_chat_photo(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) || (photo == NULL)) {
-        ERR("Valid chat_id and photo is required");
+    if (photo == NULL) {
+        ERR("Valid photo is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1219,11 +1164,6 @@ telebot_error_e telebot_core_delete_chat_photo(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -1244,8 +1184,8 @@ telebot_error_e telebot_core_set_chat_title(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) || (title == NULL) || (strlen(title) > 255)) {
-        ERR("Valid chat_id and title is required");
+    if ((title == NULL) || (strlen(title) > 255)) {
+        ERR("Valid title is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1271,11 +1211,6 @@ telebot_error_e telebot_core_set_chat_description(telebot_core_handler_t *core_h
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -1298,8 +1233,8 @@ telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) || (message_id <=0)) {
-        ERR("Valid chat_id and message_id is required");
+    if (message_id <=0) {
+        ERR("Valid message_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1330,11 +1265,6 @@ telebot_error_e telebot_core_unpin_chat_message(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -1353,11 +1283,6 @@ telebot_error_e telebot_core_leave_chat(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1381,11 +1306,6 @@ telebot_error_e telebot_core_get_chat(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -1405,11 +1325,6 @@ telebot_error_e telebot_core_get_chat_admins(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -1426,11 +1341,6 @@ telebot_error_e telebot_core_get_chat_members_count(telebot_core_handler_t *core
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1454,11 +1364,6 @@ telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -1479,8 +1384,8 @@ telebot_error_e telebot_core_set_chat_sticker_set(telebot_core_handler_t *core_h
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) || (sticker_set_name == NULL)) {
-        ERR("Valid chat_id and sticker_set_name is required");
+    if (sticker_set_name == NULL) {
+        ERR("Valid sticker_set_name is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1503,11 +1408,6 @@ telebot_error_e telebot_core_delete_chat_sticker_set(telebot_core_handler_t *cor
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1567,7 +1467,7 @@ telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
+    if (((chat_id == 0) || (message_id <=0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
@@ -1575,7 +1475,7 @@ telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
-    if (chat_id > 0) {
+    if (chat_id != 0) {
         char chat_id_str[16];
         snprintf(chat_id_str, sizeof(chat_id_str), "%lld", chat_id);
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
@@ -1615,7 +1515,7 @@ telebot_error_e telebot_core_edit_message_caption(telebot_core_handler_t *core_h
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
+    if (((chat_id == 0) || (message_id <=0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
@@ -1623,7 +1523,7 @@ telebot_error_e telebot_core_edit_message_caption(telebot_core_handler_t *core_h
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
-    if (chat_id > 0) {
+    if (chat_id != 0) {
         char chat_id_str[16];
         snprintf(chat_id_str, sizeof(chat_id_str), "%lld", chat_id);
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
@@ -1658,7 +1558,7 @@ telebot_error_e telebot_core_edit_message_reply_markup(telebot_core_handler_t *c
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (((chat_id <= 0) || (message_id <=0)) && (inline_message_id == NULL)) {
+    if (((chat_id == 0) || (message_id <=0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
@@ -1666,7 +1566,7 @@ telebot_error_e telebot_core_edit_message_reply_markup(telebot_core_handler_t *c
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
-    if (chat_id > 0) {
+    if (chat_id != 0) {
         char chat_id_str[16];
         snprintf(chat_id_str, sizeof(chat_id_str), "%lld", chat_id);
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
@@ -1697,8 +1597,8 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if ((chat_id <= 0) || (message_id) <= 0) {
-        ERR("chat_id or message_id is invalid");
+    if ((message_id) <= 0) {
+        ERR("message_id is invalid");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1724,11 +1624,6 @@ telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (sticker == NULL)) {
         ERR("Handler, token or sticker is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (chat_id <= 0) {
-        ERR("Valid chat_id is required.");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 

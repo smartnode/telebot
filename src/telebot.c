@@ -415,7 +415,7 @@ telebot_error_e telebot_send_message(telebot_handler_t handle, long long int cha
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) || (text == NULL))
+    if (text == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_message(_handle->core_h, chat_id,
@@ -434,7 +434,7 @@ telebot_error_e telebot_forward_message(telebot_handler_t handle, long long int 
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) || (message_id <= 0))
+    if (message_id <= 0)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_forward_message(_handle->core_h, chat_id,
@@ -453,7 +453,7 @@ telebot_error_e telebot_send_photo(telebot_handler_t handle, long long int chat_
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) || (photo == NULL))
+    if (photo == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_photo(_handle->core_h, chat_id, photo,
@@ -472,7 +472,7 @@ telebot_error_e telebot_send_audio(telebot_handler_t handle, long long int chat_
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) ||  (audio == NULL))
+    if (audio == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_audio(_handle->core_h, chat_id, audio,
@@ -492,7 +492,7 @@ telebot_error_e telebot_send_document(telebot_handler_t handle, long long int ch
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) || (document == NULL))
+    if (document == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_document(_handle->core_h, chat_id,
@@ -512,7 +512,7 @@ telebot_error_e telebot_send_video(telebot_handler_t handle, long long int chat_
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) || (video == NULL))
+    if (video == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_video(_handle->core_h, chat_id, video,
@@ -532,7 +532,7 @@ telebot_error_e telebot_send_voice(telebot_handler_t handle, long long int chat_
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) || (voice == NULL))
+    if (voice == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_voice(_handle->core_h, chat_id, voice,
@@ -551,7 +551,7 @@ telebot_error_e telebot_send_video_note(telebot_handler_t handle, long long int 
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) || (video_note == NULL))
+    if (video_note == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_video_note(_handle->core_h, chat_id,
@@ -571,9 +571,6 @@ telebot_error_e telebot_send_location(telebot_handler_t handle, long long int ch
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (chat_id <= 0)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
     telebot_error_e ret = telebot_core_send_location(_handle->core_h, chat_id,
             latitude, longitude, disable_notification, reply_to_message_id, reply_markup);
 
@@ -590,7 +587,7 @@ telebot_error_e telebot_send_contact(telebot_handler_t handle, long long int cha
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((chat_id <= 0) || (phone_number == NULL) || (first_name == NULL))
+    if ((phone_number == NULL) || (first_name == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_contact(_handle->core_h, chat_id,
@@ -608,9 +605,6 @@ telebot_error_e telebot_send_chat_action(telebot_handler_t handle, long long int
     telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
-
-    if (chat_id <= 0)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_error_e ret = telebot_core_send_chat_action(_handle->core_h,
             chat_id, action);
