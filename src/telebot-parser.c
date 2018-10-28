@@ -240,7 +240,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
     int ret;
     struct json_object *id;
     if (json_object_object_get_ex(obj, "id", &id)) {
-        chat->id = json_object_get_int(id);
+        chat->id = json_object_get_int64(id);
     }
     else {
         ERR("Object is not chat type, id not found");
@@ -591,12 +591,12 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
 
     struct json_object *mtci;
     if (json_object_object_get_ex(obj, "migrate_to_chat_id", &mtci)) {
-        msg->migrate_to_chat_id = json_object_get_int(mtci);
+        msg->migrate_to_chat_id = json_object_get_int64(mtci);
     }
 
     struct json_object *mftci;
     if (json_object_object_get_ex(obj, "migrate_from_chat_id", &mftci)) {
-        msg->migrate_from_chat_id = json_object_get_int(mftci);
+        msg->migrate_from_chat_id = json_object_get_int64(mftci);
     }
 
     struct json_object *pinned_message;

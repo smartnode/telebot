@@ -81,7 +81,7 @@ typedef struct telebot_user {
  */
 typedef struct telebot_chat {
     /** Unique identifier for this chat, it may be greater than 32 bits. */
-    long long id;
+    long long int id;
 
     /** Type of chat, can be either "private", or "group", "supergroup", or "channel". */
     char *type;
@@ -269,13 +269,13 @@ typedef struct telebot_message {
      * Optional. The group has been migrated to a supergroup with the specified
      * identifier, not exceeding 1e13 by absolute value
      */
-    int migrate_to_chat_id;
+    long long int migrate_to_chat_id;
 
     /**
      * Optional. The supergroup has been migrated from a group with the
      * specified identifier, not exceeding 1e13 by absolute value
      */
-    int migrate_from_chat_id;
+    long long int migrate_from_chat_id;
 
     /**
      * Optional. Specified message was pinned. Note that the Message object in
