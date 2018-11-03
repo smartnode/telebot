@@ -188,7 +188,7 @@ telebot_error_e telebot_free_me(telebot_user_t *me);
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_message(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_message(telebot_handler_t handle, long long int chat_id,
         char *text, char *parse_mode, bool disable_web_page_preview,
         bool disable_notification, int reply_to_message_id, const char *reply_markup);
 
@@ -206,15 +206,15 @@ telebot_error_e telebot_send_message(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_forward_message(telebot_handler_t handle, int chat_id,
-        int from_chat_id, bool disable_notification, int message_id);
+telebot_error_e telebot_forward_message(telebot_handler_t handle, long long int chat_id,
+        long long int from_chat_id, bool disable_notification, int message_id);
 
 /**
  * @brief This functionis used to send photos.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).int chat_id
+ * target channel (in the format \@channelusername).long long int chat_id
  * @param[in] photo Photo to send. It is either file_id to resend a photo
  * that is already on the Telegram servers, or a path to photo file.
  * @param[in] is_file False if photo is file_id, true, if photo is a file path.
@@ -228,7 +228,7 @@ telebot_error_e telebot_forward_message(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_photo(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_photo(telebot_handler_t handle, long long int chat_id,
         char *photo, bool is_file, char *caption, bool disable_notification,
         int reply_to_message_id, char *reply_markup);
 
@@ -260,7 +260,7 @@ telebot_error_e telebot_send_photo(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_audio(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_audio(telebot_handler_t handle, long long int chat_id,
         char *audio, bool is_file, int duration, char *performer, char *title,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
 
@@ -283,7 +283,7 @@ telebot_error_e telebot_send_audio(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_document(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_document(telebot_handler_t handle, long long int chat_id,
         char *document, bool is_file, bool disable_notification,
         int reply_to_message_id, char *reply_markup);
 
@@ -310,7 +310,7 @@ telebot_error_e telebot_send_document(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_video(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_video(telebot_handler_t handle, long long int chat_id,
         char *video, bool is_file, int duration, int width, int height,
         char *caption, bool disable_notification, int reply_to_message_id,
         char *reply_markup);
@@ -339,7 +339,7 @@ telebot_error_e telebot_send_video(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_voice(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_voice(telebot_handler_t handle, long long int chat_id,
         char *voice, bool is_file, char *caption, int duration,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
 
@@ -363,7 +363,7 @@ telebot_error_e telebot_send_voice(telebot_handler_t handle, int chat_id,
  * keyboard, instructions to hide keyboard or to force a reply from the user.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
-telebot_error_e telebot_send_video_note(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_video_note(telebot_handler_t handle, long long int chat_id,
         char *video_note, bool is_file, int duration, int length,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
 
@@ -384,7 +384,7 @@ telebot_error_e telebot_send_video_note(telebot_handler_t handle, int chat_id,
  * error value.
  */
 /* TODO
- * telebot_error_e telebot_send_media_group(telebot_handler_t handle, int chat_id,
+ * telebot_error_e telebot_send_media_group(telebot_handler_t handle, long long int chat_id,
  *        telebot_input_media_t media[], bool is_file, bool disable_notification,
  *        int reply_to_message_id);
  */
@@ -406,7 +406,7 @@ telebot_error_e telebot_send_video_note(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_location(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_location(telebot_handler_t handle, long long int chat_id,
         float latitude, float longitude, bool disable_notification,
         int reply_to_message_id, char *reply_markup);
 
@@ -433,7 +433,7 @@ telebot_error_e telebot_send_location(telebot_handler_t handle, int chat_id,
  * error value.
  */
 telebot_error_e telebot_edit_message_live_location(telebot_handler_t handle,
-        int chat_id, int message_id, char *inline_message_id, float latitude,
+        long long int chat_id, int message_id, char *inline_message_id, float latitude,
         float longitude, bool disable_notification, char *reply_markup);
 
 /**
@@ -452,7 +452,7 @@ telebot_error_e telebot_edit_message_live_location(telebot_handler_t handle,
  * error value.
  */
 telebot_error_e telebot_stop_message_live_location(telebot_handler_t handle,
-        int chat_id, int message_id, char *inline_message_id, char *reply_markup);
+        long long int chat_id, int message_id, char *inline_message_id, char *reply_markup);
 
 /**
  * @brief This function is used to send information about a venue.
@@ -475,7 +475,7 @@ telebot_error_e telebot_stop_message_live_location(telebot_handler_t handle,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_venue(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_venue(telebot_handler_t handle, long long int chat_id,
         float latitude, float longitude, char *title, char *foursquare_id,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
 
@@ -498,7 +498,7 @@ telebot_error_e telebot_send_venue(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_contact(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_contact(telebot_handler_t handle, long long int chat_id,
         char *phone_number, char *first_name, char *last_name,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
 
@@ -525,7 +525,7 @@ telebot_error_e telebot_send_contact(telebot_handler_t handle, int chat_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_chat_action(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_chat_action(telebot_handler_t handle, long long int chat_id,
         char *action);
 
 /**
@@ -573,7 +573,7 @@ telebot_error_e telebot_download_file(telebot_handler_t handle, char *file_id,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_delete_message(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_delete_message(telebot_handler_t handle, long long int chat_id,
         int message_id);
 
 /**
@@ -616,7 +616,7 @@ telebot_error_e telebot_answer_callback_query(telebot_handler_t handle,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_sticker(telebot_handler_t handle, int chat_id,
+telebot_error_e telebot_send_sticker(telebot_handler_t handle, long long int chat_id,
         char *sticker, bool is_file, bool disable_notification,
         int reply_to_message_id, char *reply_markup);
 
