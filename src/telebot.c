@@ -45,22 +45,8 @@ const char *telebot_update_type_str[UPDATE_TYPE_MAX] = {
 
 
 /* Free and nullify and zero count */
-static inline void tb_sfree(void *addr)
-{
-    if (addr) {
-        free(addr);
-        addr = NULL;
-    }
-}
-
-/* Free, nullify and zero count */
-static inline void tb_sfree_zcnt(void *addr, size_t *count)
-{
-    tb_sfree(addr);
-    if (count) {
-        *count = 0;
-    }
-}
+#define tb_sfree(addr)               if (addr) { free(addr); addr = NULL; }
+#define tb_sfree_zcnt(addr, count)   tb_sfree(addr); count = 0;
 
 static void telebot_free_user(telebot_user_t *user);
 static void telebot_free_chat(telebot_chat_t *chat);
@@ -159,7 +145,7 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
         return ret;
 
     struct json_object *obj = telebot_parser_str_to_obj(_handle->core_h->resp_data);
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     if (obj == NULL)
         return TELEBOT_ERROR_OPERATION_FAILED;
@@ -242,7 +228,7 @@ telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t **me)
     }
 
     struct json_object *obj = telebot_parser_str_to_obj(_handle->core_h->resp_data);
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     if (obj == NULL) {
         tb_sfree(*me);
@@ -320,7 +306,7 @@ telebot_error_e telebot_set_webhook(telebot_handler_t handle, char *url,
     telebot_error_e ret = telebot_core_set_webhook(_handle->core_h, url,
             certificate, max_connections, allowed_updates_str);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -333,7 +319,7 @@ telebot_error_e telebot_delete_webhook(telebot_handler_t handle)
 
     telebot_error_e ret = telebot_core_delete_webhook(_handle->core_h);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -357,7 +343,7 @@ telebot_error_e telebot_get_webhook_info(telebot_handler_t handle,
     }
 
     struct json_object *obj = telebot_parser_str_to_obj(_handle->core_h->resp_data);
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     if (obj == NULL) {
         tb_sfree(*info);
@@ -422,7 +408,7 @@ telebot_error_e telebot_send_message(telebot_handler_t handle, long long int cha
             text, parse_mode, disable_web_page_preview, disable_notification,
             reply_to_message_id, reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -440,7 +426,7 @@ telebot_error_e telebot_forward_message(telebot_handler_t handle, long long int 
     telebot_error_e ret = telebot_core_forward_message(_handle->core_h, chat_id,
             from_chat_id, disable_notification, message_id);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -459,7 +445,7 @@ telebot_error_e telebot_send_photo(telebot_handler_t handle, long long int chat_
     telebot_error_e ret = telebot_core_send_photo(_handle->core_h, chat_id, photo,
             is_file, caption, disable_notification, reply_to_message_id, reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -479,7 +465,7 @@ telebot_error_e telebot_send_audio(telebot_handler_t handle, long long int chat_
             is_file, duration, performer, title, disable_notification,
             reply_to_message_id, reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -498,7 +484,7 @@ telebot_error_e telebot_send_document(telebot_handler_t handle, long long int ch
     telebot_error_e ret = telebot_core_send_document(_handle->core_h, chat_id,
             document, is_file, disable_notification, reply_to_message_id, reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -519,7 +505,7 @@ telebot_error_e telebot_send_video(telebot_handler_t handle, long long int chat_
             is_file, duration, caption, disable_notification, reply_to_message_id,
             reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -538,7 +524,7 @@ telebot_error_e telebot_send_voice(telebot_handler_t handle, long long int chat_
     telebot_error_e ret = telebot_core_send_voice(_handle->core_h, chat_id, voice,
             is_file, duration, disable_notification, reply_to_message_id, reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -558,7 +544,7 @@ telebot_error_e telebot_send_video_note(telebot_handler_t handle, long long int 
             video_note, is_file, duration, length, disable_notification,
             reply_to_message_id, reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -574,7 +560,7 @@ telebot_error_e telebot_send_location(telebot_handler_t handle, long long int ch
     telebot_error_e ret = telebot_core_send_location(_handle->core_h, chat_id,
             latitude, longitude, disable_notification, reply_to_message_id, reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -594,7 +580,7 @@ telebot_error_e telebot_send_contact(telebot_handler_t handle, long long int cha
             phone_number, first_name, last_name, disable_notification,
             reply_to_message_id, reply_markup);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -609,7 +595,7 @@ telebot_error_e telebot_send_chat_action(telebot_handler_t handle, long long int
     telebot_error_e ret = telebot_core_send_chat_action(_handle->core_h,
             chat_id, action);
 
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
@@ -639,7 +625,7 @@ telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle,
     }
 
     struct json_object *obj = telebot_parser_str_to_obj(_handle->core_h->resp_data);
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     if (obj == NULL) {
         tb_sfree(*photos);
@@ -687,7 +673,6 @@ telebot_error_e telebot_free_user_profile_photos(telebot_user_profile_photos_t *
     for (i=0;i<total;i++)
         for(j=0;j<subtotal;j++)
             telebot_free_photo(&(photos->photos[j][i]));
-    tb_sfree(photos->photos);
     photos->current_count = 0;
     photos->total_count = 0;
 
@@ -710,21 +695,21 @@ telebot_error_e telebot_download_file(telebot_handler_t handle, char *file_id,
 
     struct json_object *obj = telebot_parser_str_to_obj(_handle->core_h->resp_data);
     if (obj == NULL) {
-        tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+        tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
     char *file_path;
     ret = telebot_parser_get_file_path(obj, &file_path);
     json_object_put(obj);
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     if (file_path == NULL)
         return TELEBOT_ERROR_OPERATION_FAILED;
 
     ret = telebot_core_download_file(_handle->core_h, file_path, path);
     free(file_path);
-    tb_sfree_zcnt(_handle->core_h->resp_data, &(_handle->core_h->resp_size));
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
 }
