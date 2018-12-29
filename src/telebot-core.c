@@ -453,7 +453,7 @@ telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_PHOTO, post);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_DOCUMENT, post);
 }
 
 telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
