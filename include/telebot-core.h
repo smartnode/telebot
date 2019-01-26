@@ -49,7 +49,11 @@ typedef struct telebot_core_handler {
     char *resp_data; /**< Telegam response object */
     size_t resp_size; /**< Telegam response size */
     bool busy; /**< Mark another request is in progress */
+    char *proxy_addr;
+    char *proxy_auth;
 } telebot_core_handler_t;
+
+telebot_error_e telebot_core_init_proxy(telebot_core_handler_t *core_h, char *addr, char *auth);
 
 /**
  * @brief Start function to use telebot core APIs.
@@ -280,6 +284,30 @@ telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h,
  * message. It MUST be freed after use.
  */
 telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
+        long long int chat_id, char *video, bool is_file, int duration, char *caption,
+        bool disable_notification, int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This function is used to send video files, Telegram clients support
+ * mp4 videos (other formats may be sent as Document).
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).
+ * @param video Video file to send. It is either a file_id as String to resend
+ * a video that is already on the Telegram servers, or a path to video file.
+ * @param is_file False if video is file_id, true, if video is a file path.
+ * @param duration Duration of sent video in seconds.
+ * @param caption Video caption (may also be used when resending videos).
+ * @param disable_notification Sends the message silently. Users will receive a
+ * notification with no sound.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom reply
+ * keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value. Response is placed in core_h->resp_data that contains the sent
+ * message. It MUST be freed after use.
+ */
+telebot_error_e telebot_core_send_animation(telebot_core_handler_t *core_h,
         long long int chat_id, char *video, bool is_file, int duration, char *caption,
         bool disable_notification, int reply_to_message_id, char *reply_markup);
 

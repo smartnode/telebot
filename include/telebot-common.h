@@ -51,7 +51,6 @@ typedef enum {
     TELEBOT_ERROR_INVALID_PARAMETER = -5,   /**< Invalid parameter */
 } telebot_error_e;
 
-
 /**
  * @} // end of APIs
  */

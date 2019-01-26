@@ -35,6 +35,7 @@
 #define TELEBOT_METHOD_SEND_AUDIO                   "sendAudio"
 #define TELEBOT_METHOD_SEND_DOCUMENT                "sendDocument"
 #define TELEBOT_METHOD_SEND_VIDEO                   "sendVideo"
+#define TELEBOT_METHOD_SEND_ANIMATION               "sendAnimation"
 #define TELEBOT_METHOD_SEND_VOICE                   "sendVoice"
 #define TELEBOT_METHOD_SEND_VIDEO_NOTE              "sendVideoNote"
 #define TELEBOT_METHOD_SEND_MEDIA_GROUP             "sendMediaGroup"
@@ -71,7 +72,7 @@
 #define TELEBOT_METHOD_DELETE_MESSAGE               "deleteMessage"
 #define TELEBOT_METHOD_SEND_STICKER                 "sendSticker"
 
-#ifdef DEBUG
+#ifndef DEBUG
     #define ERR(fmt, args...) printf("[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
     #define DBG(fmt, args...) printf("[DEBUG][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
 #else
