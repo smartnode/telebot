@@ -58,6 +58,7 @@ static void telebot_free_document(telebot_document_t *document);
 static void telebot_free_photo(telebot_photo_t *photo);
 static void telebot_free_sticker(telebot_sticker_t *sticker);
 static void telebot_free_video(telebot_video_t *video);
+static void telebot_free_animation(telebot_animation_t *animation);
 static void telebot_free_voice(telebot_voice_t *voice);
 static void telebot_free_video_note(telebot_video_note_t *vnote);
 static void telebot_free_contact(telebot_contact_t *contact);
@@ -68,6 +69,22 @@ static void telebot_free_mask_position(telebot_mask_position_t *mask);
 //static void telebot_free_game(telebot_document_t *game);
 //static void telebot_free_invoice(telebot_invoice_t *invoice);
 //static void telebot_free_payment(telebot_successful_payment_t *payment);
+
+telebot_error_e telebot_use_proxy(telebot_handler_t handle, char *addr, char *auth)
+{
+    if (addr == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_error_e ret = telebot_core_init_proxy(_handle->core_h, addr, auth);
+    if (ret != TELEBOT_ERROR_NONE)
+        return ret;
+
+    return TELEBOT_ERROR_NONE;
+}
 
 telebot_error_e telebot_create(telebot_handler_t *handle, char *token)
 {
@@ -510,6 +527,27 @@ telebot_error_e telebot_send_video(telebot_handler_t handle, long long int chat_
     return ret;
 }
 
+telebot_error_e telebot_send_animation(telebot_handler_t handle, long long int chat_id,
+        char *video, bool is_file, int duration, int width, int height,
+        char *caption, bool disable_notification, int reply_to_message_id,
+        char *reply_markup)
+{
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (video == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_error_e ret = telebot_core_send_animation(_handle->core_h, chat_id, video,
+            is_file, duration, caption, disable_notification, reply_to_message_id,
+            reply_markup);
+
+    tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
+
+    return ret;
+}
+
 telebot_error_e telebot_send_voice(telebot_handler_t handle, long long int chat_id,
         char *voice, bool is_file, char *caption, int duration,
         bool disable_notification, int reply_to_message_id, char *reply_markup)
@@ -843,6 +881,9 @@ static void telebot_free_message(telebot_message_t *msg)
     telebot_free_video(msg->video);
     tb_sfree(msg->video);
 
+    telebot_free_animation(msg->animation);
+    tb_sfree(msg->animation);
+
     telebot_free_voice(msg->voice);
     tb_sfree(msg->voice);
 
@@ -936,6 +977,16 @@ static void telebot_free_video(telebot_video_t *video)
     telebot_free_photo(video->thumb);
     tb_sfree(video->thumb);
     tb_sfree(video->mime_type);
+}
+
+static void telebot_free_animation(telebot_animation_t *animation)
+{
+    if (animation == NULL) return;
+
+    tb_sfree(animation->file_id);
+    telebot_free_photo(animation->thumb);
+    tb_sfree(animation->thumb);
+    tb_sfree(animation->mime_type);
 }
 
 static void telebot_free_voice(telebot_voice_t *voice)
