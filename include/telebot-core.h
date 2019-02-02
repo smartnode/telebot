@@ -49,6 +49,7 @@ typedef struct telebot_core_handler {
     char *resp_data; /**< Telegam response object */
     size_t resp_size; /**< Telegam response size */
     bool busy; /**< Mark another request is in progress */
+    char *proxy_addr;
 } telebot_core_handler_t;
 
 /**
@@ -76,6 +77,26 @@ telebot_error_e telebot_core_create(telebot_core_handler_t **core_h, char *token
  * error value.
  */
 telebot_error_e telebot_core_destroy(telebot_core_handler_t *core_h);
+
+/**
+ * @brief Set proxy address to use telebot behind proxy
+ *
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param addr Proxy address in full.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_core_set_proxy(telebot_core_handler_t *core_h, char *addr);
+
+/**
+ * @brief Get currently used proxy address
+ *
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param addr CUrrent proxy address or NULL, MUST be freed after use.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_core_get_proxy(telebot_core_handler_t *core_h, char **addr);
 
 /**
  * @brief This function is used to receive incoming updates (long polling).

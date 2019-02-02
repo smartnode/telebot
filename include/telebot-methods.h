@@ -63,6 +63,27 @@ telebot_error_e telebot_create(telebot_handler_t *handle, char *token);
 telebot_error_e telebot_destroy(telebot_handler_t handle);
 
 /**
+ * @brief Set proxy address to use telebot behind proxy.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] addr Proxy address to use.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_proxy(telebot_handler_t handle, char *addr);
+
+/**
+ * @brief Get proxy address currently used.
+ *
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[out] addr Current proxy address or NULL, MUST be freed after use.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_get_proxy(telebot_handler_t handle, char **addr);
+
+/**
  * @brief This function is used to get latest updates.
  *
  * @param[in] handle The telebot handler created with #telebot_create().

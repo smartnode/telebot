@@ -104,6 +104,37 @@ telebot_error_e telebot_destroy(telebot_handler_t handle)
     return TELEBOT_ERROR_NONE;
 }
 
+telebot_error_e telebot_set_proxy(telebot_handler_t handle, char *addr)
+{
+    if (addr == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_error_e ret = telebot_core_set_proxy(_handle->core_h, addr);
+    if (ret != TELEBOT_ERROR_NONE)
+        return ret;
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_get_proxy(telebot_handler_t handle, char **addr)
+{
+    if (addr == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    *addr = NULL;
+
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    return telebot_core_get_proxy(_handle->core_h, addr);
+}
+
+
 telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
         int limit, int timeout, telebot_update_type_e allowed_updates[],
         int allowed_updates_count, telebot_update_t **updates, int *count)
