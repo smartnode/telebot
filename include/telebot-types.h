@@ -214,6 +214,9 @@ typedef struct telebot_message {
     /** Optional. Message is a video, information about the video */
     struct telebot_video *video;
 
+    /** Optional. Message is a animation, information about the animation */
+    struct telebot_animation *animation;
+
     /** Optional. Message is a voice message, information about the file */
     struct telebot_voice *voice;
 
@@ -421,6 +424,31 @@ typedef struct telebot_video {
     int file_size;
 } telebot_video_t;
 
+/**
+ * @brief This object represents a video file.
+ */
+typedef struct telebot_animation {
+    /** Unique identifier for this file */
+    char *file_id;
+
+    /** Video width as defined by sender */
+    int width;
+
+    /** Video height as defined by sender */
+    int height;
+
+    /** Duration of the video in seconds as defined by sender */
+    int duration;
+
+    /** Optional. Video thumbnail */
+    struct telebot_photo *thumb;
+
+    /** Optional. Mime type of a file as defined by sender */
+    char *mime_type;
+
+    /** Optional. File size */
+    int file_size;
+} telebot_animation_t;
 
 /**
  * @brief This object represents a voice note.
