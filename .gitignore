@@ -46,3 +46,6 @@ Temporary Items
 
 # Build directory
 build
+
+# CLion projects
+.idea
