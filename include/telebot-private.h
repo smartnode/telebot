@@ -35,6 +35,7 @@
 #define TELEBOT_METHOD_SEND_AUDIO                   "sendAudio"
 #define TELEBOT_METHOD_SEND_DOCUMENT                "sendDocument"
 #define TELEBOT_METHOD_SEND_VIDEO                   "sendVideo"
+#define TELEBOT_METHOD_SEND_ANIMATION               "sendAnimation"
 #define TELEBOT_METHOD_SEND_VOICE                   "sendVoice"
 #define TELEBOT_METHOD_SEND_VIDEO_NOTE              "sendVideoNote"
 #define TELEBOT_METHOD_SEND_MEDIA_GROUP             "sendMediaGroup"

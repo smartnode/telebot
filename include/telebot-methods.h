@@ -67,10 +67,11 @@ telebot_error_e telebot_destroy(telebot_handler_t handle);
  *
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] addr Proxy address to use.
+ * @param[in] auth Proxy authorization information.
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_set_proxy(telebot_handler_t handle, char *addr);
+telebot_error_e telebot_set_proxy(telebot_handler_t handle, char *addr, char *auth);
 
 /**
  * @brief Get proxy address currently used.
@@ -335,6 +336,35 @@ telebot_error_e telebot_send_video(telebot_handler_t handle, long long int chat_
         char *video, bool is_file, int duration, int width, int height,
         char *caption, bool disable_notification, int reply_to_message_id,
         char *reply_markup);
+
+/**
+ * @brief This function is used to send video files as animations,
+ * Telegram clients support mp4 videos (other formats may be sent as Document).
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).
+ * @param[in] video Video file to send. It is either a file_id to resend
+ * a video that is already on the Telegram servers, or a path to video file.
+ * @param[in] is_file False if video is file_id, true, if video is a file path.
+ * @param[in] width Video width.
+ * @param[in] height Video height.
+ * @param[in] duration Duration of sent video in seconds.
+ * @param[in] caption Video caption (may also be used when resending videos).
+ * @param[in] disable_notification Sends the message silently. Users will receive
+ * a notification with no sound.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original
+ * message.
+ * @param[in] reply_markup Additional interface options. An object for a custom
+ * reply keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_send_animation(telebot_handler_t handle, long long int chat_id,
+        char *video, bool is_file, int duration, int width, int height,
+        char *caption, bool disable_notification, int reply_to_message_id,
+        char *reply_markup);
+
 
 /**
  * @brief This function is used to send audio files, if you want Telegram
