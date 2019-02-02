@@ -73,8 +73,8 @@
 #define TELEBOT_METHOD_SEND_STICKER                 "sendSticker"
 
 #ifdef DEBUG
-    #define ERR(fmt, args...) printf("[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
-    #define DBG(fmt, args...) printf("[DEBUG][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
+    #define ERR(fmt, args...) fprintf(stderr, "[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
+    #define DBG(fmt, args...) fprintf(stdout, "[DEBUG][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
 #else
     #define ERR(x, ...)
     #define DBG(x, ...)
