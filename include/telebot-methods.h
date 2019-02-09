@@ -36,8 +36,6 @@ extern "C" {
  * @{
  */
 
-telebot_error_e telebot_use_proxy(telebot_handler_t handle, char *addr, char *auth);
-
 /**
  * @brief Initial function to use telebot APIs.
  *
@@ -63,6 +61,28 @@ telebot_error_e telebot_create(telebot_handler_t *handle, char *token);
  * error value.
  */
 telebot_error_e telebot_destroy(telebot_handler_t handle);
+
+/**
+ * @brief Set proxy address to use telebot behind proxy.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] addr Proxy address to use.
+ * @param[in] auth Proxy authorization information.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_proxy(telebot_handler_t handle, char *addr, char *auth);
+
+/**
+ * @brief Get proxy address currently used.
+ *
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[out] addr Current proxy address or NULL, MUST be freed after use.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_get_proxy(telebot_handler_t handle, char **addr);
 
 /**
  * @brief This function is used to get latest updates.
@@ -235,6 +255,27 @@ telebot_error_e telebot_send_photo(telebot_handler_t handle, long long int chat_
         int reply_to_message_id, char *reply_markup);
 
 /**
+ * @brief This functionis used to send photos as mediagroup.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).long long int chat_id
+ * @param[in] photo Photo to send. 
+ * that is already on the Telegram servers, or a path to photo file.
+ * @param[in] disable_notification Sends the message silently. Users will receive
+ * a notification with no sound.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original
+ * message.
+ * @param[in] reply_markup Additional interface options. An object for a custom
+ * reply keyboard, instructions to hide keyboard or to force a reply from the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_send_mediagroup_photo_files(telebot_handler_t handle, long long int chat_id,
+        char **photos, int count, bool disable_notification,
+        int reply_to_message_id, char *reply_markup);
+
+/**
  * @brief This function is used to to send audio files. if you want Telegram
  * clients to display them in the music player. Your audio must be in the .mp3
  * format. Bots can currently send audio files of up to 50 MB in size.
@@ -318,7 +359,7 @@ telebot_error_e telebot_send_video(telebot_handler_t handle, long long int chat_
         char *reply_markup);
 
 /**
- * @brief This function is used to send video files as animations, 
+ * @brief This function is used to send video files as animations,
  * Telegram clients support mp4 videos (other formats may be sent as Document).
  *
  * @param[in] handle The telebot handler created with #telebot_create().

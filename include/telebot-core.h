@@ -53,8 +53,6 @@ typedef struct telebot_core_handler {
     char *proxy_auth;
 } telebot_core_handler_t;
 
-telebot_error_e telebot_core_init_proxy(telebot_core_handler_t *core_h, char *addr, char *auth);
-
 /**
  * @brief Start function to use telebot core APIs.
  *
@@ -80,6 +78,27 @@ telebot_error_e telebot_core_create(telebot_core_handler_t **core_h, char *token
  * error value.
  */
 telebot_error_e telebot_core_destroy(telebot_core_handler_t *core_h);
+
+/**
+ * @brief Set proxy address to use telebot behind proxy
+ *
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param addr Proxy address in full.
+ * @param auth Proxy authorization informatio.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_core_set_proxy(telebot_core_handler_t *core_h, char *addr, char *auth);
+
+/**
+ * @brief Get currently used proxy address
+ *
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param addr Current proxy address or NULL, MUST be freed after use.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_core_get_proxy(telebot_core_handler_t *core_h, char **addr);
 
 /**
  * @brief This function is used to receive incoming updates (long polling).
@@ -211,6 +230,30 @@ telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
 telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h, long long int chat_id,
         char *photo, bool is_file, char *caption, bool disable_notification,
         int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief This functionis used to send photos as media group.
+ * @param core_h The telebot core handler created with #telebot_core_create().
+ * @param chat_id Unique identifier for the target chat or username of the
+ * target channel (in the format \@channelusername).
+ * @param photo Photo to send. It is either file_id as String to resend a photo
+ * that is already on the Telegram servers, or a path to photo file.
+ * @param is_file False if photo is file_id, true, if photo is a file path.
+ * @param caption Photo caption. (may also be used when resending photos).
+ * @param disable_notification Sends the message silently. Users will receive a
+ * notification with no sound.
+ * @param reply_to_message_id If the message is a reply, ID of the original message.
+ * @param reply_markup Additional interface options. An object for a custom
+ * reply keyboard, instructions to hide keyboard or to force a reply from
+ * the user.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value. Response is placed in core_h->resp_data that contains the sent
+ * message. It MUST be freed after use.
+ */
+telebot_error_e telebot_core_send_mediagroup_photo_files(telebot_core_handler_t *core_h, long long int chat_id, char *groupjson,
+        char **photos, char **files, int count, bool disable_notification,
+        int reply_to_message_id, char *reply_markup);
+
 /**
  * @brief This function is used to to send audio files. if you want Telegram
  * clients to display them in the music player. Your audio must be in the .mp3
@@ -711,7 +754,7 @@ telebot_error_e telebot_core_set_chat_description(telebot_core_handler_t *core_h
 /**
  * @brief This function is used to pin a message in a supergroup or a channel.
  * The bot must be an administrator in the chat for this to work and must have
- * the ‘can_pin_messages’ admin right in the supergroup or ‘can_edit_messages’
+ * the 'can_pin_messages' admin right in the supergroup or 'can_edit_messages'
  * admin right in the channel.
  * @param core_h The telebot core handler created with #telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
@@ -730,7 +773,7 @@ telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
 /**
  * @brief This function is used to unpin a message in a supergroup or a channel.
  * The bot must be an administrator in the chat for this to work and must have
- * the ‘can_pin_messages’ admin right in the supergroup or ‘can_edit_messages’
+ * the 'can_pin_messages' admin right in the supergroup or 'can_edit_messages'
  * admin right in the channel.
  * @param core_h The telebot core handler created with #telebot_core_create().
  * @param chat_id Unique identifier for the target chat or username of the
