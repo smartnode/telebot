@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define _GNU_SOURCE
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,6 +27,7 @@
 #include <errno.h>
 #include <json.h>
 #include <json_object.h>
+#include <libgen.h>
 #include <telebot.h>
 #include <telebot-core.h>
 #include <telebot-private.h>
@@ -70,22 +72,6 @@ static void telebot_free_mask_position(telebot_mask_position_t *mask);
 //static void telebot_free_invoice(telebot_invoice_t *invoice);
 //static void telebot_free_payment(telebot_successful_payment_t *payment);
 
-telebot_error_e telebot_use_proxy(telebot_handler_t handle, char *addr, char *auth)
-{
-    if (addr == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
-    if (_handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
-
-    telebot_error_e ret = telebot_core_init_proxy(_handle->core_h, addr, auth);
-    if (ret != TELEBOT_ERROR_NONE)
-        return ret;
-
-    return TELEBOT_ERROR_NONE;
-}
-
 telebot_error_e telebot_create(telebot_handler_t *handle, char *token)
 {
     if ((token == NULL) || (handle == NULL))
@@ -120,6 +106,37 @@ telebot_error_e telebot_destroy(telebot_handler_t handle)
 
     return TELEBOT_ERROR_NONE;
 }
+
+telebot_error_e telebot_set_proxy(telebot_handler_t handle, char *addr, char *auth)
+{
+    if (addr == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_error_e ret = telebot_core_set_proxy(_handle->core_h, addr, auth);
+    if (ret != TELEBOT_ERROR_NONE)
+        return ret;
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_get_proxy(telebot_handler_t handle, char **addr)
+{
+    if (addr == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    *addr = NULL;
+
+    telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    return telebot_core_get_proxy(_handle->core_h, addr);
+}
+
 
 telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
         int limit, int timeout, telebot_update_type_e allowed_updates[],
@@ -465,6 +482,51 @@ telebot_error_e telebot_send_photo(telebot_handler_t handle, long long int chat_
     tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
 
     return ret;
+}
+
+telebot_error_e telebot_send_mediagroup_photo_files(telebot_handler_t handle, long long int chat_id,
+        char **photos, int count, bool disable_notification,
+        int reply_to_message_id, char *reply_markup)
+{
+	
+	int i;
+	json_object *jsonarr, *jsonobj;
+	char *str, *mediajson;
+	char **filenames;
+	telebot_hdata_t * _handle = (telebot_hdata_t *)handle;	
+		
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (photos == NULL) return TELEBOT_ERROR_INVALID_PARAMETER;
+    
+	jsonarr = json_object_new_array();	
+	
+	filenames = calloc(count, sizeof(char*));
+	if (filenames == NULL) return TELEBOT_ERROR_OUT_OF_MEMORY;
+	
+	
+	for(i=0; i<count; i++) {
+		filenames[i] = strdup(basename(photos[i]));
+		asprintf(&str,"attach://%s", filenames[i]);		
+		jsonobj = json_object_new_object();
+		
+		json_object_object_add(jsonobj, "type", json_object_new_string("photo"));
+		json_object_object_add(jsonobj, "media", json_object_new_string(str));
+		json_object_array_add(jsonarr,jsonobj);
+		
+		free(str);
+	}
+	
+	mediajson = strdup(json_object_to_json_string_ext(jsonarr, JSON_C_TO_STRING_PLAIN));
+
+	telebot_error_e ret = telebot_core_send_mediagroup_photo_files(_handle->core_h, chat_id, mediajson,
+			filenames, photos, count, disable_notification, reply_to_message_id, reply_markup);
+
+	json_object_put(jsonarr);
+	tb_sfree_zcnt(_handle->core_h->resp_data, _handle->core_h->resp_size);
+
+	return ret;
 }
 
 telebot_error_e telebot_send_audio(telebot_handler_t handle, long long int chat_id,

@@ -75,13 +75,17 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
     curl_easy_setopt(curl_h, CURLOPT_WRITEFUNCTION, write_data_cb);
     curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, core_h);
     
-    if (core_h->proxy_addr != NULL) {
-    curl_easy_setopt(curl_h, CURLOPT_PROXY, core_h->proxy_addr);
+    // added to prevent hangs (10 minutes is enough time to send)
+    curl_easy_setopt(curl_h, CURLOPT_TIMEOUT, 10 * 60);
+    curl_easy_setopt(curl_h, CURLOPT_LOW_SPEED_TIME, 60L);
+    curl_easy_setopt(curl_h, CURLOPT_LOW_SPEED_LIMIT, 16L);
 
-    if (core_h->proxy_auth != NULL) {
-    curl_easy_setopt(curl_h, CURLOPT_PROXYAUTH, CURLAUTH_ANY);
-    curl_easy_setopt(curl_h, CURLOPT_PROXYUSERPWD, core_h->proxy_auth);
-    }
+    if (core_h->proxy_addr != NULL) {
+        curl_easy_setopt(curl_h, CURLOPT_PROXY, core_h->proxy_addr);
+        if (core_h->proxy_auth != NULL) {
+                curl_easy_setopt(curl_h, CURLOPT_PROXYAUTH, CURLAUTH_ANY);
+                curl_easy_setopt(curl_h, CURLOPT_PROXYUSERPWD, core_h->proxy_auth);
+        }
     }
 
     if (post != NULL)
@@ -115,18 +119,6 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
     curl_easy_cleanup(curl_h);
 
     core_h->busy = false;
-    return TELEBOT_ERROR_NONE;
-}
-
-telebot_error_e telebot_core_init_proxy(telebot_core_handler_t *core_h, char *addr, char *auth)
-{
-    if ((addr == NULL) || (core_h == NULL)) {
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    core_h->proxy_addr = strdup(addr);
-    if (auth != NULL) core_h->proxy_auth = strdup(auth);
-
     return TELEBOT_ERROR_NONE;
 }
 
@@ -188,6 +180,32 @@ telebot_error_e telebot_core_destroy(telebot_core_handler_t *core_h)
 
     free(core_h);
     core_h = NULL;
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_core_set_proxy(telebot_core_handler_t *core_h, char *addr, char *auth)
+{
+    if ((addr == NULL) || (core_h == NULL)) {
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    core_h->proxy_addr = strdup(addr);
+    if (auth != NULL) core_h->proxy_auth = strdup(auth);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_core_get_proxy(telebot_core_handler_t *core_h, char **addr)
+{
+    if ((addr == NULL) || (core_h == NULL)) {
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if (core_h->proxy_addr)
+        *addr = strdup(core_h->proxy_addr);
+    else
+        *addr = NULL;
 
     return TELEBOT_ERROR_NONE;
 }
@@ -398,6 +416,49 @@ telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h,
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_PHOTO, post);
+}
+
+telebot_error_e telebot_core_send_mediagroup_photo_files(telebot_core_handler_t *core_h, long long int chat_id, char *groupjson,
+        char **photos, char **files, int count, bool disable_notification,
+        int reply_to_message_id, char *reply_markup)
+
+{
+    if ((core_h == NULL) || (core_h->token == NULL) || (photos == NULL) || (files == NULL) || (groupjson == NULL)) {
+        ERR("Handler, token or photo is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    struct curl_httppost *post = NULL;
+    struct curl_httppost *last = NULL;
+
+    char chat_id_str[16];
+    snprintf(chat_id_str, sizeof(chat_id_str), "%lld", chat_id);
+    curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
+            CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
+
+    curl_formadd(&post, &last, CURLFORM_COPYNAME, "media",
+            CURLFORM_COPYCONTENTS, groupjson, CURLFORM_END);
+    int i;
+    for (i=0;i<count;i++) {
+    curl_formadd(&post, &last, CURLFORM_COPYNAME, photos[i],
+                CURLFORM_FILE, files[i], CURLFORM_END);
+    }
+    
+    curl_formadd(&post, &last, CURLFORM_COPYNAME, "disable_notification",
+            CURLFORM_COPYCONTENTS, (disable_notification) ? "true" : "false",
+            CURLFORM_END);
+    if (reply_to_message_id > 0) {
+        char reply_to_message_id_str[16];
+        snprintf(reply_to_message_id_str, sizeof(reply_to_message_id_str), "%d",
+                reply_to_message_id);
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_to_message_id",
+                CURLFORM_COPYCONTENTS, reply_to_message_id_str, CURLFORM_END);
+    }
+    if (reply_markup)
+        curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
+                CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
+
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_MEDIA_GROUP, post);
 }
 
 telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h,
