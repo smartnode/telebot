@@ -21,6 +21,9 @@
 
 #define TELEBOT_API_URL                      "https://api.telegram.org"
 #define TELEBOT_URL_SIZE                     1024
+#define TELEBOT_BUFFER_SECTOR                512
+#define TELEBOT_BUFFER_BLOCK                 1024
+#define TELEBOT_BUFFER_PAGE                  4096
 #define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
 #define TELEBOT_USER_PROFILE_PHOTOS_LIMIT    100
 
