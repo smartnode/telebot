@@ -140,6 +140,8 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
         int limit, int timeout, telebot_update_type_e allowed_updates[],
         int allowed_updates_count, telebot_update_t **updates, int *count)
 {
+    int i = 0;
+    char allowed_updates_str[TELEBOT_BUFFER_PAGE] = {0, };
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -150,19 +152,15 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
     *updates = NULL;
     *count = 0;
 
-    int i = 0;
-    char allowed_updates_str[1024] = "";
     if (allowed_updates_count > 0) {
-        snprintf(allowed_updates_str, 1024, "%s", "[");
+        strncat(allowed_updates_str, "[", TELEBOT_BUFFER_BLOCK);
         for (i=0;i<allowed_updates_count;i++) {
+            strncat(allowed_updates_str, telebot_update_type_str[allowed_updates[i]],
+                TELEBOT_BUFFER_BLOCK);
             if (i < (allowed_updates_count-1)) //intermediate element
-                snprintf(allowed_updates_str, 1024, "%s%s,", allowed_updates_str,
-                        telebot_update_type_str[allowed_updates[i]]);
-            else // last element
-                snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str,
-                        telebot_update_type_str[allowed_updates[i]]);
+                strncat(allowed_updates_str, ",", TELEBOT_BUFFER_BLOCK);
         }
-        snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str,"]");
+        strncat(allowed_updates_str, "]", TELEBOT_BUFFER_BLOCK);
     }
 
     int _offset = offset != 0 ? offset : _handle->offset;
@@ -313,6 +311,8 @@ telebot_error_e telebot_set_webhook(telebot_handler_t handle, char *url,
         char *certificate, int max_connections,
         telebot_update_type_e allowed_updates[], int allowed_updates_count)
 {
+    int i = 0;
+    char allowed_updates_str[TELEBOT_BUFFER_PAGE] = {0, };
     telebot_hdata_t * _handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -320,19 +320,15 @@ telebot_error_e telebot_set_webhook(telebot_handler_t handle, char *url,
     if (url == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    int i = 0;
-    char allowed_updates_str[1024] = "";
     if (allowed_updates_count > 0) {
-        snprintf(allowed_updates_str, 1024, "%s", "[");
+        strncat(allowed_updates_str, "[", TELEBOT_BUFFER_BLOCK);
         for (i=0;i<allowed_updates_count;i++) {
+            strncat(allowed_updates_str, telebot_update_type_str[allowed_updates[i]],
+                TELEBOT_BUFFER_BLOCK);
             if (i < (allowed_updates_count-1)) //intermediate element
-                snprintf(allowed_updates_str, 1024, "%s%s,", allowed_updates_str,
-                        telebot_update_type_str[allowed_updates[i]]);
-            else // last element
-                snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str,
-                        telebot_update_type_str[allowed_updates[i]]);
+                strncat(allowed_updates_str, ",", TELEBOT_BUFFER_BLOCK);
         }
-        snprintf(allowed_updates_str, 1024, "%s%s", allowed_updates_str, "]");
+        strncat(allowed_updates_str, "]", TELEBOT_BUFFER_BLOCK);
     }
 
     telebot_error_e ret = telebot_core_set_webhook(_handle->core_h, url,
