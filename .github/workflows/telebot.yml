@@ -9,8 +9,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v2
-    - name: prepare
-      run: apt install -y pkg-config libcurl4-openssl-dev libjson-c-dev cmake binutils make
     - name: cmake 
       run: cmake .
     - name: make
