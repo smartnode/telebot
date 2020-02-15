@@ -1,3 +1,5 @@
+![Build](https://github.com/smartnode/telebot/workflows/Build/badge.svg)
+
 # telebot
 C Library for Telegram bot API that uses json-c and libcurl
 
