@@ -1,4 +1,4 @@
-name: Telebot Build CI
+name: Build
 
 on: [push]
 
