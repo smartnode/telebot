@@ -1,4 +1,8 @@
 ![Build](https://github.com/smartnode/telebot/workflows/Build/badge.svg)
+![GitHub repo size](https://img.shields.io/github/repo-size/smartnode/telebot) 
+![GitHub issues](https://img.shields.io/github/issues/smartnode/telebot) 
+![GitHub pull requests](https://img.shields.io/github/issues-pr/smartnode/telebot) 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # telebot
 C Library for Telegram bot API that uses json-c and libcurl
