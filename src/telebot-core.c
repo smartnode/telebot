@@ -62,9 +62,9 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
     core_h->busy = true;
 
     curl_h = curl_easy_init();
-
     if (curl_h == NULL) {
         ERR("Failed to init curl");
+        core_h->busy = false;
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -94,6 +94,7 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
             free(core_h->resp_data);
         core_h->resp_data= NULL;
         core_h->resp_size = 0;
+        core_h->busy = false;
         curl_easy_cleanup(curl_h);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
@@ -105,6 +106,7 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
             free(core_h->resp_data);
         core_h->resp_data = NULL;
         core_h->resp_size = 0;
+        core_h->busy = false;
         curl_easy_cleanup(curl_h);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
