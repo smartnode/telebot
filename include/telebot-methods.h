@@ -19,6 +19,8 @@
 #ifndef __TELEBOT_METHODS_H__
 #define __TELEBOT_METHODS_H__
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

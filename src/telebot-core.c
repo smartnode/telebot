@@ -18,7 +18,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <curl/curl.h>
@@ -27,53 +26,46 @@
 #include <telebot-common.h>
 #include <telebot-core.h>
 
-static size_t write_data_cb(void *contents, size_t size, size_t nmemb,
-        void *userp)
+static size_t write_data_cb(void *contents, size_t size, size_t nmemb, void *userp)
 {
-    telebot_core_handler_t *core_h = (telebot_core_handler_t *) userp;
+    telebot_response_t *resp = (telebot_response_t *) userp;
     size_t r_size = size * nmemb;
 
-    core_h->resp_data = realloc(core_h->resp_data, core_h->resp_size +
-            r_size + 1);
-    if (core_h->resp_data == NULL) {
+    resp->data = realloc(resp->data, resp->size + r_size + 1);
+    if (resp->data == NULL) {
         ERR("Failed to allocate memory, size:%u", (unsigned int)r_size);
         return 0;
     }
 
-    memcpy((core_h->resp_data  + core_h->resp_size), contents, r_size);
-    core_h->resp_size += r_size;
-    core_h->resp_data[core_h->resp_size] = 0;
+    memcpy((resp->data  + resp->size), contents, r_size);
+    resp->size += r_size;
+    resp->data[resp->size] = 0;
 
     return r_size;
 }
 
-static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
-        const char *method, struct curl_httppost *post)
+static char *telebot_core_curl_perform(telebot_core_handler_t *core_h, const char *method, struct curl_httppost *post)
 {
-    CURL *curl_h;
+    CURL *curl_h = NULL;
     CURLcode res;
     long resp_code = 0L;
+    telebot_response_t resp;
 
-    //Wait for other in-progress request
-    while (core_h->busy) /* NOOP */;
-
-    core_h->resp_data = (char *)malloc(1);
-    core_h->resp_size = 0;
-    core_h->busy = true;
+    resp.data = (char *)malloc(1);
+    resp.size = 0;
 
     curl_h = curl_easy_init();
     if (curl_h == NULL) {
         ERR("Failed to init curl");
-        core_h->busy = false;
-        return TELEBOT_ERROR_OPERATION_FAILED;
+        TELEBOT_SAFE_FZCNT(resp.data, resp.size);
+        goto finish;
     }
 
     char URL[TELEBOT_URL_SIZE];
-    snprintf(URL, TELEBOT_URL_SIZE, "%s/bot%s/%s", TELEBOT_API_URL,
-            core_h->token, method);
+    snprintf(URL, TELEBOT_URL_SIZE, "%s/bot%s/%s", TELEBOT_API_URL, core_h->token, method);
     curl_easy_setopt(curl_h, CURLOPT_URL, URL);
     curl_easy_setopt(curl_h, CURLOPT_WRITEFUNCTION, write_data_cb);
-    curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, core_h);
+    curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, &resp);
 
     if (core_h->proxy_addr != NULL) {
         curl_easy_setopt(curl_h, CURLOPT_PROXY, core_h->proxy_addr);
@@ -90,33 +82,23 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
     if (res != CURLE_OK) {
         ERR("Failed to curl_easy_perform\nError: %s (%d)",
                 curl_easy_strerror(res), res);
-        if (core_h->resp_data != NULL)
-            free(core_h->resp_data);
-        core_h->resp_data= NULL;
-        core_h->resp_size = 0;
-        core_h->busy = false;
-        curl_easy_cleanup(curl_h);
-        return TELEBOT_ERROR_OPERATION_FAILED;
+        TELEBOT_SAFE_FZCNT(resp.data, resp.size);
+        goto finish ;
     }
 
     curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
     if (resp_code != 200L) {
         ERR("Wrong HTTP response received, response: %ld", resp_code);
-        if (core_h->resp_data != NULL)
-            free(core_h->resp_data);
-        core_h->resp_data = NULL;
-        core_h->resp_size = 0;
-        core_h->busy = false;
-        curl_easy_cleanup(curl_h);
-        return TELEBOT_ERROR_OPERATION_FAILED;
+        TELEBOT_SAFE_FZCNT(resp.data, resp.size);
+        goto finish;
     }
 
-    DBG("Response: %s", core_h->resp_data);
+    DBG("Response: %s", resp.data);
 
-    curl_easy_cleanup(curl_h);
+finish:
+    if (curl_h) curl_easy_cleanup(curl_h);
 
-    core_h->busy = false;
-    return TELEBOT_ERROR_NONE;
+    return resp.data;
 }
 
 telebot_error_e telebot_core_create(telebot_core_handler_t **core_h, char *token)
@@ -125,6 +107,7 @@ telebot_error_e telebot_core_create(telebot_core_handler_t **core_h, char *token
         ERR("Token(0x%p) or core_h(0x%p) is NULL", token, core_h);
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
+    *core_h = NULL;
 
     telebot_core_handler_t *_core_h = malloc(sizeof(telebot_core_handler_t));
     if (_core_h == NULL) {
@@ -132,52 +115,46 @@ telebot_error_e telebot_core_create(telebot_core_handler_t **core_h, char *token
         return TELEBOT_ERROR_OUT_OF_MEMORY;
     }
     _core_h->token = strdup(token);
-    _core_h->resp_data = NULL;
-    _core_h->resp_size = 0;
-    _core_h->busy = false;
+    if (_core_h->token == NULL) {
+        ERR("Failed to allocate memory for token");
+        TELEBOT_SAFE_FREE(_core_h);
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
     _core_h->proxy_addr = NULL;
     _core_h->proxy_auth = NULL;
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
     *core_h = _core_h;
-
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_destroy(telebot_core_handler_t *core_h)
+telebot_error_e telebot_core_destroy(telebot_core_handler_t **core_h)
 {
     curl_global_cleanup();
 
-    if (core_h == NULL) {
+    if ((core_h == NULL) || (*core_h == NULL)) {
         ERR("Handler is NULL");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (core_h->token != NULL) {
-        memset(core_h->token, 'X', strlen(core_h->token));
-        free(core_h->token);
-        core_h->token = NULL;
+    if ((*core_h)->token != NULL) {
+        memset((*core_h)->token, 'X', strlen((*core_h)->token));
+        TELEBOT_SAFE_FREE((*core_h)->token);
     }
 
-    if (core_h->proxy_addr != NULL) {
-        memset(core_h->proxy_addr, 'M', strlen(core_h->proxy_addr));
-        free(core_h->proxy_addr);
-        core_h->proxy_addr = NULL;
+    if ((*core_h)->proxy_addr != NULL) {
+        memset((*core_h)->proxy_addr, 'M', strlen((*core_h)->proxy_addr));
+        TELEBOT_SAFE_FREE((*core_h)->proxy_addr);
     }
 
-    if (core_h->proxy_auth != NULL) {
-        memset(core_h->proxy_auth, 'M', strlen(core_h->proxy_auth));
-        free(core_h->proxy_auth);
-        core_h->proxy_auth = NULL;
+    if ((*core_h)->proxy_auth != NULL) {
+        memset((*core_h)->proxy_auth, 'M', strlen((*core_h)->proxy_auth));
+        TELEBOT_SAFE_FREE((*core_h)->proxy_auth);
     }
 
-    if (core_h->resp_data != NULL)
-        free(core_h->resp_data);
-
-    free(core_h);
-    core_h = NULL;
-
+    TELEBOT_SAFE_FREE(*core_h);
     return TELEBOT_ERROR_NONE;
 }
 
@@ -207,12 +184,12 @@ telebot_error_e telebot_core_get_proxy(telebot_core_handler_t *core_h, char **ad
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_get_updates(telebot_core_handler_t *core_h,
-        int offset, int limit, int timeout, const char *allowed_updates)
+char *telebot_core_get_updates(telebot_core_handler_t *core_h, int offset, int limit,
+    int timeout, const char *allowed_updates)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -237,16 +214,18 @@ telebot_error_e telebot_core_get_updates(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "allowed_updates",
                 CURLFORM_COPYCONTENTS, allowed_updates, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_UPDATES, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_UPDATES, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_set_webhook(telebot_core_handler_t *core_h,
-        char *url, char *certificate, int max_connections,
-        char *allowed_updates)
+char *telebot_core_set_webhook(telebot_core_handler_t *core_h, char *url,
+        char *certificate, int max_connections, char *allowed_updates)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (url == NULL)) {
         ERR("Handler, token, or url is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -265,46 +244,49 @@ telebot_error_e telebot_core_set_webhook(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "allowed_updates",
                 CURLFORM_COPYCONTENTS, allowed_updates, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_WEBHOOK, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_WEBHOOK, post);
+     if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_delete_webhook(telebot_core_handler_t *core_h)
+char *telebot_core_delete_webhook(telebot_core_handler_t *core_h)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_WEBHOOK, NULL);
 }
 
-telebot_error_e telebot_core_get_webhook_info(telebot_core_handler_t *core_h)
+char *telebot_core_get_webhook_info(telebot_core_handler_t *core_h)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_WEBHOOK_INFO, NULL);
 }
 
-telebot_error_e telebot_core_get_me(telebot_core_handler_t *core_h)
+char *telebot_core_get_me(telebot_core_handler_t *core_h)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_ME, NULL);
 }
 
-telebot_error_e telebot_core_send_message(telebot_core_handler_t *core_h,
-        long long int chat_id, char *text, char *parse_mode, bool disable_web_page_preview,
-        bool disable_notification, int reply_to_message_id, const char *reply_markup)
+char *telebot_core_send_message(telebot_core_handler_t *core_h, long long int chat_id,
+        char *text, char *parse_mode, bool disable_web_page_preview, bool disable_notification,
+        int reply_to_message_id, const char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (text == NULL)) {
         ERR("Handler, token or text is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -336,20 +318,23 @@ telebot_error_e telebot_core_send_message(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_MESSAGE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_MESSAGE, post);
+     if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
-        long long int chat_id, long long int from_chat_id, bool disable_notification, int message_id)
+char *telebot_core_forward_message(telebot_core_handler_t *core_h, long long int chat_id,
+        long long int from_chat_id, bool disable_notification, int message_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL.");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (message_id <= 0) {
         ERR("Valid message_id is required.");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -369,17 +354,19 @@ telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "message_id",
             CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_FORWARD_MESSAGE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_FORWARD_MESSAGE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h,
-        long long int chat_id, char *photo, bool is_file, char *caption,
-        bool disable_notification, int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_photo(telebot_core_handler_t *core_h, long long int chat_id,
+        char *photo, bool is_file, char *caption, bool disable_notification,
+        int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (photo == NULL)) {
         ERR("Handler, token or photo is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -412,17 +399,19 @@ telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_PHOTO, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_PHOTO, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h,
-        long long int chat_id, char *audio, bool is_file, int duration, char *performer,
-        char *title, bool disable_notification, int reply_to_message_id,
-        char *reply_markup)
+char *telebot_core_send_audio(telebot_core_handler_t *core_h, long long int chat_id,
+        char *audio, bool is_file, int duration, char *performer, char *title,
+        bool disable_notification, int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (audio == NULL)) {
         ERR("Handler, token or audio is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -464,16 +453,19 @@ telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_AUDIO, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_AUDIO, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h,
-        long long int chat_id, char *document, bool is_file, bool disable_notification,
-        int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_document(telebot_core_handler_t *core_h, long long int chat_id,
+        char *document, bool is_file, bool disable_notification, int reply_to_message_id,
+        char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (document == NULL)) {
         ERR("Handler, token or document is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -503,16 +495,19 @@ telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_DOCUMENT, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_DOCUMENT, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
-        long long int chat_id, char *video, bool is_file, int duration, char *caption,
-        bool disable_notification, int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_video(telebot_core_handler_t *core_h, long long int chat_id,
+        char *video, bool is_file, int duration, char *caption, bool disable_notification,
+        int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (video == NULL)) {
         ERR("Handler, token or document is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -551,16 +546,19 @@ telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_animation(telebot_core_handler_t *core_h,
-        long long int chat_id, char *video, bool is_file, int duration, char *caption,
-        bool disable_notification, int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_animation(telebot_core_handler_t *core_h, long long int chat_id,
+        char *video, bool is_file, int duration, char *caption, bool disable_notification,
+        int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (video == NULL)) {
         ERR("Handler, token or document is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -599,17 +597,20 @@ telebot_error_e telebot_core_send_animation(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_ANIMATION, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_ANIMATION, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
 
-telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h,
-        long long int chat_id, char *voice, bool is_file, int duration,
-        bool disable_notification, int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_voice(telebot_core_handler_t *core_h, long long int chat_id,
+        char *voice, bool is_file, int duration, bool disable_notification,
+        int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (voice == NULL)) {
         ERR("Handler, token or voice is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -645,16 +646,19 @@ telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VOICE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VOICE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
-        long long int chat_id, char *video_note, bool is_file, int duration, int length,
-        bool disable_notification, int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_video_note(telebot_core_handler_t *core_h, long long int chat_id,
+        char *video_note, bool is_file, int duration, int length, bool disable_notification,
+        int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (video_note == NULL)) {
         ERR("Handler, token or video_note is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -696,17 +700,19 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_SEND_VIDEO_NOTE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO_NOTE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
-        long long int chat_id, float latitude, float longitude, bool disable_notification,
-        int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_location(telebot_core_handler_t *core_h, long long int chat_id,
+        float latitude, float longitude, bool disable_notification, int reply_to_message_id,
+        char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -738,21 +744,24 @@ telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_LOCATION, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_LOCATION, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *core_h,
-        long long int chat_id, int message_id, char *inline_message_id, float latitude,
-        float longitude, bool disable_notification, char *reply_markup)
+char *telebot_core_edit_message_live_location(telebot_core_handler_t *core_h, long long int chat_id,
+        int message_id, char *inline_message_id, float latitude, float longitude,
+        bool disable_notification, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -788,21 +797,23 @@ telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_EDIT_MESSAGE_LIVE_LOCATION, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_LIVE_LOCATION, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *core_h,
-        long long int chat_id, int message_id, char *inline_message_id, char *reply_markup)
+char *telebot_core_stop_message_live_location(telebot_core_handler_t *core_h, long long int chat_id,
+        int message_id, char *inline_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -827,19 +838,21 @@ telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_STOP_MESSAGE_LIVE_LOCATION, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_STOP_MESSAGE_LIVE_LOCATION, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_venue(telebot_core_handler_t *core_h,
-        long long int chat_id,float latitude, float longitude, char *title, char *address,
-        char *foursquare_id, bool disable_notification, int reply_to_message_id,
+char *telebot_core_send_venue(telebot_core_handler_t *core_h, long long int chat_id,
+        float latitude, float longitude, char *title, char *address, char *foursquare_id,
+        bool disable_notification, int reply_to_message_id,
         char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (title == NULL) ||
             (address == NULL)) {
         ERR("Handler, token, title, or address is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -878,17 +891,20 @@ telebot_error_e telebot_core_send_venue(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VENUE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VENUE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_contact(telebot_core_handler_t *core_h,
-        long long int chat_id, char *phone_number, char *first_name, char *last_name,
-        bool disable_notification, int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_contact(telebot_core_handler_t *core_h, long long int chat_id,
+        char *phone_number, char *first_name, char *last_name, bool disable_notification,
+        int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (phone_number == NULL)
             || (first_name == NULL)) {
         ERR("Handler, token, phone_number, or first_name is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -919,15 +935,18 @@ telebot_error_e telebot_core_send_contact(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CONTACT, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CONTACT, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
-        long long int chat_id, char *action)
+char *telebot_core_send_chat_action(telebot_core_handler_t *core_h, long long int chat_id,
+        char *action)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (action == NULL)) {
         ERR("Handler, token or action is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -940,20 +959,23 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "action",
             CURLFORM_COPYCONTENTS, action, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CHAT_ACTION, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CHAT_ACTION, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *core_h,
-        int user_id, int offset, int limit)
+char *telebot_core_get_user_profile_photos(telebot_core_handler_t *core_h, int user_id,
+        int offset, int limit)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (user_id <= 0) {
         ERR("Invalid value of user_id");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -972,14 +994,17 @@ telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *cor
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "limit",
             CURLFORM_COPYCONTENTS, limit_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_USER_PHOTOS, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_USER_PHOTOS, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_get_file(telebot_core_handler_t *core_h, char *file_id)
+char *telebot_core_get_file(telebot_core_handler_t *core_h, char *file_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (file_id == NULL)) {
         ERR("Handler, token or file_id is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -988,7 +1013,10 @@ telebot_error_e telebot_core_get_file(telebot_core_handler_t *core_h, char *file
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "file_id",
             CURLFORM_COPYCONTENTS, file_id, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_FILE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_FILE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
 static size_t write_file_cb(void *contents, size_t size, size_t nmemb,
@@ -1048,17 +1076,17 @@ telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h,
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, long until_date)
+char *telebot_core_kick_chat_member(telebot_core_handler_t *core_h, long long int chat_id,
+        int user_id, long until_date)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (user_id <= 0) {
         ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1077,21 +1105,22 @@ telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "until_date",
             CURLFORM_COPYCONTENTS, until_date_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_KICK_CHAT_MEMBER,
-            post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_KICK_CHAT_MEMBER, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id)
+char *telebot_core_unban_chat_member(telebot_core_handler_t *core_h, long long int chat_id, int user_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (user_id <= 0) {
         ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1106,23 +1135,24 @@ telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "user_id",
             CURLFORM_COPYCONTENTS, user_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNBAN_CHAT_MEMBER,
-            post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNBAN_CHAT_MEMBER, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, long until_date, bool can_send_messages,
-        bool can_send_media_messages, bool can_send_other_messages,
-        bool can_add_web_page_previews)
+char *telebot_core_restrict_chat_member(telebot_core_handler_t *core_h, long long int chat_id,
+        int user_id, long until_date, bool can_send_messages, bool can_send_media_messages,
+        bool can_send_other_messages, bool can_add_web_page_previews)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (user_id <= 0) {
         ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1153,23 +1183,25 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "can_add_web_page_previews",
                 CURLFORM_COPYCONTENTS, "true", CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, bool can_post_messages, bool can_edit_messages,
-        bool can_delete_messages, bool can_invite_users, bool can_restrict_members,
-        bool can_pin_messages, bool can_promote_members)
+char *telebot_core_promote_chat_member(telebot_core_handler_t *core_h, long long int chat_id,
+        int user_id, bool can_post_messages, bool can_edit_messages, bool can_delete_messages,
+        bool can_invite_users, bool can_restrict_members, bool can_pin_messages,
+        bool can_promote_members)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (user_id <= 0) {
         ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1205,16 +1237,17 @@ telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "can_promote_members",
                 CURLFORM_COPYCONTENTS, "true", CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_PROMOTE_CHAT_MEMBER, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_export_chat_invite_link(telebot_core_handler_t *core_h,
-        long long int chat_id)
+char *telebot_core_export_chat_invite_link(telebot_core_handler_t *core_h, long long int chat_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1224,21 +1257,23 @@ telebot_error_e telebot_core_export_chat_invite_link(telebot_core_handler_t *cor
     snprintf(chat_id_str, sizeof(chat_id_str), "%lld", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_EXPORT_CHAT_INVITE_LINK, post);
+
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_EXPORT_CHAT_INVITE_LINK, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_set_chat_photo(telebot_core_handler_t *core_h,
-        long long int chat_id, char *photo)
+char *telebot_core_set_chat_photo(telebot_core_handler_t *core_h, long long int chat_id, char *photo)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (photo == NULL) {
         ERR("Valid photo is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1250,17 +1285,19 @@ telebot_error_e telebot_core_set_chat_photo(telebot_core_handler_t *core_h,
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "photo",
             CURLFORM_FILE, photo, CURLFORM_END);
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_SET_CHAT_PHOTO, post);
+
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_PHOTO, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
 
-telebot_error_e telebot_core_delete_chat_photo(telebot_core_handler_t *core_h,
-        long long int chat_id, char *photo)
+char *telebot_core_delete_chat_photo(telebot_core_handler_t *core_h, long long int chat_id, char *photo)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1270,22 +1307,24 @@ telebot_error_e telebot_core_delete_chat_photo(telebot_core_handler_t *core_h,
     snprintf(chat_id_str, sizeof(chat_id_str), "%lld", chat_id);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_DELETE_CHAT_PHOTO, post);
+
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_CHAT_PHOTO, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
 
-telebot_error_e telebot_core_set_chat_title(telebot_core_handler_t *core_h,
-        long long int chat_id, char *title)
+char *telebot_core_set_chat_title(telebot_core_handler_t *core_h, long long int chat_id, char *title)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if ((title == NULL) || (strlen(title) > 255)) {
         ERR("Valid title is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1297,17 +1336,19 @@ telebot_error_e telebot_core_set_chat_title(telebot_core_handler_t *core_h,
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "title",
             CURLFORM_COPYCONTENTS, title, CURLFORM_END);
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_SET_CHAT_TITLE, post);
+
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_TITLE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
 
-telebot_error_e telebot_core_set_chat_description(telebot_core_handler_t *core_h,
-        long long int chat_id, char *description)
+char *telebot_core_set_chat_description(telebot_core_handler_t *core_h, long long int chat_id, char *description)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1320,21 +1361,24 @@ telebot_error_e telebot_core_set_chat_description(telebot_core_handler_t *core_h
     if (description)
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "description",
                 CURLFORM_COPYCONTENTS, description, CURLFORM_END);
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_SET_CHAT_DESCRIPTION, post);
+
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_DESCRIPTION, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
-        long long int chat_id, int message_id, bool disable_notification)
+char *telebot_core_pin_chat_message(telebot_core_handler_t *core_h, long long int chat_id,
+        int message_id, bool disable_notification)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (message_id <=0) {
         ERR("Valid message_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1352,16 +1396,17 @@ telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "disable_notification",
                 CURLFORM_COPYCONTENTS, "true", CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_PIN_CHAT_MESSAGE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_PIN_CHAT_MESSAGE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_unpin_chat_message(telebot_core_handler_t *core_h,
-        long long int chat_id)
+char *telebot_core_unpin_chat_message(telebot_core_handler_t *core_h, long long int chat_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1372,17 +1417,18 @@ telebot_error_e telebot_core_unpin_chat_message(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_UNPIN_CHAT_MESSAGE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNPIN_CHAT_MESSAGE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
 
-telebot_error_e telebot_core_leave_chat(telebot_core_handler_t *core_h,
-        long long int chat_id)
+char *telebot_core_leave_chat(telebot_core_handler_t *core_h, long long int chat_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1393,16 +1439,18 @@ telebot_error_e telebot_core_leave_chat(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_LEAVE_CHAT, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_LEAVE_CHAT, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
 
-telebot_error_e telebot_core_get_chat(telebot_core_handler_t *core_h,
-        long long int chat_id)
+char *telebot_core_get_chat(telebot_core_handler_t *core_h, long long int chat_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1413,15 +1461,17 @@ telebot_error_e telebot_core_get_chat(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_get_chat_admins(telebot_core_handler_t *core_h,
-        long long int chat_id)
+char *telebot_core_get_chat_admins(telebot_core_handler_t *core_h, long long int chat_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1432,15 +1482,17 @@ telebot_error_e telebot_core_get_chat_admins(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_ADMINS, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_ADMINS, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_get_chat_members_count(telebot_core_handler_t *core_h,
-        long long int chat_id)
+char *telebot_core_get_chat_members_count(telebot_core_handler_t *core_h, long long int chat_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1451,16 +1503,17 @@ telebot_error_e telebot_core_get_chat_members_count(telebot_core_handler_t *core
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_GET_CHAT_MEMBERS_COUNT, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBERS_COUNT, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id)
+char *telebot_core_get_chat_member(telebot_core_handler_t *core_h, long long int chat_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1471,21 +1524,23 @@ telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_GET_CHAT_MEMBER, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBER, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_set_chat_sticker_set(telebot_core_handler_t *core_h,
-        long long int chat_id, char *sticker_set_name)
+char *telebot_core_set_chat_sticker_set(telebot_core_handler_t *core_h, long long int chat_id,
+        char *sticker_set_name)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (sticker_set_name == NULL) {
         ERR("Valid sticker_set_name is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1498,16 +1553,17 @@ telebot_error_e telebot_core_set_chat_sticker_set(telebot_core_handler_t *core_h
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "sticker_set_name",
             CURLFORM_COPYCONTENTS, sticker_set_name, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_SET_CHAT_STICKER_SET, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_STICKER_SET, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_delete_chat_sticker_set(telebot_core_handler_t *core_h,
-        long long int chat_id)
+char *telebot_core_delete_chat_sticker_set(telebot_core_handler_t *core_h, long long int chat_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1518,18 +1574,19 @@ telebot_error_e telebot_core_delete_chat_sticker_set(telebot_core_handler_t *cor
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "chat_id",
             CURLFORM_COPYCONTENTS, chat_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_DEL_CHAT_STICKER_SET, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_DEL_CHAT_STICKER_SET, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t * core_h,
-        const char *callback_query_id, char *text, bool show_alert,
-        char *url, int cache_time)
+char *telebot_core_answer_callback_query(telebot_core_handler_t *core_h, const char *callback_query_id,
+        char *text, bool show_alert, char *url, int cache_time)
 {
     if ((core_h == NULL) || (core_h->token == NULL) ||
             (callback_query_id == NULL)) {
         ERR("Handler, token or callback_query_id is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1553,22 +1610,24 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t * core
                 CURLFORM_COPYCONTENTS, cache_time_str, CURLFORM_END);
     }
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_ANSWER_CALLBACK_QUERY, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_CALLBACK_QUERY, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
-        long long int chat_id, int message_id, char *inline_message_id, char *text,
-        char *parse_mode, bool disable_web_page_preview, char *reply_markup)
+char *telebot_core_edit_message_text(telebot_core_handler_t *core_h, long long int chat_id,
+        int message_id, char *inline_message_id, char *text, char *parse_mode,
+        bool disable_web_page_preview, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (text == NULL)) {
         ERR("Handler, token, or text is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (((chat_id == 0) || (message_id <=0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1601,22 +1660,23 @@ telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_EDIT_MESSAGE_TEXT, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_TEXT, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_edit_message_caption(telebot_core_handler_t *core_h,
-        long long int chat_id, int message_id, char *inline_message_id, char *caption,
-        char *reply_markup)
+char *telebot_core_edit_message_caption(telebot_core_handler_t *core_h, long long int chat_id,
+        int message_id, char *inline_message_id, char *caption, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (((chat_id == 0) || (message_id <=0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1644,22 +1704,24 @@ telebot_error_e telebot_core_edit_message_caption(telebot_core_handler_t *core_h
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_EDIT_MESSAGE_CAPTION, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_CAPTION, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
 
-telebot_error_e telebot_core_edit_message_reply_markup(telebot_core_handler_t *core_h,
-        long long int chat_id, int message_id, char *inline_message_id, char *reply_markup)
+char *telebot_core_edit_message_reply_markup(telebot_core_handler_t *core_h, long long int chat_id,
+        int message_id, char *inline_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if (((chat_id == 0) || (message_id <=0)) && (inline_message_id == NULL)) {
         ERR("Either valid chat_id & message_id or inline_message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1684,21 +1746,22 @@ telebot_error_e telebot_core_edit_message_reply_markup(telebot_core_handler_t *c
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h,
-            TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
-        long long int chat_id, int message_id)
+char *telebot_core_delete_message(telebot_core_handler_t *core_h, long long int chat_id, int message_id)
 {
     if ((core_h == NULL) || (core_h->token == NULL)) {
         ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     if ((message_id) <= 0) {
         ERR("message_id is invalid");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1714,16 +1777,18 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
     curl_formadd(&post, &last, CURLFORM_COPYNAME, "message_id",
             CURLFORM_COPYCONTENTS, message_id_str, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGE, post);
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGE, post);
+    if (post) curl_formfree(post);
+
+    return response;
 }
 
-telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *core_h,
-        long long int chat_id, char *sticker, bool is_file, bool disable_notification,
-        int reply_to_message_id, char *reply_markup)
+char *telebot_core_send_sticker(telebot_core_handler_t *core_h, long long int chat_id, char *sticker,
+        bool is_file, bool disable_notification, int reply_to_message_id, char *reply_markup)
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (sticker == NULL)) {
         ERR("Handler, token or sticker is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return NULL;
     }
 
     struct curl_httppost *post = NULL;
@@ -1753,6 +1818,8 @@ telebot_error_e telebot_core_send_sticker(telebot_core_handler_t *core_h,
         curl_formadd(&post, &last, CURLFORM_COPYNAME, "reply_markup",
                 CURLFORM_COPYCONTENTS, reply_markup, CURLFORM_END);
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_STICKER, post);
-}
+    char *response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_STICKER, post);
+    if (post) curl_formfree(post);
 
+    return response;
+}

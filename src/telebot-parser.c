@@ -18,7 +18,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <json.h>
 #include <json_object.h>
@@ -282,8 +281,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
         ret = telebot_parser_get_chat_photo(chat_photo , chat->photo);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <photo> from chat object");
-            free(chat->photo);
-            chat->photo = NULL;
+            TELEBOT_SAFE_FREE(chat->photo);
         }
     }
 
@@ -303,8 +301,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj,
         ret = telebot_parser_get_message(pinned_message , chat->pinned_message);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <pinned_message> from chat object");
-            free(chat->pinned_message);
-            chat->pinned_message = NULL;
+            TELEBOT_SAFE_FREE(chat->pinned_message);
         }
     }
 
@@ -342,8 +339,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_user(from , msg->from);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <from user> from message object");
-            free(msg->from);
-            msg->from = NULL;
+            TELEBOT_SAFE_FREE(msg->from);
         }
     }
 
@@ -358,8 +354,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_chat(chat , msg->chat);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <chat> from message object");
-            free(msg->chat);
-            msg->chat = NULL;
+            TELEBOT_SAFE_FREE(msg->chat);
         }
     }
 
@@ -369,8 +364,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_user(forward_from , msg->forward_from);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <forward from> from message object");
-            free(msg->forward_from);
-            msg->forward_from = NULL;
+            TELEBOT_SAFE_FREE(msg->forward_from);
         }
     }
 
@@ -385,8 +379,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_message(reply_to_message , msg->reply_to_message);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <reply_to_message> from message object");
-            free(msg->reply_to_message);
-            msg->reply_to_message = NULL;
+            TELEBOT_SAFE_FREE(msg->reply_to_message);
         }
     }
 
@@ -432,8 +425,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_audio(audio , msg->audio);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <audio> from message object");
-            free(msg->audio);
-            msg->audio = NULL;
+            TELEBOT_SAFE_FREE(msg->audio);
         }
     }
 
@@ -443,8 +435,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_document(document, msg->document);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <document> from message object");
-            free(msg->document);
-            msg->document = NULL;
+            TELEBOT_SAFE_FREE(msg->document);
         }
     }
 
@@ -464,8 +455,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_sticker(sticker , msg->sticker);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <sticker> from message object");
-            free(msg->sticker);
-            msg->sticker = NULL;
+            TELEBOT_SAFE_FREE(msg->sticker);
         }
     }
 
@@ -475,8 +465,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_video(video , msg->video);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <video> from message object");
-            free(msg->video);
-            msg->video = NULL;
+            TELEBOT_SAFE_FREE(msg->video);
         }
     }
 
@@ -486,8 +475,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_video_note(video_note , msg->video_note);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <video_note> from message object");
-            free(msg->video_note);
-            msg->video_note = NULL;
+            TELEBOT_SAFE_FREE(msg->video_note);
         }
     }
 
@@ -497,8 +485,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_voice(voice , msg->voice);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <voice> from message object");
-            free(msg->voice);
-            msg->voice = NULL;
+            TELEBOT_SAFE_FREE(msg->voice);
         }
     }
 
@@ -513,8 +500,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_contact(contact , msg->contact);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <contact> from message object");
-            free(msg->contact);
-            msg->contact = NULL;
+            TELEBOT_SAFE_FREE(msg->contact);
         }
     }
 
@@ -524,8 +510,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_location(location , msg->location);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <location> from message object");
-            free(msg->location);
-            msg->location = NULL;
+            TELEBOT_SAFE_FREE(msg->location);
         }
     }
 
@@ -535,8 +520,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_venue(venue , msg->venue);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <location> from message object");
-            free(msg->venue);
-            msg->venue = NULL;
+            TELEBOT_SAFE_FREE(msg->venue);
         }
     }
 
@@ -605,8 +589,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj,
         ret = telebot_parser_get_message(pinned_message , msg->pinned_message);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <pinned_message> from message object");
-            free(msg->pinned_message);
-            msg->pinned_message = NULL;
+            TELEBOT_SAFE_FREE(msg->pinned_message);
         }
     }
 
@@ -636,8 +619,7 @@ telebot_error_e telebot_parser_get_message_entity(struct json_object *obj,
         entity->offset = json_object_get_int(offset);
     }
     else {
-        free(entity->type);
-        entity->type = NULL;
+        TELEBOT_SAFE_FREE(entity->type);
         ERR("Object is not message entity type, offset not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
@@ -648,9 +630,7 @@ telebot_error_e telebot_parser_get_message_entity(struct json_object *obj,
     }
     else {
         ERR("Object is not message entity type, length not found");
-        free(entity->type);
-        entity->type = NULL;
-        entity->offset = 0;
+        TELEBOT_SAFE_FZCNT(entity->type, entity->offset);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -665,8 +645,7 @@ telebot_error_e telebot_parser_get_message_entity(struct json_object *obj,
         int ret = telebot_parser_get_user(user, entity->user);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <user> from message entity object");
-            free(entity->user);
-            entity->user = NULL;
+            TELEBOT_SAFE_FREE(entity->user);
         }
     }
 
@@ -722,8 +701,7 @@ telebot_error_e telebot_parser_get_photo(struct json_object *obj,
     }
     else {
         ERR("Object is not photo size type, width not found");
-        free(photo->file_id);
-        photo->file_id = NULL;
+        TELEBOT_SAFE_FREE(photo->file_id);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -733,9 +711,7 @@ telebot_error_e telebot_parser_get_photo(struct json_object *obj,
     }
     else {
         ERR("Object is not photo size type, height not found");
-        free(photo->file_id);
-        photo->file_id = NULL;
-        photo->width = 0;
+        TELEBOT_SAFE_FZCNT(photo->file_id, photo->width);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -796,8 +772,7 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj,
     }
     else {
         ERR("Object is not audio type, duration not found");
-        free(audio->file_id);
-        audio->file_id = NULL;
+        TELEBOT_SAFE_FREE(audio->file_id);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -846,8 +821,7 @@ telebot_error_e telebot_parser_get_document(struct json_object *obj,
         int ret = telebot_parser_get_photo(thumb, document->thumb);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <thumb> from document object");
-            free(document->thumb);
-            document->thumb = NULL;
+            TELEBOT_SAFE_FREE(document->thumb);
         }
     }
 
@@ -891,8 +865,7 @@ telebot_error_e telebot_parser_get_video(struct json_object *obj,
     }
     else {
         ERR("Object is not video type, width not found");
-        free(video->file_id);
-        video->file_id = NULL;
+        TELEBOT_SAFE_FREE(video->file_id);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -902,8 +875,7 @@ telebot_error_e telebot_parser_get_video(struct json_object *obj,
     }
     else {
         ERR("Object is not video type, height not found");
-        free(video->file_id);
-        video->file_id = NULL;
+        TELEBOT_SAFE_FREE(video->file_id);
         video->width = 0;
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
@@ -914,8 +886,7 @@ telebot_error_e telebot_parser_get_video(struct json_object *obj,
     }
     else {
         ERR("Object is not video type, duration not found");
-        free(video->file_id);
-        video->file_id = NULL;
+        TELEBOT_SAFE_FREE(video->file_id);
         video->width = 0;
         video->height = 0;
         return TELEBOT_ERROR_OPERATION_FAILED;
@@ -927,8 +898,7 @@ telebot_error_e telebot_parser_get_video(struct json_object *obj,
         int ret = telebot_parser_get_photo(thumb, video->thumb);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <thumb> from video object");
-            free(video->thumb);
-            video->thumb = NULL;
+            TELEBOT_SAFE_FREE(video->thumb);
         }
     }
 
@@ -967,8 +937,7 @@ telebot_error_e telebot_parser_get_video_note(struct json_object *obj,
     }
     else {
         ERR("Object is not video note type, length not found");
-        free(video_note->file_id);
-        video_note->file_id = NULL;
+        TELEBOT_SAFE_FREE(video_note->file_id);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -978,9 +947,7 @@ telebot_error_e telebot_parser_get_video_note(struct json_object *obj,
     }
     else {
         ERR("Object is not video note type, duration not found");
-        free(video_note->file_id);
-        video_note->file_id = NULL;
-        video_note->length = 0;
+        TELEBOT_SAFE_FZCNT(video_note->file_id, video_note->length);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -990,8 +957,7 @@ telebot_error_e telebot_parser_get_video_note(struct json_object *obj,
         int ret = telebot_parser_get_photo(thumb, video_note->thumb);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <thumb> from video note object");
-            free(video_note->thumb);
-            video_note->thumb = NULL;
+            TELEBOT_SAFE_FREE(video_note->thumb);
         }
     }
 
@@ -1025,8 +991,7 @@ telebot_error_e telebot_parser_get_voice(struct json_object *obj,
     }
     else {
         ERR("Object is not voice type, voice duration not found");
-        free(voice->file_id);
-        voice->file_id = NULL;
+        TELEBOT_SAFE_FREE(voice->file_id);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -1065,8 +1030,7 @@ telebot_error_e telebot_parser_get_contact(struct json_object *obj,
     }
     else {
         ERR("Object is not contact type, first name not found");
-        free(contact->phone_number);
-        contact->phone_number = NULL;
+        TELEBOT_SAFE_FREE(contact->phone_number);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -1133,8 +1097,7 @@ telebot_error_e telebot_parser_get_venue(struct json_object *obj,
     }
     else {
         ERR("Object is not venue type, address not found");
-        free(venue->title);
-        venue->title = NULL;
+        TELEBOT_SAFE_FREE(venue->title);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -1144,21 +1107,16 @@ telebot_error_e telebot_parser_get_venue(struct json_object *obj,
         int ret = telebot_parser_get_location(location, venue->location);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <location> from venue object");
-            free(venue->location);
-            venue->location = NULL;
-            free(venue->title);
-            venue->title = NULL;
-            free(venue->address);
-            venue->address = NULL;
+            TELEBOT_SAFE_FREE(venue->location);
+            TELEBOT_SAFE_FREE(venue->title);
+            TELEBOT_SAFE_FREE(venue->address);
             return TELEBOT_ERROR_OPERATION_FAILED;
         }
     }
     else {
         ERR("Object is not venue type, location not found");
-        free(venue->title);
-        venue->title = NULL;
-        free(venue->address);
-        venue->address = NULL;
+        TELEBOT_SAFE_FREE(venue->title);
+        TELEBOT_SAFE_FREE(venue->address);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -1215,8 +1173,7 @@ telebot_error_e telebot_parser_get_user_profile_photos(struct json_object *obj,
 
     if (ret != TELEBOT_ERROR_NONE) {
         for (i=0;i<4;i++) {
-            free(photos->photos[i]);
-            photos->photos[i] = NULL;
+            TELEBOT_SAFE_FREE(photos->photos[i]);
         }
         photos->current_count = 0;
         return TELEBOT_ERROR_OPERATION_FAILED;
@@ -1266,8 +1223,7 @@ telebot_error_e  telebot_parser_get_chat_photo(struct json_object *obj,
     }
     else {
         ERR("Object is not chat photo type, big_file_id not found");
-        free(photo->small_file_id);
-        photo->small_file_id = NULL;
+        TELEBOT_SAFE_FREE(photo->small_file_id);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
@@ -1313,8 +1269,7 @@ telebot_error_e telebot_parser_get_sticker(struct json_object *obj,
         int ret = telebot_parser_get_photo(thumb, sticker->thumb);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <thumb> from video note object");
-            free(sticker->thumb);
-            sticker->thumb = NULL;
+            TELEBOT_SAFE_FREE(sticker->thumb);
         }
     }
 
@@ -1334,8 +1289,7 @@ telebot_error_e telebot_parser_get_sticker(struct json_object *obj,
         int ret = telebot_parser_get_mask_position(mask_position, sticker->mask_position);
         if (ret != TELEBOT_ERROR_NONE) {
             ERR("Failed to get <mask_position> from video note object");
-            free(sticker->mask_position);
-            sticker->mask_position = NULL;
+            TELEBOT_SAFE_FREE(sticker->mask_position);
         }
     }
 

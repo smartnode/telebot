@@ -26,6 +26,9 @@
 #define TELEBOT_BUFFER_PAGE                  4096
 #define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
 #define TELEBOT_USER_PROFILE_PHOTOS_LIMIT    100
+#define TELEBOT_SAFE_FREE(addr)              if (addr) { free(addr); addr = NULL; }
+#define TELEBOT_SAFE_FZCNT(addr, count)      TELEBOT_SAFE_FREE(addr); count = 0;
+
 
 #define TELEBOT_METHOD_GET_UPDATES                  "getUpdates"
 #define TELEBOT_METHOD_SET_WEBHOOK                  "setWebhook"
@@ -82,5 +85,10 @@
     #define ERR(x, ...)
     #define DBG(x, ...)
 #endif
+
+typedef struct _telebot_response {
+    char *data; /**< Telegam response object */
+    size_t size; /**< Telegam response size */
+} telebot_response_t;
 
 #endif /* __TELEBOT_PRIVATE_H__ */
