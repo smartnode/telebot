@@ -53,7 +53,7 @@ $(function() {
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
-<iframe src="javascript:void(0)" frameborder="0" 
+<iframe src="javascript:void(0)" frameborder="0"
         name="MSearchResults" id="MSearchResults">
 </iframe>
 </div>
@@ -63,20 +63,7 @@ $(function() {
 <div class="title">Telebot Documentation</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><div class="image">
-<object type="image/svg+xml" data="https://github.com/smartnode/telebot/workflows/Build/badge.svg" alt="Build"></object>
-</div>
- <div class="image">
-<img src="https://img.shields.io/github/repo-size/smartnode/telebot" alt="GitHub repo size"/>
-</div>
- <div class="image">
-<img src="https://img.shields.io/github/issues/smartnode/telebot" alt="GitHub issues"/>
-</div>
- <div class="image">
-<img src="https://img.shields.io/github/issues-pr/smartnode/telebot" alt="GitHub pull requests"/>
-</div>
-<p> <a href="https://opensource.org/licenses/Apache-2.0"></a></p>
-<h1>Telebot</h1>
+<div class="textblock">
 <p>C Library for Telegram bot API that uses json-c and libcurl. Head over to <a href="https://core.telegram.org/bots">Telegram Bots</a> page to read about how to register your brand new bot with Telegram platform and see it in action using telebot.</p>
 <h2>Building</h2>
 <p>You need to install libraries and build tools such as CMake. On Debian-based Linux distributions you can do it as follows: </p><div class="fragment"><div class="line">sudo apt-get install libcurl4-openssl-dev libjson-c-dev cmake binutils make</div></div><!-- fragment --><p> On Mac OSX, first insall macports from <a href="https://www.macports.org/install.php">MacPorts</a> and in Terminal </p><div class="fragment"><div class="line">sudo port install cmake json-c curl</div></div><!-- fragment --><p> To build the library run following commands: </p><div class="fragment"><div class="line">cd [your repository]</div><div class="line">mkdir -p Build &amp;&amp; cd Build</div><div class="line">cmake ../</div><div class="line">make</div></div><!-- fragment --><h2>Sample</h2>
