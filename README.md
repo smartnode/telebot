@@ -14,7 +14,7 @@ On Debian-based Linux distributions you can do it as follows:
 ```sh
 sudo apt-get install libcurl4-openssl-dev libjson-c-dev cmake binutils make
 ```
-On Mac OSX, first insall macports from [MacPorts](https://www.macports.org/install.php) and in Terminal
+On Mac OSX, first install macports from [MacPorts](https://www.macports.org/install.php) in Terminal
 ```sh
 sudo port install cmake json-c curl
 ```
