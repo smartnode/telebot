@@ -1068,6 +1068,28 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_
         const char *url, int cache_time, telebot_core_response_t *response);
 
 /**
+ * @brief Change the list of the bot's commands.
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] commands A JSON-serialized list of bot commands to be set as the
+ * list of the bot's commands. At most 100 commands can be specified.
+ * @param[out] response Response data that contains "True" on success.
+ * It MUST be freed with #telebot_core_put_response().
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_core_set_my_commands(telebot_core_handler_t *core_h,
+        const char *commands, telebot_core_response_t *response);
+
+/**
+ * @brief Get the current list of the bot's commands..
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[out] response Response data that contains "True" on success.
+ * It MUST be freed with #telebot_core_put_response().
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_core_get_my_commands(telebot_core_handler_t *core_h,
+        telebot_core_response_t *response);
+
+/**
  * @brief Edit text and game messages sent by the bot or via the bot (for inline bots).
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
  * @param[in] chat_id Required if inline_message_id. Unique identifier for the target

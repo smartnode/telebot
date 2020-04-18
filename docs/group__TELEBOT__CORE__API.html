@@ -244,6 +244,12 @@ Functions</h2></td></tr>
 <tr class="memitem:ga0ebf29ee36991451cf904e373afe29bc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__CORE__API.html#ga0ebf29ee36991451cf904e373afe29bc">telebot_core_answer_callback_query</a> (<a class="el" href="group__TELEBOT__CORE__API.html#ga5bf3553d71c2440a5861f0b8a0c22d70">telebot_core_handler_t</a> *core_h, const char *callback_query_id, const char *text, bool show_alert, const char *url, int cache_time, <a class="el" href="group__TELEBOT__CORE__API.html#gacd6a45485832a1a0c0ecfe17487582fa">telebot_core_response_t</a> *response)</td></tr>
 <tr class="memdesc:ga0ebf29ee36991451cf904e373afe29bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send answers to callback queries sent from inline keyboards. The answer will be displayed to the user as a notification at the top of the chat screen or as an alert.  <a href="#ga0ebf29ee36991451cf904e373afe29bc">More...</a><br /></td></tr>
 <tr class="separator:ga0ebf29ee36991451cf904e373afe29bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf3603c9ce86db3f229bb8915fe8cdc0f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__CORE__API.html#gaf3603c9ce86db3f229bb8915fe8cdc0f">telebot_core_set_my_commands</a> (<a class="el" href="group__TELEBOT__CORE__API.html#ga5bf3553d71c2440a5861f0b8a0c22d70">telebot_core_handler_t</a> *core_h, const char *commands, <a class="el" href="group__TELEBOT__CORE__API.html#gacd6a45485832a1a0c0ecfe17487582fa">telebot_core_response_t</a> *response)</td></tr>
+<tr class="memdesc:gaf3603c9ce86db3f229bb8915fe8cdc0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the list of the bot's commands.  <a href="#gaf3603c9ce86db3f229bb8915fe8cdc0f">More...</a><br /></td></tr>
+<tr class="separator:gaf3603c9ce86db3f229bb8915fe8cdc0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae68b22d44991bbd6a2c6824c42356b47"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__CORE__API.html#gae68b22d44991bbd6a2c6824c42356b47">telebot_core_get_my_commands</a> (<a class="el" href="group__TELEBOT__CORE__API.html#ga5bf3553d71c2440a5861f0b8a0c22d70">telebot_core_handler_t</a> *core_h, <a class="el" href="group__TELEBOT__CORE__API.html#gacd6a45485832a1a0c0ecfe17487582fa">telebot_core_response_t</a> *response)</td></tr>
+<tr class="memdesc:gae68b22d44991bbd6a2c6824c42356b47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current list of the bot's commands..  <a href="#gae68b22d44991bbd6a2c6824c42356b47">More...</a><br /></td></tr>
+<tr class="separator:gae68b22d44991bbd6a2c6824c42356b47"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2af788fd91f5dadf39a31c4cf820e1ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__CORE__API.html#ga2af788fd91f5dadf39a31c4cf820e1ef">telebot_core_edit_message_text</a> (<a class="el" href="group__TELEBOT__CORE__API.html#ga5bf3553d71c2440a5861f0b8a0c22d70">telebot_core_handler_t</a> *core_h, long long int chat_id, int message_id, const char *inline_message_id, const char *text, const char *parse_mode, bool disable_web_page_preview, const char *reply_markup, <a class="el" href="group__TELEBOT__CORE__API.html#gacd6a45485832a1a0c0ecfe17487582fa">telebot_core_response_t</a> *response)</td></tr>
 <tr class="memdesc:ga2af788fd91f5dadf39a31c4cf820e1ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Edit text and game messages sent by the bot or via the bot (for inline bots).  <a href="#ga2af788fd91f5dadf39a31c4cf820e1ef">More...</a><br /></td></tr>
 <tr class="separator:ga2af788fd91f5dadf39a31c4cf820e1ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1321,6 +1327,44 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">core_h</td><td>The telebot core handler created with <a class="el" href="group__TELEBOT__CORE__API.html#ga91c0c6a43ab73a63d900f77e3c1ec28e" title="Start function to use telebot core APIs. ">telebot_core_create()</a>. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">response</td><td>Response data, MUST be freed with <a class="el" href="group__TELEBOT__CORE__API.html#gad15d5f99bc4af7438d99574dccf32c41" title="Release response data obtained with telebot core methods. ">telebot_core_put_response()</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a id="gae68b22d44991bbd6a2c6824c42356b47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae68b22d44991bbd6a2c6824c42356b47">&#9670;&nbsp;</a></span>telebot_core_get_my_commands()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_core_get_my_commands </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__CORE__API.html#ga5bf3553d71c2440a5861f0b8a0c22d70">telebot_core_handler_t</a> *&#160;</td>
+          <td class="paramname"><em>core_h</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__CORE__API.html#gacd6a45485832a1a0c0ecfe17487582fa">telebot_core_response_t</a> *&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the current list of the bot's commands.. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">core_h</td><td>The telebot core handler created with <a class="el" href="group__TELEBOT__CORE__API.html#ga91c0c6a43ab73a63d900f77e3c1ec28e" title="Start function to use telebot core APIs. ">telebot_core_create()</a>. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">response</td><td>Response data that contains "True" on success. It MUST be freed with <a class="el" href="group__TELEBOT__CORE__API.html#gad15d5f99bc4af7438d99574dccf32c41" title="Release response data obtained with telebot core methods. ">telebot_core_put_response()</a>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -3674,6 +3718,51 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="gaf3603c9ce86db3f229bb8915fe8cdc0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf3603c9ce86db3f229bb8915fe8cdc0f">&#9670;&nbsp;</a></span>telebot_core_set_my_commands()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_core_set_my_commands </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__CORE__API.html#ga5bf3553d71c2440a5861f0b8a0c22d70">telebot_core_handler_t</a> *&#160;</td>
+          <td class="paramname"><em>core_h</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>commands</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__CORE__API.html#gacd6a45485832a1a0c0ecfe17487582fa">telebot_core_response_t</a> *&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Change the list of the bot's commands. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">core_h</td><td>The telebot core handler created with <a class="el" href="group__TELEBOT__CORE__API.html#ga91c0c6a43ab73a63d900f77e3c1ec28e" title="Start function to use telebot core APIs. ">telebot_core_create()</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">commands</td><td>A JSON-serialized list of bot commands to be set as the list of the bot's commands. At most 100 commands can be specified. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">response</td><td>Response data that contains "True" on success. It MUST be freed with <a class="el" href="group__TELEBOT__CORE__API.html#gad15d5f99bc4af7438d99574dccf32c41" title="Release response data obtained with telebot core methods. ">telebot_core_put_response()</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
 <a id="ga1c3fec5c175d657382f034f590cbe36a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga1c3fec5c175d657382f034f590cbe36a">&#9670;&nbsp;</a></span>telebot_core_set_proxy()</h2>
 
@@ -4011,7 +4100,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 19 2020 01:13:34 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 06:10:32 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

@@ -168,8 +168,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__permissions.html">telebot_chat_permissions</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes actions that a non-administrator user is allowed to take in a chat.  <a href="structtelebot__chat__permissions.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__boot__command.html">telebot_boot_command</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command.  <a href="structtelebot__boot__command.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__bot__command.html">telebot_bot_command</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command.  <a href="structtelebot__bot__command.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__response__paramters.html">telebot_response_paramters</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains information about why a request was unsuccessful.  <a href="structtelebot__response__paramters.html#details">More...</a><br /></td></tr>
@@ -302,10 +302,10 @@ typedef struct <a class="el" href="structtelebot__chat__member.html">telebot_cha
 typedef struct <a class="el" href="structtelebot__chat__permissions.html">telebot_chat_permissions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga8c1e647c378812f35fe5ca541c4d52c3">telebot_chat_permissions_t</a></td></tr>
 <tr class="memdesc:ga8c1e647c378812f35fe5ca541c4d52c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes actions that a non-administrator user is allowed to take in a chat. <br /></td></tr>
 <tr class="separator:ga8c1e647c378812f35fe5ca541c4d52c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4f873521c155d8c07e1cef62304fee6e"><td class="memItemLeft" align="right" valign="top">
-typedef struct <a class="el" href="structtelebot__boot__command.html">telebot_boot_command</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga4f873521c155d8c07e1cef62304fee6e">telebot_boot_command_t</a></td></tr>
-<tr class="memdesc:ga4f873521c155d8c07e1cef62304fee6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command. <br /></td></tr>
-<tr class="separator:ga4f873521c155d8c07e1cef62304fee6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf80fda1e4e264c77fd137482c76b7fa"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__bot__command.html">telebot_bot_command</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot_bot_command_t</a></td></tr>
+<tr class="memdesc:gacf80fda1e4e264c77fd137482c76b7fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command. <br /></td></tr>
+<tr class="separator:gacf80fda1e4e264c77fd137482c76b7fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3cdfefc3f34ba92f6affddb14fe13c6e"><td class="memItemLeft" align="right" valign="top">
 typedef struct <a class="el" href="structtelebot__response__paramters.html">telebot_response_paramters</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga3cdfefc3f34ba92f6affddb14fe13c6e">telebot_response_paramters_t</a></td></tr>
 <tr class="memdesc:ga3cdfefc3f34ba92f6affddb14fe13c6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains information about why a request was unsuccessful. <br /></td></tr>
@@ -325,23 +325,23 @@ typedef struct telebot_handler_s *&#160;</td><td class="memItemRight" valign="bo
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:ga72e26ad36ec658059d7c612c3b31f84d"><td class="memItemLeft" align="right" valign="top"><a id="ga72e26ad36ec658059d7c612c3b31f84d"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">telebot_update_type</a> { <br />
-&#160;&#160;<b>UPDATE_TYPE_MESSAGE</b> = 0, 
-<b>UPDATE_TYPE_EDITED_MESSAGE</b>, 
-<b>UPDATE_TYPE_CHANNEL_POST</b>, 
-<b>UPDATE_TYPE_EDITED_CHANNEL_POST</b>, 
+<tr class="memitem:ga72e26ad36ec658059d7c612c3b31f84d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">telebot_update_type</a> { <br />
+&#160;&#160;<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da600bc212aefc8bbf387d3b88b7b7c94c">TELEBOT_UPDATE_TYPE_MESSAGE</a> = 0, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da70a4537d236031c81f1cefddf4380278">TELEBOT_UPDATE_TYPE_EDITED_MESSAGE</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84daafafe6fe59c928ec8fb090ffc44bb60e">TELEBOT_UPDATE_TYPE_CHANNEL_POST</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da3339235a4d828a2e6cece9e003acac16">TELEBOT_UPDATE_TYPE_EDITED_CHANNEL_POST</a>, 
 <br />
-&#160;&#160;<b>UPDATE_TYPE_INLINE_QUERY</b>, 
-<b>UPDATE_TYPE_CHOSEN_INLINE_RESULT</b>, 
-<b>UPDATE_TYPE_CALLBACK_QUERY</b>, 
-<b>UPDATE_TYPE_SHIPPING_QUERY</b>, 
+&#160;&#160;<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84dae25fd670ef7080fe18fe36b59f60ed43">TELEBOT_UPDATE_TYPE_INLINE_QUERY</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da0c3f1bb5e899b5e4895d6ae58bead33b">TELEBOT_UPDATE_TYPE_CHOSEN_INLINE_RESULT</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da03e00203281c51932d3ddee9b774ae2b">TELEBOT_UPDATE_TYPE_CALLBACK_QUERY</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da2c74434902f338649fc04289619af78a">TELEBOT_UPDATE_TYPE_SHIPPING_QUERY</a>, 
 <br />
-&#160;&#160;<b>UPDATE_TYPE_PRE_CHECKOUT_QUERY</b>, 
-<b>UPDATE_TYPE_POLL</b>, 
-<b>UPDATE_TYPE_POLL_ANSWER</b>, 
-<b>UPDATE_TYPE_MAX</b>
+&#160;&#160;<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84dab7cf7a22fa0fa3f945de85529a5ccef2">TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84daae937d824ac90777cf07d8ee00d2ba07">TELEBOT_UPDATE_TYPE_POLL</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da75f435ea7c412d576c171fa6e82e9d24">TELEBOT_UPDATE_TYPE_POLL_ANSWER</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da87bbe2e310e7d5927b0c9dfbb93c2fde">TELEBOT_UPDATE_TYPE_MAX</a>
 <br />
- }<tr class="memdesc:ga72e26ad36ec658059d7c612c3b31f84d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerations of telegram update types. <br /></td></tr>
+ }<tr class="memdesc:ga72e26ad36ec658059d7c612c3b31f84d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerations of telegram update types.  <a href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:ga72e26ad36ec658059d7c612c3b31f84d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -352,7 +352,7 @@ Enumerations</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 19 2020 01:13:33 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 06:10:31 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

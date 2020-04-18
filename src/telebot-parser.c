@@ -28,7 +28,7 @@
 #include <telebot-stickers.h>
 #include <telebot-parser.h>
 
-static const char *telebot_update_type_str[UPDATE_TYPE_MAX] = {
+static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
     "message", "edited_message", "channel_post",
     "edited_channel_post", "inline_query",
     "chonse_inline_result", "callback_query",
@@ -75,7 +75,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         {
             if (telebot_parser_get_message(message, &(result[index].message)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse message of bot update");
-            result[index].update_type = UPDATE_TYPE_MESSAGE;
+            result[index].update_type = TELEBOT_UPDATE_TYPE_MESSAGE;
             continue;
         }
 
@@ -84,7 +84,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         {
             if (telebot_parser_get_message(edited_message, &(result[index].edited_message)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse edited message of bot update");
-            result[index].update_type = UPDATE_TYPE_EDITED_MESSAGE;
+            result[index].update_type = TELEBOT_UPDATE_TYPE_EDITED_MESSAGE;
             continue;
         }
 
@@ -93,7 +93,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         {
             if (telebot_parser_get_message(channel_post, &(result[index].channel_post)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse channel post of bot update");
-            result[index].update_type = UPDATE_TYPE_CHANNEL_POST;
+            result[index].update_type = TELEBOT_UPDATE_TYPE_CHANNEL_POST;
             continue;
         }
 
@@ -102,7 +102,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         {
             if (telebot_parser_get_message(edited_channel_post, &(result[index].edited_channel_post)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse edited channel post of bot update");
-            result[index].update_type = UPDATE_TYPE_EDITED_CHANNEL_POST;
+            result[index].update_type = TELEBOT_UPDATE_TYPE_EDITED_CHANNEL_POST;
             continue;
         }
 
@@ -111,7 +111,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         {
             if (telebot_parser_get_callback_query(callback_query, &(result[index].callback_query)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse callback query of bot update");
-            result[index].update_type = UPDATE_TYPE_CALLBACK_QUERY;
+            result[index].update_type = TELEBOT_UPDATE_TYPE_CALLBACK_QUERY;
             continue;
         }
 
@@ -120,7 +120,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         {
             if (telebot_parser_get_poll(poll, &(result[index].poll)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse poll of bot update");
-            result[index].update_type = UPDATE_TYPE_POLL;
+            result[index].update_type = TELEBOT_UPDATE_TYPE_POLL;
             continue;
         }
 
@@ -129,7 +129,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         {
             if (telebot_parser_get_poll_answer(poll_answer, &(result[index].poll_anser)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse poll answer of bot update");
-            result[index].update_type = UPDATE_TYPE_POLL_ANSWER;
+            result[index].update_type = TELEBOT_UPDATE_TYPE_POLL_ANSWER;
             continue;
         }
 
@@ -191,7 +191,7 @@ telebot_error_e telebot_parser_get_webhook_info(struct json_object *obj, telebot
         {
             struct json_object *item = json_object_array_get_idx(allowed_updates, i);
             const char *update_type = json_object_get_string(item);
-            for (int j = 0; j < UPDATE_TYPE_MAX; j++)
+            for (int j = 0; j < TELEBOT_UPDATE_TYPE_MAX; j++)
                 if (strstr(update_type, telebot_update_type_str[j]))
                     info->allowed_updates[cnt++] = j;
         }
@@ -199,9 +199,9 @@ telebot_error_e telebot_parser_get_webhook_info(struct json_object *obj, telebot
     }
     else
     {
-        for (int i = 0; i < UPDATE_TYPE_MAX; i++)
+        for (int i = 0; i < TELEBOT_UPDATE_TYPE_MAX; i++)
             info->allowed_updates[i] = i;
-        info->allowed_updates_count = UPDATE_TYPE_MAX;
+        info->allowed_updates_count = TELEBOT_UPDATE_TYPE_MAX;
     }
 
     return TELEBOT_ERROR_NONE;
@@ -1941,12 +1941,12 @@ telebot_error_e telebot_parser_get_chat_permissions(struct json_object *obj, tel
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_parser_get_bot_command(struct json_object *obj, telebot_boot_command_t *botcmd)
+telebot_error_e telebot_parser_get_bot_command(struct json_object *obj, telebot_bot_command_t *botcmd)
 {
     if ((obj == NULL) || (botcmd == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    memset(botcmd, 0, sizeof(telebot_boot_command_t));
+    memset(botcmd, 0, sizeof(telebot_bot_command_t));
     struct json_object *command = NULL;
     if (!json_object_object_get_ex(obj, "command", &command))
     {
@@ -1965,6 +1965,44 @@ telebot_error_e telebot_parser_get_bot_command(struct json_object *obj, telebot_
     botcmd->description = TELEBOT_SAFE_STRDUP(json_object_get_string(description));
 
     return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_array_bot_command(struct json_object *obj, telebot_bot_command_t **cmds, int *count)
+{
+    int ret = TELEBOT_ERROR_NONE;
+    if ((obj == NULL) || (cmds == NULL) || (count == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    struct json_object *array = obj;
+    int array_len = json_object_array_length(array);
+    if (!array_len)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
+    telebot_bot_command_t *result = calloc(array_len, sizeof(telebot_bot_command_t));
+    if (result == NULL)
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+
+    *count = array_len;
+    *cmds = result;
+
+    int index = 0;
+    for (index = 0; index < array_len; index++)
+    {
+        struct json_object *item = json_object_array_get_idx(array, index);
+        ret = telebot_parser_get_bot_command(item, &result[index]);
+        if (ret != TELEBOT_ERROR_NONE)
+            break;
+
+    } /* for index */
+
+    if (ret)
+    {
+        telebot_put_my_commands(result, index + 1);
+        *cmds = NULL;
+        *count = 0;
+    }
+
+    return ret;
 }
 
 telebot_error_e telebot_parser_get_response_parameters(struct json_object *obj, telebot_response_paramters_t *resp_param)

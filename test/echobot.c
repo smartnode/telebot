@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         printf("Number of updates: %d\n", count);
         for (index = 0; index < count; index++)
         {
-            if (updates[index].update_type == UPDATE_TYPE_MESSAGE)
+            if (updates[index].update_type == TELEBOT_UPDATE_TYPE_MESSAGE)
             {
                 message = updates[index].message;
                 printf("%s: %s \n", message.from->first_name, message.text);

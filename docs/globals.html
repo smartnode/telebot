@@ -72,8 +72,8 @@ $(function() {
 <li>telebot_audio_t
 : <a class="el" href="group__TELEBOT__API.html#ga94325aecca2a20232a411340ef5aaa1b">telebot-types.h</a>
 </li>
-<li>telebot_boot_command_t
-: <a class="el" href="group__TELEBOT__API.html#ga4f873521c155d8c07e1cef62304fee6e">telebot-types.h</a>
+<li>telebot_bot_command_t
+: <a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot-types.h</a>
 </li>
 <li>telebot_callback_query_t
 : <a class="el" href="group__TELEBOT__API.html#ga5c124ec8d5f214d99485ad2fea53929c">telebot-types.h</a>
@@ -180,8 +180,14 @@ $(function() {
 <li>telebot_get_me()
 : <a class="el" href="group__TELEBOT__API.html#ga7e72a4b6e9ae50d7e198bf19f27a08d5">telebot-methods.h</a>
 </li>
+<li>telebot_get_my_commands()
+: <a class="el" href="group__TELEBOT__API.html#gaf83f020fcb4e67db1e0f27daa713e765">telebot-methods.h</a>
+</li>
 <li>telebot_get_proxy()
 : <a class="el" href="group__TELEBOT__API.html#ga0a11c7ba2e6c7d0854f6daf6b098b505">telebot-methods.h</a>
+</li>
+<li>telebot_get_sticker_set()
+: <a class="el" href="group__TELEBOT__API.html#ga48368dbf4ab1302b52e1790d49ab5ea5">telebot-stickers.h</a>
 </li>
 <li>telebot_get_updates()
 : <a class="el" href="group__TELEBOT__API.html#ga73becddb11232617466cf2a4385e00bd">telebot-methods.h</a>
@@ -249,6 +255,12 @@ $(function() {
 <li>telebot_put_me()
 : <a class="el" href="group__TELEBOT__API.html#ga9c70d52ea43b9dd17a9d9d9bcdbb4f5c">telebot-methods.h</a>
 </li>
+<li>telebot_put_my_commands()
+: <a class="el" href="group__TELEBOT__API.html#ga646b0104cad555ed307b17e6874f9fbe">telebot-methods.h</a>
+</li>
+<li>telebot_put_sticker_set()
+: <a class="el" href="group__TELEBOT__API.html#ga44932f211eb1b089f083f42f44b77875">telebot-stickers.h</a>
+</li>
 <li>telebot_put_updates()
 : <a class="el" href="group__TELEBOT__API.html#ga9ebb2adf459f130966879c6b617fa69e">telebot-methods.h</a>
 </li>
@@ -301,7 +313,7 @@ $(function() {
 : <a class="el" href="group__TELEBOT__API.html#gad38e16a507c9dbf798f33a6152ef9957">telebot-methods.h</a>
 </li>
 <li>telebot_send_sticker()
-: <a class="el" href="group__TELEBOT__API.html#gab259d08b3d0de2f69bf7509f22ce346c">telebot-stickers.h</a>
+: <a class="el" href="group__TELEBOT__API.html#ga0c4bb0d6fbfe88cbda54812248be5e7d">telebot-stickers.h</a>
 </li>
 <li>telebot_send_venue()
 : <a class="el" href="group__TELEBOT__API.html#ga15a5acf397641d25ec1e9d1ea8eaed1e">telebot-methods.h</a>
@@ -333,11 +345,17 @@ $(function() {
 <li>telebot_set_chat_title()
 : <a class="el" href="group__TELEBOT__API.html#gae12cba1b53e26af61e3fff69151e6675">telebot-methods.h</a>
 </li>
+<li>telebot_set_my_commands()
+: <a class="el" href="group__TELEBOT__API.html#ga82848c2b3c575935054e3464418c416a">telebot-methods.h</a>
+</li>
 <li>telebot_set_proxy()
 : <a class="el" href="group__TELEBOT__API.html#gad870e57f8c2d5c4082bf7de4d9b0249e">telebot-methods.h</a>
 </li>
 <li>telebot_set_webhook()
 : <a class="el" href="group__TELEBOT__API.html#ga477056f82c75a1b18f8a46d385cb86c6">telebot-methods.h</a>
+</li>
+<li>telebot_sticker_set_t
+: <a class="el" href="group__TELEBOT__API.html#ga5fbcc18280fb54729e2d1dbade8964b1">telebot-stickers.h</a>
 </li>
 <li>telebot_sticker_t
 : <a class="el" href="group__TELEBOT__API.html#ga3b494fc19400ce87204bdb0357ef0de2">telebot-stickers.h</a>
@@ -360,8 +378,44 @@ $(function() {
 <li>telebot_update_type
 : <a class="el" href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">telebot-types.h</a>
 </li>
+<li>TELEBOT_UPDATE_TYPE_CALLBACK_QUERY
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da03e00203281c51932d3ddee9b774ae2b">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_CHANNEL_POST
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84daafafe6fe59c928ec8fb090ffc44bb60e">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_CHOSEN_INLINE_RESULT
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da0c3f1bb5e899b5e4895d6ae58bead33b">telebot-types.h</a>
+</li>
 <li>telebot_update_type_e
 : <a class="el" href="group__TELEBOT__API.html#ga6c40fca4b1a5c2cf9b7adcfcd600b662">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_EDITED_CHANNEL_POST
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da3339235a4d828a2e6cece9e003acac16">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_EDITED_MESSAGE
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da70a4537d236031c81f1cefddf4380278">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_INLINE_QUERY
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84dae25fd670ef7080fe18fe36b59f60ed43">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_MAX
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da87bbe2e310e7d5927b0c9dfbb93c2fde">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_MESSAGE
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da600bc212aefc8bbf387d3b88b7b7c94c">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_POLL
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84daae937d824ac90777cf07d8ee00d2ba07">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_POLL_ANSWER
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da75f435ea7c412d576c171fa6e82e9d24">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84dab7cf7a22fa0fa3f945de85529a5ccef2">telebot-types.h</a>
+</li>
+<li>TELEBOT_UPDATE_TYPE_SHIPPING_QUERY
+: <a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da2c74434902f338649fc04289619af78a">telebot-types.h</a>
 </li>
 <li>telebot_user_profile_photos_t
 : <a class="el" href="group__TELEBOT__API.html#ga0615759659c9decb851b52fce87b5cf2">telebot-types.h</a>
@@ -388,7 +442,7 @@ $(function() {
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 19 2020 01:13:35 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 06:10:33 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

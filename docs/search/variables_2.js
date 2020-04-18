@@ -24,9 +24,10 @@ var searchData=
   ['channel_5fpost',['channel_post',['../structtelebot__update.html#a08da69b5eae8a20eb79b42d49b62abb6',1,'telebot_update']]],
   ['chat',['chat',['../structtelebot__message.html#ab71f3e6acc83d4070b8f039ef98a99e0',1,'telebot_message']]],
   ['chat_5finstance',['chat_instance',['../structtelebot__callback__query.html#a79da9f89c000721570bbba6746603d10',1,'telebot_callback_query']]],
-  ['command',['command',['../structtelebot__boot__command.html#a5902c2078c5a599cdbd850861c1e3ad1',1,'telebot_boot_command']]],
+  ['command',['command',['../structtelebot__bot__command.html#ab3b09a3375ed42bc913bde16c56f601c',1,'telebot_bot_command']]],
   ['connected_5fwebsite',['connected_website',['../structtelebot__message.html#a2a02617fe6b541685689fc40fc525156',1,'telebot_message']]],
   ['contact',['contact',['../structtelebot__message.html#a26c371cae0b2ba84f8a9a0b9c358b945',1,'telebot_message']]],
+  ['contains_5fmasks',['contains_masks',['../structtelebot__sticker__set.html#a83c36c87ce0f52a29de4f233204deca6',1,'telebot_sticker_set']]],
   ['correct_5foption_5fid',['correct_option_id',['../structtelebot__poll.html#a44d7369fe632cc48caad45925b9c2602',1,'telebot_poll']]],
   ['current_5fcount',['current_count',['../structtelebot__user__profile__photos.html#ab91abdbfcefdc8d8d33ffbf8acd2bece',1,'telebot_user_profile_photos']]],
   ['custom_5ftitle',['custom_title',['../structtelebot__chat__member.html#a08ba2da31216befa6be8aa16d4d1ea79',1,'telebot_chat_member']]]

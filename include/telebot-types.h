@@ -42,18 +42,18 @@ extern "C" {
  * @brief Enumerations of telegram update types.
  */
 typedef enum telebot_update_type {
-    UPDATE_TYPE_MESSAGE = 0,
-    UPDATE_TYPE_EDITED_MESSAGE,
-    UPDATE_TYPE_CHANNEL_POST,
-    UPDATE_TYPE_EDITED_CHANNEL_POST,
-    UPDATE_TYPE_INLINE_QUERY,
-    UPDATE_TYPE_CHOSEN_INLINE_RESULT,
-    UPDATE_TYPE_CALLBACK_QUERY,
-    UPDATE_TYPE_SHIPPING_QUERY,
-    UPDATE_TYPE_PRE_CHECKOUT_QUERY,
-    UPDATE_TYPE_POLL,
-    UPDATE_TYPE_POLL_ANSWER,
-    UPDATE_TYPE_MAX
+    TELEBOT_UPDATE_TYPE_MESSAGE = 0,          /**< Message */
+    TELEBOT_UPDATE_TYPE_EDITED_MESSAGE,       /**< Edited message */
+    TELEBOT_UPDATE_TYPE_CHANNEL_POST,         /**< Channel post */
+    TELEBOT_UPDATE_TYPE_EDITED_CHANNEL_POST,  /**< Edited channel post */
+    TELEBOT_UPDATE_TYPE_INLINE_QUERY,         /**< Inline query */
+    TELEBOT_UPDATE_TYPE_CHOSEN_INLINE_RESULT, /**< Chosen inline result */
+    TELEBOT_UPDATE_TYPE_CALLBACK_QUERY,       /**< Callback query */
+    TELEBOT_UPDATE_TYPE_SHIPPING_QUERY,       /**< Shipping query */
+    TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY,   /**< Pre-checkout query */
+    TELEBOT_UPDATE_TYPE_POLL,                 /**< Poll */
+    TELEBOT_UPDATE_TYPE_POLL_ANSWER,          /**< Poll answer */
+    TELEBOT_UPDATE_TYPE_MAX                   /**< Number of update types */
 } telebot_update_type_e;
 
 /**
@@ -1154,7 +1154,7 @@ typedef struct telebot_chat_permissions {
 } telebot_chat_permissions_t;
 
 /** @brief This object represents a bot command. */
-typedef struct telebot_boot_command {
+typedef struct telebot_bot_command {
     /**
      * Text of the command, 1-32 characters. Can contain only lowercase English
      * letters, digits and underscores.
@@ -1163,7 +1163,7 @@ typedef struct telebot_boot_command {
 
     /** Description of the command, 3-256 characters. */
     char *description;
-} telebot_boot_command_t;
+} telebot_bot_command_t;
 
 /**
  * @brief Contains information about why a request was unsuccessful.
@@ -1281,7 +1281,7 @@ typedef struct telebot_webhook_info {
      * Optional. A list of update types the bot is subscribed to.
      * Defaults to all update types.
      */
-    telebot_update_type_e allowed_updates[UPDATE_TYPE_MAX];
+    telebot_update_type_e allowed_updates[TELEBOT_UPDATE_TYPE_MAX];
 
     /**
      * Optional. Number of updates types.

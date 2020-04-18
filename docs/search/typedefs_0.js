@@ -2,7 +2,7 @@ var searchData=
 [
   ['telebot_5fanimation_5ft',['telebot_animation_t',['../group__TELEBOT__API.html#gab490237a36ae3f53f527a4150c875565',1,'telebot-types.h']]],
   ['telebot_5faudio_5ft',['telebot_audio_t',['../group__TELEBOT__API.html#ga94325aecca2a20232a411340ef5aaa1b',1,'telebot-types.h']]],
-  ['telebot_5fboot_5fcommand_5ft',['telebot_boot_command_t',['../group__TELEBOT__API.html#ga4f873521c155d8c07e1cef62304fee6e',1,'telebot-types.h']]],
+  ['telebot_5fbot_5fcommand_5ft',['telebot_bot_command_t',['../group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa',1,'telebot-types.h']]],
   ['telebot_5fcallback_5fquery_5ft',['telebot_callback_query_t',['../group__TELEBOT__API.html#ga5c124ec8d5f214d99485ad2fea53929c',1,'telebot-types.h']]],
   ['telebot_5fchat_5fmember_5ft',['telebot_chat_member_t',['../group__TELEBOT__API.html#ga0e9cd56720d63388f69fb4576be73dee',1,'telebot-types.h']]],
   ['telebot_5fchat_5fpermissions_5ft',['telebot_chat_permissions_t',['../group__TELEBOT__API.html#ga8c1e647c378812f35fe5ca541c4d52c3',1,'telebot-types.h']]],
@@ -29,6 +29,7 @@ var searchData=
   ['telebot_5freply_5fkeyboard_5fmarkup_5ft',['telebot_reply_keyboard_markup_t',['../group__TELEBOT__API.html#ga2c736942d9f0eba7463263c529ddc829',1,'telebot-types.h']]],
   ['telebot_5freply_5fkeyboard_5fremove_5ft',['telebot_reply_keyboard_remove_t',['../group__TELEBOT__API.html#gaef76807e4653f33def1257a74cc60f4c',1,'telebot-types.h']]],
   ['telebot_5fresponse_5fparamters_5ft',['telebot_response_paramters_t',['../group__TELEBOT__API.html#ga3cdfefc3f34ba92f6affddb14fe13c6e',1,'telebot-types.h']]],
+  ['telebot_5fsticker_5fset_5ft',['telebot_sticker_set_t',['../group__TELEBOT__API.html#ga5fbcc18280fb54729e2d1dbade8964b1',1,'telebot-stickers.h']]],
   ['telebot_5fsticker_5ft',['telebot_sticker_t',['../group__TELEBOT__API.html#ga3b494fc19400ce87204bdb0357ef0de2',1,'telebot-stickers.h']]],
   ['telebot_5fupdate_5ft',['telebot_update_t',['../group__TELEBOT__API.html#ga358a9ac5454da4008703da941cf8e1e6',1,'telebot-types.h']]],
   ['telebot_5fupdate_5ftype_5fe',['telebot_update_type_e',['../group__TELEBOT__API.html#ga6c40fca4b1a5c2cf9b7adcfcd600b662',1,'telebot-types.h']]],

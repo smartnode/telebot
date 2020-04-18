@@ -5,5 +5,17 @@ var searchData=
   ['telebot_5ferror_5fnone',['TELEBOT_ERROR_NONE',['../group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e',1,'telebot-common.h']]],
   ['telebot_5ferror_5fnot_5fsupported',['TELEBOT_ERROR_NOT_SUPPORTED',['../group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904a06b7e248a76087d48b02e4bd852be07a',1,'telebot-common.h']]],
   ['telebot_5ferror_5foperation_5ffailed',['TELEBOT_ERROR_OPERATION_FAILED',['../group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904a9bd99e3d09927efa09b6494498d40daa',1,'telebot-common.h']]],
-  ['telebot_5ferror_5fout_5fof_5fmemory',['TELEBOT_ERROR_OUT_OF_MEMORY',['../group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ae8c7116a47730d0f9a77cf7fe9529414',1,'telebot-common.h']]]
+  ['telebot_5ferror_5fout_5fof_5fmemory',['TELEBOT_ERROR_OUT_OF_MEMORY',['../group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ae8c7116a47730d0f9a77cf7fe9529414',1,'telebot-common.h']]],
+  ['telebot_5fupdate_5ftype_5fcallback_5fquery',['TELEBOT_UPDATE_TYPE_CALLBACK_QUERY',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da03e00203281c51932d3ddee9b774ae2b',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fchannel_5fpost',['TELEBOT_UPDATE_TYPE_CHANNEL_POST',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84daafafe6fe59c928ec8fb090ffc44bb60e',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fchosen_5finline_5fresult',['TELEBOT_UPDATE_TYPE_CHOSEN_INLINE_RESULT',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da0c3f1bb5e899b5e4895d6ae58bead33b',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fedited_5fchannel_5fpost',['TELEBOT_UPDATE_TYPE_EDITED_CHANNEL_POST',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da3339235a4d828a2e6cece9e003acac16',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fedited_5fmessage',['TELEBOT_UPDATE_TYPE_EDITED_MESSAGE',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da70a4537d236031c81f1cefddf4380278',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5finline_5fquery',['TELEBOT_UPDATE_TYPE_INLINE_QUERY',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84dae25fd670ef7080fe18fe36b59f60ed43',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fmax',['TELEBOT_UPDATE_TYPE_MAX',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da87bbe2e310e7d5927b0c9dfbb93c2fde',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fmessage',['TELEBOT_UPDATE_TYPE_MESSAGE',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da600bc212aefc8bbf387d3b88b7b7c94c',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fpoll',['TELEBOT_UPDATE_TYPE_POLL',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84daae937d824ac90777cf07d8ee00d2ba07',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fpoll_5fanswer',['TELEBOT_UPDATE_TYPE_POLL_ANSWER',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da75f435ea7c412d576c171fa6e82e9d24',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fpre_5fcheckout_5fquery',['TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84dab7cf7a22fa0fa3f945de85529a5ccef2',1,'telebot-types.h']]],
+  ['telebot_5fupdate_5ftype_5fshipping_5fquery',['TELEBOT_UPDATE_TYPE_SHIPPING_QUERY',['../group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da2c74434902f338649fc04289619af78a',1,'telebot-types.h']]]
 ];

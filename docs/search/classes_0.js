@@ -2,7 +2,7 @@ var searchData=
 [
   ['telebot_5fanimation',['telebot_animation',['../structtelebot__animation.html',1,'']]],
   ['telebot_5faudio',['telebot_audio',['../structtelebot__audio.html',1,'']]],
-  ['telebot_5fboot_5fcommand',['telebot_boot_command',['../structtelebot__boot__command.html',1,'']]],
+  ['telebot_5fbot_5fcommand',['telebot_bot_command',['../structtelebot__bot__command.html',1,'']]],
   ['telebot_5fcallback_5fquery',['telebot_callback_query',['../structtelebot__callback__query.html',1,'']]],
   ['telebot_5fchat',['telebot_chat',['../structtelebot__chat.html',1,'']]],
   ['telebot_5fchat_5fmember',['telebot_chat_member',['../structtelebot__chat__member.html',1,'']]],
@@ -29,6 +29,7 @@ var searchData=
   ['telebot_5freply_5fkeyboard_5fremove',['telebot_reply_keyboard_remove',['../structtelebot__reply__keyboard__remove.html',1,'']]],
   ['telebot_5fresponse_5fparamters',['telebot_response_paramters',['../structtelebot__response__paramters.html',1,'']]],
   ['telebot_5fsticker',['telebot_sticker',['../structtelebot__sticker.html',1,'']]],
+  ['telebot_5fsticker_5fset',['telebot_sticker_set',['../structtelebot__sticker__set.html',1,'']]],
   ['telebot_5fupdate',['telebot_update',['../structtelebot__update.html',1,'']]],
   ['telebot_5fuser',['telebot_user',['../structtelebot__user.html',1,'']]],
   ['telebot_5fuser_5fprofile_5fphotos',['telebot_user_profile_photos',['../structtelebot__user__profile__photos.html',1,'']]],

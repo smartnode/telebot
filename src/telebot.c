@@ -36,7 +36,7 @@ typedef struct telebot_handler_s
     int offset;
 } telebot_hdata_t;
 
-static const char *telebot_update_type_str[UPDATE_TYPE_MAX] = {
+static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
     "message", "edited_message", "channel_post",
     "edited_channel_post", "inline_query",
     "chonse_inline_result", "callback_query",
@@ -139,7 +139,6 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
         int limit, int timeout, telebot_update_type_e allowed_updates[],
         int allowed_updates_count, telebot_update_t **updates, int *count)
 {
-    char allowed_updates_str[TELEBOT_BUFFER_PAGE] = {0, };
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -150,16 +149,17 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
     *updates = NULL;
     *count = 0;
 
+    const char *str_allowed_updates = NULL;
+    struct json_object *array = NULL;
     if (allowed_updates_count > 0)
     {
-        strncat(allowed_updates_str, "[", TELEBOT_BUFFER_BLOCK);
-        for (int i = 0; i < allowed_updates_count; i++)
-        {
-            strncat(allowed_updates_str, telebot_update_type_str[allowed_updates[i]], TELEBOT_BUFFER_BLOCK);
-            if (i < (allowed_updates_count - 1)) //intermediate element
-                strncat(allowed_updates_str, ",", TELEBOT_BUFFER_BLOCK);
+        struct json_object *array = json_object_new_array();
+        for (int i = 0; i < allowed_updates_count; i++) {
+            const char *item = telebot_update_type_str[allowed_updates[i]];
+            json_object_array_add(array, json_object_new_string(item));
         }
-        strncat(allowed_updates_str, "]", TELEBOT_BUFFER_BLOCK);
+        str_allowed_updates = json_object_to_json_string(array);
+        DBG("Allowed updates: %s", str_allowed_updates);
     }
 
     int _offset = offset != 0 ? offset : _handle->offset;
@@ -170,9 +170,12 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
 
     telebot_core_response_t response;
     int ret = telebot_core_get_updates(_handle->core_h, _offset, _limit, _timeout,
-        allowed_updates_str, &response);
-    if (ret != TELEBOT_ERROR_NONE)
+        str_allowed_updates, &response);
+    if (ret != TELEBOT_ERROR_NONE) {
+        if (array) json_object_put(array);
         return ret;
+    }
+    if (array) json_object_put(array);
 
     struct json_object *obj = telebot_parser_str_to_obj(response.data);
     if (obj == NULL)
@@ -222,25 +225,25 @@ telebot_error_e telebot_put_updates(telebot_update_t *updates, int count)
     {
         switch (updates[index].update_type)
         {
-        case UPDATE_TYPE_MESSAGE:
+        case TELEBOT_UPDATE_TYPE_MESSAGE:
             telebot_put_message(&(updates[index].message));
             break;
-        case UPDATE_TYPE_EDITED_MESSAGE:
+        case TELEBOT_UPDATE_TYPE_EDITED_MESSAGE:
             telebot_put_message(&(updates[index].edited_message));
             break;
-        case UPDATE_TYPE_CHANNEL_POST:
+        case TELEBOT_UPDATE_TYPE_CHANNEL_POST:
             telebot_put_message(&(updates[index].channel_post));
             break;
-        case UPDATE_TYPE_EDITED_CHANNEL_POST:
+        case TELEBOT_UPDATE_TYPE_EDITED_CHANNEL_POST:
             telebot_put_message(&(updates[index].edited_channel_post));
             break;
-        case UPDATE_TYPE_CALLBACK_QUERY:
+        case TELEBOT_UPDATE_TYPE_CALLBACK_QUERY:
             telebot_put_callback_query(&(updates[index].callback_query));
             break;
-        case UPDATE_TYPE_POLL:
+        case TELEBOT_UPDATE_TYPE_POLL:
             telebot_put_poll(&(updates[index].poll));
             break;
-        case UPDATE_TYPE_POLL_ANSWER:
+        case TELEBOT_UPDATE_TYPE_POLL_ANSWER:
             telebot_put_poll_answer(&(updates[index].poll_anser));
         default:
             ERR("Unsupported update type: %d", updates[index].update_type);
@@ -672,7 +675,6 @@ telebot_error_e telebot_send_venue(telebot_handler_t handle, long long int chat_
     return ret;
 }
 
-
 telebot_error_e telebot_send_contact(telebot_handler_t handle, long long int chat_id,
     const char *phone_number, const char *first_name, const char *last_name,
     const char *vcard, bool disable_notification, int reply_to_message_id,
@@ -699,7 +701,6 @@ telebot_error_e telebot_send_poll(telebot_handler_t handle, long long int chat_i
     const char *type, bool allows_multiple_answers, int correct_option_id, bool is_closed,
     bool disable_notification, int reply_to_message_id, const char *reply_markup)
 {
-    char json_options[TELEBOT_BUFFER_PAGE] = {0, };
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -707,20 +708,19 @@ telebot_error_e telebot_send_poll(telebot_handler_t handle, long long int chat_i
     if ((question == NULL) || (options == NULL) || (count_options <= 0))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    strncat(json_options, "[", TELEBOT_BUFFER_BLOCK);
+    struct json_object *array = json_object_new_array();
     for (int i = 0; i < count_options; i++)
-    {
-        strncat(json_options, options[i], TELEBOT_BUFFER_BLOCK);
-        if (i < (count_options - 1)) //intermediate element
-            strncat(json_options, ",", TELEBOT_BUFFER_BLOCK);
-    }
-    strncat(json_options, "]", TELEBOT_BUFFER_BLOCK);
+        json_object_array_add(array, json_object_new_string(options[i]));
+
+    const char *array_options = json_object_to_json_string(array);
+    DBG("Poll options: %s", array_options);
 
     telebot_core_response_t response;
-    int ret = telebot_core_send_poll(_handle->core_h, chat_id, question, json_options,
+    int ret = telebot_core_send_poll(_handle->core_h, chat_id, question, array_options,
         is_anonymous, type, allows_multiple_answers, correct_option_id, is_closed,
         disable_notification, reply_to_message_id, reply_markup, &response);
     telebot_core_put_response(&response);
+    json_object_put(array);
 
     return ret;
 }
@@ -1374,6 +1374,100 @@ telebot_error_e telebot_answer_callback_query(telebot_handler_t handle,
     telebot_core_put_response(&response);
 
     return ret;
+}
+
+telebot_error_e telebot_set_my_commands(telebot_handler_t handle,
+    telebot_bot_command_t commands[], int count)
+{
+    telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if ((commands == NULL) || (count <= 0))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    struct json_object *array = json_object_new_array();
+    for (int i = 0; i < count; i++)
+    {
+        if ((commands[i].command == NULL) || (commands[i].description == NULL))
+            return TELEBOT_ERROR_INVALID_PARAMETER;
+
+        struct json_object *obj = json_object_new_object();
+        json_object_object_add(obj, "command", json_object_new_string(commands[i].command));
+        json_object_object_add(obj, "description", json_object_new_string(commands[i].description));
+        json_object_array_add(array, obj);
+    }
+
+    const char *array_options = json_object_to_json_string(array);
+    DBG("Commands: %s", array_options);
+
+    telebot_core_response_t response;
+    int ret = telebot_core_set_my_commands(_handle->core_h, array_options, &response);
+    telebot_core_put_response(&response);
+    json_object_put(array);
+
+    return ret;
+}
+
+telebot_error_e telebot_get_my_commands(telebot_handler_t handle,
+    telebot_bot_command_t **commands, int *count)
+{
+    telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if ((commands == NULL) || (count == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    *commands = NULL;
+    *count = 0;
+
+    telebot_core_response_t response;
+    int ret = telebot_core_get_my_commands(_handle->core_h, &response);
+    if (ret != TELEBOT_ERROR_NONE)
+        return ret;
+
+    struct json_object *obj = telebot_parser_str_to_obj(response.data);
+    if (obj == NULL)
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    struct json_object *ok = NULL;
+    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    struct json_object *result = NULL;
+    if (!json_object_object_get_ex(obj, "result", &result))
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    ret = telebot_parser_get_array_bot_command(result, commands, count);
+
+finish:
+    if (ret) telebot_put_my_commands(*commands, *count);
+    if (obj) json_object_put(obj);
+    telebot_core_put_response(&response);
+    return ret;
+}
+
+telebot_error_e telebot_put_my_commands(telebot_bot_command_t *commands, int count)
+{
+    if ((commands == NULL) || (count <= 0))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    for (int i = 0; i < count; i++)
+    {
+        TELEBOT_SAFE_FREE(commands[i].command);
+        TELEBOT_SAFE_FREE(commands[i].description);
+    }
+
+    return TELEBOT_ERROR_NONE;
 }
 
 telebot_error_e telebot_edit_message_text(telebot_handler_t handle,

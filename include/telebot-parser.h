@@ -106,7 +106,10 @@ telebot_error_e telebot_parser_get_callback_query(struct json_object *obj, teleb
 telebot_error_e  telebot_parser_get_chat_photo(struct json_object *obj, telebot_chat_photo_t *photo);
 
 /** Prase bot command object */
-telebot_error_e telebot_parser_get_bot_command(struct json_object *obj, telebot_boot_command_t *command);
+telebot_error_e telebot_parser_get_bot_command(struct json_object *obj, telebot_bot_command_t *command);
+
+/** Prase array of bot command object */
+telebot_error_e telebot_parser_get_array_bot_command(struct json_object *obj, telebot_bot_command_t **cmds, int *count);
 
 /** Prase response paramters object */
 telebot_error_e telebot_parser_get_response_parameters(struct json_object *obj, telebot_response_paramters_t *resp_param);

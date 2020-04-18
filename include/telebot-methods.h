@@ -1049,6 +1049,35 @@ telebot_error_e telebot_answer_callback_query(telebot_handler_t handle,
     const char *url, int cache_time);
 
 /**
+ * @brief Change the list of the bot's commands.
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] commands Array of telegram bot commands.
+ * @param[in] commands The number of commands in array.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_set_my_commands(telebot_handler_t handle,
+    telebot_bot_command_t commands[], int count);
+
+/**
+ * @brief Get the current list of the bot's commands.
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[out] commands Pointer to commands to be obtained, which must be
+ * released with #telebot_put_my_commands().
+ * @param[out] count Pointer to place the number of commands.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_get_my_commands(telebot_handler_t handle,
+    telebot_bot_command_t **commands, int *count);
+
+/**
+ * @brief Release bot commands obtained with #telebot_get_my_commands().
+ * @param[in] commands Pointer to commands to be released.
+ * @param[in] count The number of commands to be released.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_put_my_commands(telebot_bot_command_t *commands, int count);
+
+/**
  * @brief Edit text and game messages sent by the bot or via the bot (for inline bots).
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] chat_id Required if inline_message_id. Unique identifier for the target

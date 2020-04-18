@@ -73,14 +73,23 @@ typedef struct telebot_mask_position {
  * @brief This object represents a sticker.
  */
 typedef struct telebot_sticker {
-    /** Unique identifier for this file */
+    /** Identifier for this file, which can be used to download or reuse the file */
     char *file_id;
+
+    /**
+     * Unique identifier for this file, which is supposed to be the same over time
+     * and for different bots. Can't be used to download or reuse the file.
+     */
+    char *file_unique_id;
 
     /** Sticker width */
     int width;
 
     /** Sticker height */
     int height;
+
+    /** True, if the sticker is animated */
+    bool is_animated;
 
     /** Optional. Sticker thumbnail in .webp or .jpg format */
     struct telebot_photo *thumb;
@@ -98,8 +107,36 @@ typedef struct telebot_sticker {
     int file_size;
 } telebot_sticker_t;
 
+
 /**
- * @brief This function is used to to send .webp stickers.
+ * @brief This object represents a sticker set.
+ */
+typedef struct telebot_sticker_set {
+    /** Sticker set name */
+    char *name;
+
+    /** Sticker set title */
+    char *title;
+
+    /** True, if the sticker is animated */
+    bool is_animated;
+
+    /** True, if the sticker set contains masks */
+    bool contains_masks;
+
+    /** List of all set stickers */
+    telebot_sticker_t *stickers;
+
+    /* Number of stickers */
+    int count_stickers;
+
+    /** Optional. Sticker set thumbnail in .webp or .jpg format */
+    struct telebot_photo *thumb;
+
+} telebot_sticker_set_t;
+
+/**
+ * @brief Send static .WEBP or animated .TGS stickers.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] chat_id Unique identifier for the target chat or username of the
@@ -111,12 +148,35 @@ typedef struct telebot_sticker {
  * message.
  * @param[in] reply_markup Additional interface options. An object for a custom
  * reply keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
 telebot_error_e telebot_send_sticker(telebot_handler_t handle, long long int chat_id,
-        char *sticker, bool is_file, bool disable_notification,
+        const char *sticker, bool is_file, bool disable_notification,
         int reply_to_message_id, char *reply_markup);
+
+/**
+ * @brief Get a sticker set.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] name Name of the sticker set.
+ * @param[out] stickers Pointer to sticker set, must be released
+ * with #telebot_put_sticker_set.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_get_sticker_set(telebot_handler_t handle, const char *name,
+    telebot_sticker_set_t *stickers);
+
+/**
+ * @brief Release sticker set obtained with #telebot_get_sticker_set()
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] stickers Pointer to sticker set to be released.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_put_sticker_set(telebot_sticker_set_t *stickers);
 
 /**
  * @} // end of APIs

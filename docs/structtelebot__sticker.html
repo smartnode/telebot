@@ -77,10 +77,14 @@ $(function() {
 Public Attributes</h2></td></tr>
 <tr class="memitem:a4b3bee1c3141715a3baeda618c2c14b8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html#a4b3bee1c3141715a3baeda618c2c14b8">file_id</a></td></tr>
 <tr class="separator:a4b3bee1c3141715a3baeda618c2c14b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c780b483f65cd2f79fd9a222492070a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html#a3c780b483f65cd2f79fd9a222492070a">file_unique_id</a></td></tr>
+<tr class="separator:a3c780b483f65cd2f79fd9a222492070a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17c0a247e57ee01c6def82a8da5f5561"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html#a17c0a247e57ee01c6def82a8da5f5561">width</a></td></tr>
 <tr class="separator:a17c0a247e57ee01c6def82a8da5f5561"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac09ff20853c0a90dfcbf397441dd7c65"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html#ac09ff20853c0a90dfcbf397441dd7c65">height</a></td></tr>
 <tr class="separator:ac09ff20853c0a90dfcbf397441dd7c65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1b199e5786b7b6516b1b880ffdb6469"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html#ac1b199e5786b7b6516b1b880ffdb6469">is_animated</a></td></tr>
+<tr class="separator:ac1b199e5786b7b6516b1b880ffdb6469"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92307627a5ce014836f8207a01e28100"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__photo.html">telebot_photo</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html#a92307627a5ce014836f8207a01e28100">thumb</a></td></tr>
 <tr class="separator:a92307627a5ce014836f8207a01e28100"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a89ceb87040b770110c2188640a392f22"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html#a89ceb87040b770110c2188640a392f22">emoji</a></td></tr>
@@ -121,7 +125,7 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Unique identifier for this file </p>
+<p>Identifier for this file, which can be used to download or reuse the file </p>
 
 </div>
 </div>
@@ -140,6 +144,21 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a3c780b483f65cd2f79fd9a222492070a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c780b483f65cd2f79fd9a222492070a">&#9670;&nbsp;</a></span>file_unique_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* telebot_sticker::file_unique_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. </p>
+
+</div>
+</div>
 <a id="ac09ff20853c0a90dfcbf397441dd7c65"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac09ff20853c0a90dfcbf397441dd7c65">&#9670;&nbsp;</a></span>height</h2>
 
@@ -152,6 +171,21 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Sticker height </p>
+
+</div>
+</div>
+<a id="ac1b199e5786b7b6516b1b880ffdb6469"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1b199e5786b7b6516b1b880ffdb6469">&#9670;&nbsp;</a></span>is_animated</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool telebot_sticker::is_animated</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>True, if the sticker is animated </p>
 
 </div>
 </div>
@@ -221,7 +255,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 19 2020 01:13:34 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 06:10:32 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

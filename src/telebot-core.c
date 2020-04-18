@@ -2335,6 +2335,37 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_CALLBACK_QUERY, mimes, index, response);
 }
 
+telebot_error_e telebot_core_set_my_commands(telebot_core_handler_t *core_h,
+        const char *commands, telebot_core_response_t *response)
+{
+    if ((core_h == NULL) || (core_h->token == NULL) || (commands == NULL))
+    {
+        ERR("Handler, token, or commands is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    int index = 0;
+    telebot_core_mime_t mimes[1]; // number of arguments
+    mimes[index].name = "commands";
+    mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", commands);
+    ++index;
+
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_COMMANDS, mimes, index, response);
+}
+
+telebot_error_e telebot_core_get_my_commands(telebot_core_handler_t *core_h,
+        telebot_core_response_t *response)
+{
+    if ((core_h == NULL) || (core_h->token == NULL))
+    {
+        ERR("Handler, or token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_COMMANDS, NULL, 0, response);
+}
+
 telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
     long long int chat_id, int message_id, const char *inline_message_id,
     const char *text, const char *parse_mode, bool disable_web_page_preview,

@@ -97,6 +97,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html">telebot_sticker</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a sticker.  <a href="structtelebot__sticker.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker__set.html">telebot_sticker_set</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a sticker set.  <a href="structtelebot__sticker__set.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__user.html">telebot_user</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a Telegram user or bot.  <a href="structtelebot__user.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -184,8 +187,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__permissions.html">telebot_chat_permissions</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes actions that a non-administrator user is allowed to take in a chat.  <a href="structtelebot__chat__permissions.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__boot__command.html">telebot_boot_command</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command.  <a href="structtelebot__boot__command.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__bot__command.html">telebot_bot_command</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command.  <a href="structtelebot__bot__command.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__response__paramters.html">telebot_response_paramters</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains information about why a request was unsuccessful.  <a href="structtelebot__response__paramters.html#details">More...</a><br /></td></tr>
@@ -207,6 +210,10 @@ typedef struct <a class="el" href="structtelebot__mask__position.html">telebot_m
 typedef struct <a class="el" href="structtelebot__sticker.html">telebot_sticker</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga3b494fc19400ce87204bdb0357ef0de2">telebot_sticker_t</a></td></tr>
 <tr class="memdesc:ga3b494fc19400ce87204bdb0357ef0de2"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a sticker. <br /></td></tr>
 <tr class="separator:ga3b494fc19400ce87204bdb0357ef0de2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5fbcc18280fb54729e2d1dbade8964b1"><td class="memItemLeft" align="right" valign="top"><a id="ga5fbcc18280fb54729e2d1dbade8964b1"></a>
+typedef struct <a class="el" href="structtelebot__sticker__set.html">telebot_sticker_set</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga5fbcc18280fb54729e2d1dbade8964b1">telebot_sticker_set_t</a></td></tr>
+<tr class="memdesc:ga5fbcc18280fb54729e2d1dbade8964b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a sticker set. <br /></td></tr>
+<tr class="separator:ga5fbcc18280fb54729e2d1dbade8964b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6c40fca4b1a5c2cf9b7adcfcd600b662"><td class="memItemLeft" align="right" valign="top"><a id="ga6c40fca4b1a5c2cf9b7adcfcd600b662"></a>
 typedef enum <a class="el" href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">telebot_update_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga6c40fca4b1a5c2cf9b7adcfcd600b662">telebot_update_type_e</a></td></tr>
 <tr class="memdesc:ga6c40fca4b1a5c2cf9b7adcfcd600b662"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerations of telegram update types. <br /></td></tr>
@@ -326,10 +333,10 @@ typedef struct <a class="el" href="structtelebot__chat__member.html">telebot_cha
 typedef struct <a class="el" href="structtelebot__chat__permissions.html">telebot_chat_permissions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga8c1e647c378812f35fe5ca541c4d52c3">telebot_chat_permissions_t</a></td></tr>
 <tr class="memdesc:ga8c1e647c378812f35fe5ca541c4d52c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes actions that a non-administrator user is allowed to take in a chat. <br /></td></tr>
 <tr class="separator:ga8c1e647c378812f35fe5ca541c4d52c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4f873521c155d8c07e1cef62304fee6e"><td class="memItemLeft" align="right" valign="top"><a id="ga4f873521c155d8c07e1cef62304fee6e"></a>
-typedef struct <a class="el" href="structtelebot__boot__command.html">telebot_boot_command</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga4f873521c155d8c07e1cef62304fee6e">telebot_boot_command_t</a></td></tr>
-<tr class="memdesc:ga4f873521c155d8c07e1cef62304fee6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command. <br /></td></tr>
-<tr class="separator:ga4f873521c155d8c07e1cef62304fee6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf80fda1e4e264c77fd137482c76b7fa"><td class="memItemLeft" align="right" valign="top"><a id="gacf80fda1e4e264c77fd137482c76b7fa"></a>
+typedef struct <a class="el" href="structtelebot__bot__command.html">telebot_bot_command</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot_bot_command_t</a></td></tr>
+<tr class="memdesc:gacf80fda1e4e264c77fd137482c76b7fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command. <br /></td></tr>
+<tr class="separator:gacf80fda1e4e264c77fd137482c76b7fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3cdfefc3f34ba92f6affddb14fe13c6e"><td class="memItemLeft" align="right" valign="top"><a id="ga3cdfefc3f34ba92f6affddb14fe13c6e"></a>
 typedef struct <a class="el" href="structtelebot__response__paramters.html">telebot_response_paramters</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga3cdfefc3f34ba92f6affddb14fe13c6e">telebot_response_paramters_t</a></td></tr>
 <tr class="memdesc:ga3cdfefc3f34ba92f6affddb14fe13c6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains information about why a request was unsuccessful. <br /></td></tr>
@@ -361,23 +368,23 @@ Enumerations</h2></td></tr>
  }<tr class="memdesc:gada28c25a89bbab9e32e52f657ad00904"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerations of error code for telebot programming interface.  <a href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:gada28c25a89bbab9e32e52f657ad00904"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga72e26ad36ec658059d7c612c3b31f84d"><td class="memItemLeft" align="right" valign="top"><a id="ga72e26ad36ec658059d7c612c3b31f84d"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">telebot_update_type</a> { <br />
-&#160;&#160;<b>UPDATE_TYPE_MESSAGE</b> = 0, 
-<b>UPDATE_TYPE_EDITED_MESSAGE</b>, 
-<b>UPDATE_TYPE_CHANNEL_POST</b>, 
-<b>UPDATE_TYPE_EDITED_CHANNEL_POST</b>, 
+<tr class="memitem:ga72e26ad36ec658059d7c612c3b31f84d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">telebot_update_type</a> { <br />
+&#160;&#160;<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da600bc212aefc8bbf387d3b88b7b7c94c">TELEBOT_UPDATE_TYPE_MESSAGE</a> = 0, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da70a4537d236031c81f1cefddf4380278">TELEBOT_UPDATE_TYPE_EDITED_MESSAGE</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84daafafe6fe59c928ec8fb090ffc44bb60e">TELEBOT_UPDATE_TYPE_CHANNEL_POST</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da3339235a4d828a2e6cece9e003acac16">TELEBOT_UPDATE_TYPE_EDITED_CHANNEL_POST</a>, 
 <br />
-&#160;&#160;<b>UPDATE_TYPE_INLINE_QUERY</b>, 
-<b>UPDATE_TYPE_CHOSEN_INLINE_RESULT</b>, 
-<b>UPDATE_TYPE_CALLBACK_QUERY</b>, 
-<b>UPDATE_TYPE_SHIPPING_QUERY</b>, 
+&#160;&#160;<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84dae25fd670ef7080fe18fe36b59f60ed43">TELEBOT_UPDATE_TYPE_INLINE_QUERY</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da0c3f1bb5e899b5e4895d6ae58bead33b">TELEBOT_UPDATE_TYPE_CHOSEN_INLINE_RESULT</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da03e00203281c51932d3ddee9b774ae2b">TELEBOT_UPDATE_TYPE_CALLBACK_QUERY</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da2c74434902f338649fc04289619af78a">TELEBOT_UPDATE_TYPE_SHIPPING_QUERY</a>, 
 <br />
-&#160;&#160;<b>UPDATE_TYPE_PRE_CHECKOUT_QUERY</b>, 
-<b>UPDATE_TYPE_POLL</b>, 
-<b>UPDATE_TYPE_POLL_ANSWER</b>, 
-<b>UPDATE_TYPE_MAX</b>
+&#160;&#160;<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84dab7cf7a22fa0fa3f945de85529a5ccef2">TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84daae937d824ac90777cf07d8ee00d2ba07">TELEBOT_UPDATE_TYPE_POLL</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da75f435ea7c412d576c171fa6e82e9d24">TELEBOT_UPDATE_TYPE_POLL_ANSWER</a>, 
+<a class="el" href="group__TELEBOT__API.html#gga72e26ad36ec658059d7c612c3b31f84da87bbe2e310e7d5927b0c9dfbb93c2fde">TELEBOT_UPDATE_TYPE_MAX</a>
 <br />
- }<tr class="memdesc:ga72e26ad36ec658059d7c612c3b31f84d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerations of telegram update types. <br /></td></tr>
+ }<tr class="memdesc:ga72e26ad36ec658059d7c612c3b31f84d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerations of telegram update types.  <a href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:ga72e26ad36ec658059d7c612c3b31f84d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -551,6 +558,15 @@ Functions</h2></td></tr>
 <tr class="memitem:ga0efc0bc88ed638b777b49910c755edb3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga0efc0bc88ed638b777b49910c755edb3">telebot_answer_callback_query</a> (<a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a> handle, const char *callback_query_id, const char *text, bool show_alert, const char *url, int cache_time)</td></tr>
 <tr class="memdesc:ga0efc0bc88ed638b777b49910c755edb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send answers to callback queries sent from inline keyboards. The answer will be displayed to the user as a notification at the top of the chat screen or as an alert.  <a href="#ga0efc0bc88ed638b777b49910c755edb3">More...</a><br /></td></tr>
 <tr class="separator:ga0efc0bc88ed638b777b49910c755edb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga82848c2b3c575935054e3464418c416a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga82848c2b3c575935054e3464418c416a">telebot_set_my_commands</a> (<a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a> handle, <a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot_bot_command_t</a> commands[], int count)</td></tr>
+<tr class="memdesc:ga82848c2b3c575935054e3464418c416a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the list of the bot's commands.  <a href="#ga82848c2b3c575935054e3464418c416a">More...</a><br /></td></tr>
+<tr class="separator:ga82848c2b3c575935054e3464418c416a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf83f020fcb4e67db1e0f27daa713e765"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gaf83f020fcb4e67db1e0f27daa713e765">telebot_get_my_commands</a> (<a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a> handle, <a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot_bot_command_t</a> **commands, int *count)</td></tr>
+<tr class="memdesc:gaf83f020fcb4e67db1e0f27daa713e765"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current list of the bot's commands.  <a href="#gaf83f020fcb4e67db1e0f27daa713e765">More...</a><br /></td></tr>
+<tr class="separator:gaf83f020fcb4e67db1e0f27daa713e765"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga646b0104cad555ed307b17e6874f9fbe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga646b0104cad555ed307b17e6874f9fbe">telebot_put_my_commands</a> (<a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot_bot_command_t</a> *commands, int count)</td></tr>
+<tr class="memdesc:ga646b0104cad555ed307b17e6874f9fbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release bot commands obtained with <a class="el" href="group__TELEBOT__API.html#gaf83f020fcb4e67db1e0f27daa713e765" title="Get the current list of the bot&#39;s commands. ">telebot_get_my_commands()</a>.  <a href="#ga646b0104cad555ed307b17e6874f9fbe">More...</a><br /></td></tr>
+<tr class="separator:ga646b0104cad555ed307b17e6874f9fbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7b19aacdebcdb52e5e4b49fc197c0481"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga7b19aacdebcdb52e5e4b49fc197c0481">telebot_edit_message_text</a> (<a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a> handle, long long int chat_id, int message_id, const char *inline_message_id, const char *text, const char *parse_mode, bool disable_web_page_preview, const char *reply_markup)</td></tr>
 <tr class="memdesc:ga7b19aacdebcdb52e5e4b49fc197c0481"><td class="mdescLeft">&#160;</td><td class="mdescRight">Edit text and game messages sent by the bot or via the bot (for inline bots).  <a href="#ga7b19aacdebcdb52e5e4b49fc197c0481">More...</a><br /></td></tr>
 <tr class="separator:ga7b19aacdebcdb52e5e4b49fc197c0481"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -566,9 +582,15 @@ Functions</h2></td></tr>
 <tr class="memitem:gab677c5586167627352dcac8e74202189"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gab677c5586167627352dcac8e74202189">telebot_delete_message</a> (<a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a> handle, long long int chat_id, int message_id)</td></tr>
 <tr class="memdesc:gab677c5586167627352dcac8e74202189"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete a message, including service messages, with the following limitations:  <a href="#gab677c5586167627352dcac8e74202189">More...</a><br /></td></tr>
 <tr class="separator:gab677c5586167627352dcac8e74202189"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab259d08b3d0de2f69bf7509f22ce346c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gab259d08b3d0de2f69bf7509f22ce346c">telebot_send_sticker</a> (<a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a> handle, long long int chat_id, char *sticker, bool is_file, bool disable_notification, int reply_to_message_id, char *reply_markup)</td></tr>
-<tr class="memdesc:gab259d08b3d0de2f69bf7509f22ce346c"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is used to to send .webp stickers.  <a href="#gab259d08b3d0de2f69bf7509f22ce346c">More...</a><br /></td></tr>
-<tr class="separator:gab259d08b3d0de2f69bf7509f22ce346c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0c4bb0d6fbfe88cbda54812248be5e7d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga0c4bb0d6fbfe88cbda54812248be5e7d">telebot_send_sticker</a> (<a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a> handle, long long int chat_id, const char *sticker, bool is_file, bool disable_notification, int reply_to_message_id, char *reply_markup)</td></tr>
+<tr class="memdesc:ga0c4bb0d6fbfe88cbda54812248be5e7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send static .WEBP or animated .TGS stickers.  <a href="#ga0c4bb0d6fbfe88cbda54812248be5e7d">More...</a><br /></td></tr>
+<tr class="separator:ga0c4bb0d6fbfe88cbda54812248be5e7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga48368dbf4ab1302b52e1790d49ab5ea5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga48368dbf4ab1302b52e1790d49ab5ea5">telebot_get_sticker_set</a> (<a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a> handle, const char *name, <a class="el" href="group__TELEBOT__API.html#ga5fbcc18280fb54729e2d1dbade8964b1">telebot_sticker_set_t</a> *stickers)</td></tr>
+<tr class="memdesc:ga48368dbf4ab1302b52e1790d49ab5ea5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a sticker set.  <a href="#ga48368dbf4ab1302b52e1790d49ab5ea5">More...</a><br /></td></tr>
+<tr class="separator:ga48368dbf4ab1302b52e1790d49ab5ea5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga44932f211eb1b089f083f42f44b77875"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga44932f211eb1b089f083f42f44b77875">telebot_put_sticker_set</a> (<a class="el" href="group__TELEBOT__API.html#ga5fbcc18280fb54729e2d1dbade8964b1">telebot_sticker_set_t</a> *stickers)</td></tr>
+<tr class="memdesc:ga44932f211eb1b089f083f42f44b77875"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release sticker set obtained with <a class="el" href="group__TELEBOT__API.html#ga48368dbf4ab1302b52e1790d49ab5ea5" title="Get a sticker set. ">telebot_get_sticker_set()</a>  <a href="#ga44932f211eb1b089f083f42f44b77875">More...</a><br /></td></tr>
+<tr class="separator:ga44932f211eb1b089f083f42f44b77875"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Simplified APIs to create telegram bot. </p>
@@ -616,6 +638,48 @@ Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="ggada28c25a89bbab9e32e52f657ad00904a345418923a392aa78c47a082f0c362c8"></a>TELEBOT_ERROR_NO_CONNECTION&#160;</td><td class="fielddoc"><p>No Internet connection </p>
 </td></tr>
 <tr><td class="fieldname"><a id="ggada28c25a89bbab9e32e52f657ad00904a7babe3d71ef5c7437af4dd7617f79cb9"></a>TELEBOT_ERROR_INVALID_PARAMETER&#160;</td><td class="fielddoc"><p>Invalid parameter </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="ga72e26ad36ec658059d7c612c3b31f84d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga72e26ad36ec658059d7c612c3b31f84d">&#9670;&nbsp;</a></span>telebot_update_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__TELEBOT__API.html#ga72e26ad36ec658059d7c612c3b31f84d">telebot_update_type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Enumerations of telegram update types. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84da600bc212aefc8bbf387d3b88b7b7c94c"></a>TELEBOT_UPDATE_TYPE_MESSAGE&#160;</td><td class="fielddoc"><p>Message </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84da70a4537d236031c81f1cefddf4380278"></a>TELEBOT_UPDATE_TYPE_EDITED_MESSAGE&#160;</td><td class="fielddoc"><p>Edited message </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84daafafe6fe59c928ec8fb090ffc44bb60e"></a>TELEBOT_UPDATE_TYPE_CHANNEL_POST&#160;</td><td class="fielddoc"><p>Channel post </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84da3339235a4d828a2e6cece9e003acac16"></a>TELEBOT_UPDATE_TYPE_EDITED_CHANNEL_POST&#160;</td><td class="fielddoc"><p>Edited channel post </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84dae25fd670ef7080fe18fe36b59f60ed43"></a>TELEBOT_UPDATE_TYPE_INLINE_QUERY&#160;</td><td class="fielddoc"><p>Inline query </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84da0c3f1bb5e899b5e4895d6ae58bead33b"></a>TELEBOT_UPDATE_TYPE_CHOSEN_INLINE_RESULT&#160;</td><td class="fielddoc"><p>Chosen inline result </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84da03e00203281c51932d3ddee9b774ae2b"></a>TELEBOT_UPDATE_TYPE_CALLBACK_QUERY&#160;</td><td class="fielddoc"><p>Callback query </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84da2c74434902f338649fc04289619af78a"></a>TELEBOT_UPDATE_TYPE_SHIPPING_QUERY&#160;</td><td class="fielddoc"><p>Shipping query </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84dab7cf7a22fa0fa3f945de85529a5ccef2"></a>TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY&#160;</td><td class="fielddoc"><p>Pre-checkout query </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84daae937d824ac90777cf07d8ee00d2ba07"></a>TELEBOT_UPDATE_TYPE_POLL&#160;</td><td class="fielddoc"><p>Poll </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84da75f435ea7c412d576c171fa6e82e9d24"></a>TELEBOT_UPDATE_TYPE_POLL_ANSWER&#160;</td><td class="fielddoc"><p>Poll answer </p>
+</td></tr>
+<tr><td class="fieldname"><a id="gga72e26ad36ec658059d7c612c3b31f84da87bbe2e310e7d5927b0c9dfbb93c2fde"></a>TELEBOT_UPDATE_TYPE_MAX&#160;</td><td class="fielddoc"><p>Number of update types </p>
 </td></tr>
 </table>
 
@@ -1573,6 +1637,51 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="gaf83f020fcb4e67db1e0f27daa713e765"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf83f020fcb4e67db1e0f27daa713e765">&#9670;&nbsp;</a></span>telebot_get_my_commands()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_get_my_commands </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a>&#160;</td>
+          <td class="paramname"><em>handle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot_bot_command_t</a> **&#160;</td>
+          <td class="paramname"><em>commands</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the current list of the bot's commands. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">handle</td><td>The telebot handler created with <a class="el" href="group__TELEBOT__API.html#gaf6dd5fd18772f79a388150201a829bac" title="Initial function to use telebot APIs. ">telebot_create()</a>. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">commands</td><td>Pointer to commands to be obtained, which must be released with <a class="el" href="group__TELEBOT__API.html#ga646b0104cad555ed307b17e6874f9fbe" title="Release bot commands obtained with telebot_get_my_commands(). ">telebot_put_my_commands()</a>. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">count</td><td>Pointer to place the number of commands. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, <a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e">TELEBOT_ERROR_NONE</a> is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
 <a id="ga0a11c7ba2e6c7d0854f6daf6b098b505"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga0a11c7ba2e6c7d0854f6daf6b098b505">&#9670;&nbsp;</a></span>telebot_get_proxy()</h2>
 
@@ -1604,6 +1713,51 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">handle</td><td>The telebot handler created with <a class="el" href="group__TELEBOT__API.html#gaf6dd5fd18772f79a388150201a829bac" title="Initial function to use telebot APIs. ">telebot_create()</a>. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">addr</td><td>Current proxy address or NULL, MUST be freed after use. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, <a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e">TELEBOT_ERROR_NONE</a> is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a id="ga48368dbf4ab1302b52e1790d49ab5ea5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga48368dbf4ab1302b52e1790d49ab5ea5">&#9670;&nbsp;</a></span>telebot_get_sticker_set()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_get_sticker_set </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a>&#160;</td>
+          <td class="paramname"><em>handle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#ga5fbcc18280fb54729e2d1dbade8964b1">telebot_sticker_set_t</a> *&#160;</td>
+          <td class="paramname"><em>stickers</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get a sticker set. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">handle</td><td>The telebot handler created with <a class="el" href="group__TELEBOT__API.html#gaf6dd5fd18772f79a388150201a829bac" title="Initial function to use telebot APIs. ">telebot_create()</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>Name of the sticker set. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">stickers</td><td>Pointer to sticker set, must be released with <a class="el" href="group__TELEBOT__API.html#ga44932f211eb1b089f083f42f44b77875" title="Release sticker set obtained with telebot_get_sticker_set() ">telebot_put_sticker_set</a>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -2144,6 +2298,72 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>on Success, <a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e">TELEBOT_ERROR_NONE</a> is returned, otherwise a negative </dd></dl>
+
+</div>
+</div>
+<a id="ga646b0104cad555ed307b17e6874f9fbe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga646b0104cad555ed307b17e6874f9fbe">&#9670;&nbsp;</a></span>telebot_put_my_commands()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_put_my_commands </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot_bot_command_t</a> *&#160;</td>
+          <td class="paramname"><em>commands</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Release bot commands obtained with <a class="el" href="group__TELEBOT__API.html#gaf83f020fcb4e67db1e0f27daa713e765" title="Get the current list of the bot&#39;s commands. ">telebot_get_my_commands()</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">commands</td><td>Pointer to commands to be released. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">count</td><td>The number of commands to be released. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, <a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e">TELEBOT_ERROR_NONE</a> is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
+<a id="ga44932f211eb1b089f083f42f44b77875"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga44932f211eb1b089f083f42f44b77875">&#9670;&nbsp;</a></span>telebot_put_sticker_set()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_put_sticker_set </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#ga5fbcc18280fb54729e2d1dbade8964b1">telebot_sticker_set_t</a> *&#160;</td>
+          <td class="paramname"><em>stickers</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Release sticker set obtained with <a class="el" href="group__TELEBOT__API.html#ga48368dbf4ab1302b52e1790d49ab5ea5" title="Get a sticker set. ">telebot_get_sticker_set()</a> </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">handle</td><td>The telebot handler created with <a class="el" href="group__TELEBOT__API.html#gaf6dd5fd18772f79a388150201a829bac" title="Initial function to use telebot APIs. ">telebot_create()</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">stickers</td><td>Pointer to sticker set to be released. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, <a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e">TELEBOT_ERROR_NONE</a> is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -3216,8 +3436,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gab259d08b3d0de2f69bf7509f22ce346c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gab259d08b3d0de2f69bf7509f22ce346c">&#9670;&nbsp;</a></span>telebot_send_sticker()</h2>
+<a id="ga0c4bb0d6fbfe88cbda54812248be5e7d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0c4bb0d6fbfe88cbda54812248be5e7d">&#9670;&nbsp;</a></span>telebot_send_sticker()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3237,7 +3457,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">char *&#160;</td>
+          <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>sticker</em>, </td>
         </tr>
         <tr>
@@ -3272,7 +3492,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>This function is used to to send .webp stickers. </p>
+<p>Send static .WEBP or animated .TGS stickers. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">handle</td><td>The telebot handler created with <a class="el" href="group__TELEBOT__API.html#gaf6dd5fd18772f79a388150201a829bac" title="Initial function to use telebot APIs. ">telebot_create()</a>. </td></tr>
@@ -3284,7 +3504,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, <a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e">TELEBOT_ERROR_NONE</a> is returned, otherwise a negative error value. </dd></dl>
 
 </div>
 </div>
@@ -4020,6 +4240,51 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ga82848c2b3c575935054e3464418c416a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga82848c2b3c575935054e3464418c416a">&#9670;&nbsp;</a></span>telebot_set_my_commands()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#gada28c25a89bbab9e32e52f657ad00904">telebot_error_e</a> telebot_set_my_commands </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#ga70c6667b74a0da71059fcb7370f66499">telebot_handler_t</a>&#160;</td>
+          <td class="paramname"><em>handle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__TELEBOT__API.html#gacf80fda1e4e264c77fd137482c76b7fa">telebot_bot_command_t</a>&#160;</td>
+          <td class="paramname"><em>commands</em>[], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Change the list of the bot's commands. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">handle</td><td>The telebot handler created with <a class="el" href="group__TELEBOT__API.html#gaf6dd5fd18772f79a388150201a829bac" title="Initial function to use telebot APIs. ">telebot_create()</a>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">commands</td><td>Array of telegram bot commands. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">commands</td><td>The number of commands in array. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>on Success, <a class="el" href="group__TELEBOT__API.html#ggada28c25a89bbab9e32e52f657ad00904ab5ecd1920a634cd08f4782ecdd6cad6e">TELEBOT_ERROR_NONE</a> is returned, otherwise a negative error value. </dd></dl>
+
+</div>
+</div>
 <a id="gad870e57f8c2d5c4082bf7de4d9b0249e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gad870e57f8c2d5c4082bf7de4d9b0249e">&#9670;&nbsp;</a></span>telebot_set_proxy()</h2>
 
@@ -4329,7 +4594,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Apr 19 2020 01:13:33 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 06:10:31 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

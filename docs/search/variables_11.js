@@ -10,6 +10,7 @@ var searchData=
   ['status',['status',['../structtelebot__chat__member.html#a0749dd2fd10630d5a3762250d5c5f713',1,'telebot_chat_member']]],
   ['sticker',['sticker',['../structtelebot__message.html#a890c2813df040422c6991a3377febb6d',1,'telebot_message']]],
   ['sticker_5fset_5fname',['sticker_set_name',['../structtelebot__chat.html#a0b5ab00d749387616dbfd14a34d2cb94',1,'telebot_chat']]],
+  ['stickers',['stickers',['../structtelebot__sticker__set.html#a2453b835452c365aa41bfa8870f187c5',1,'telebot_sticker_set']]],
   ['successful_5fpayment',['successful_payment',['../structtelebot__message.html#a6472743b5ddb8d1ade04d84702226236',1,'telebot_message']]],
   ['supergroup_5fchat_5fcreated',['supergroup_chat_created',['../structtelebot__message.html#afd8b60155b528f2f48357b3ce75e38ce',1,'telebot_message']]],
   ['supports_5finline_5fqueries',['supports_inline_queries',['../structtelebot__user.html#af4d00e2656ac05a3daaf54ef4099d99f',1,'telebot_user']]]
