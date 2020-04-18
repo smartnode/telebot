@@ -28,7 +28,7 @@ extern "C" {
  * @ingroup     TELEBOT_API
  * @brief       This file contains telegram bot common defintions
  * @author      Elmurod Talipov
- * @date        2015-12-13
+ * @date        2020-04-19
  */
 
 /**

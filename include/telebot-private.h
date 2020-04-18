@@ -27,8 +27,8 @@
 #define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
 #define TELEBOT_USER_PROFILE_PHOTOS_LIMIT    100
 #define TELEBOT_SAFE_FREE(addr)              if (addr) { free(addr); addr = NULL; }
-#define TELEBOT_SAFE_FZCNT(addr, count)      TELEBOT_SAFE_FREE(addr); count = 0;
-
+#define TELEBOT_SAFE_FZCNT(addr, count)      { TELEBOT_SAFE_FREE(addr); count = 0; }
+#define TELEBOT_SAFE_STRDUP(str)             (str) ? strdup(str) : NULL;
 
 #define TELEBOT_METHOD_GET_UPDATES                  "getUpdates"
 #define TELEBOT_METHOD_SET_WEBHOOK                  "setWebhook"
@@ -50,6 +50,8 @@
 #define TELEBOT_METHOD_STOP_MESSAGE_LIVE_LOCATION   "stopMessageLiveLocation"
 #define TELEBOT_METHOD_SEND_VENUE                   "sendVenue"
 #define TELEBOT_METHOD_SEND_CONTACT                 "sendContact"
+#define TELEBOT_METHOD_SEND_POLL                    "sendPoll"
+#define TELEBOT_METHOD_SEND_DICE                    "sendDice"
 #define TELEBOT_METHOD_SEND_CHAT_ACTION             "sendChatAction"
 #define TELEBOT_METHOD_GET_USER_PHOTOS              "getUserProfilePhotos"
 #define TELEBOT_METHOD_GET_FILE                     "getFile"
@@ -57,6 +59,8 @@
 #define TELEBOT_METHOD_UNBAN_CHAT_MEMBER            "unbanChatMember"
 #define TELEBOT_METHOD_RESTRICT_CHAT_MEMBER         "restrictChatMember"
 #define TELEBOT_METHOD_PROMOTE_CHAT_MEMBER          "promoteChatMember"
+#define TELEBOT_METHOD_SET_CHAT_ADMIN_TITLE         "setChatAdministratorCustomTitle"
+#define TELEBOT_METHOD_SET_CHAT_PERMISSIONS         "setChatPermissions"
 #define TELEBOT_METHOD_EXPORT_CHAT_INVITE_LINK      "exportChatInviteLink"
 #define TELEBOT_METHOD_SET_CHAT_PHOTO               "setChatPhoto"
 #define TELEBOT_METHOD_DELETE_CHAT_PHOTO            "deleteChatPhoto"
@@ -72,11 +76,14 @@
 #define TELEBOT_METHOD_SET_CHAT_STICKER_SET         "setChatStickerSet"
 #define TELEBOT_METHOD_DEL_CHAT_STICKER_SET         "deleteChatStickerSet"
 #define TELEBOT_METHOD_ANSWER_CALLBACK_QUERY        "answerCallbackQuery"
+#define TELEBOT_METHOD_SET_MY_COMMANDS              "setMyCommands"
+#define TELEBOT_METHOD_GET_MY_COMMANDS              "getMyCommands"
 #define TELEBOT_METHOD_EDIT_MESSAGE_TEXT            "editMessageText"
 #define TELEBOT_METHOD_EDIT_MESSAGE_CAPTION         "editMessageCaption"
+#define TELEBOT_METHOD_EDIT_MESSAGE_MEDIA           "editMessageMedia"
 #define TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP    "editMessageReplyMarkup"
+#define TELEBOT_METHOD_STOP_POLL                    "stopPoll"
 #define TELEBOT_METHOD_DELETE_MESSAGE               "deleteMessage"
-#define TELEBOT_METHOD_SEND_STICKER                 "sendSticker"
 
 #ifdef DEBUG
     #define ERR(fmt, args...) fprintf(stderr, "[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
@@ -86,9 +93,15 @@
     #define DBG(x, ...)
 #endif
 
-typedef struct _telebot_response {
-    char *data; /**< Telegam response object */
-    size_t size; /**< Telegam response size */
-} telebot_response_t;
+typedef enum {
+    TELEBOT_MIME_TYPE_DATA = 0,
+    TELEBOT_MIME_TYPE_FILE,
+    TELEBOT_MIME_TYPE_MAX,
+} telebot_core_mime_e;
+typedef struct {
+    telebot_core_mime_e type;
+    const char *name;
+    char data[TELEBOT_BUFFER_PAGE];
+} telebot_core_mime_t;
 
 #endif /* __TELEBOT_PRIVATE_H__ */

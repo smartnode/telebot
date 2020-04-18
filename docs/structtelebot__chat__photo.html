@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Telebot
+   &#160;<span id="projectnumber">4.7.0</span>
    </div>
    <div id="projectbrief">Library for Telegram bot API</div>
   </td>
@@ -76,8 +77,12 @@ $(function() {
 Public Attributes</h2></td></tr>
 <tr class="memitem:aea5f2e8404e98ef06d256bc3b602debd"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__photo.html#aea5f2e8404e98ef06d256bc3b602debd">small_file_id</a></td></tr>
 <tr class="separator:aea5f2e8404e98ef06d256bc3b602debd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6a0365943459540f9ab8df46a9a4b18"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__photo.html#ae6a0365943459540f9ab8df46a9a4b18">small_file_unique_id</a></td></tr>
+<tr class="separator:ae6a0365943459540f9ab8df46a9a4b18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0815e96d7047a9e211d4b823c21ea1a"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__photo.html#aa0815e96d7047a9e211d4b823c21ea1a">big_file_id</a></td></tr>
 <tr class="separator:aa0815e96d7047a9e211d4b823c21ea1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ec71a4ac75d7b0335188c07f207ec58"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__photo.html#a5ec71a4ac75d7b0335188c07f207ec58">big_file_unique_id</a></td></tr>
+<tr class="separator:a5ec71a4ac75d7b0335188c07f207ec58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This object represents a chat photo. </p>
@@ -93,7 +98,22 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Unique file identifier of small (640x640) chat photo. This file_id can be used only for photo download. </p>
+<p>File identifier of big (640x640) chat photo. This file_id can be used only for photo download and only for as long as the photo is not changed. </p>
+
+</div>
+</div>
+<a id="a5ec71a4ac75d7b0335188c07f207ec58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ec71a4ac75d7b0335188c07f207ec58">&#9670;&nbsp;</a></span>big_file_unique_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* telebot_chat_photo::big_file_unique_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Unique file identifier of big (640x640) chat photo, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. </p>
 
 </div>
 </div>
@@ -108,7 +128,22 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Unique file identifier of small (160x160) chat photo. This file_id can be used only for photo download. </p>
+<p>File identifier of small (160x160) chat photo. This file_id can be used only for photo download and only for as long as the photo is not changed. </p>
+
+</div>
+</div>
+<a id="ae6a0365943459540f9ab8df46a9a4b18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6a0365943459540f9ab8df46a9a4b18">&#9670;&nbsp;</a></span>small_file_unique_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* telebot_chat_photo::small_file_unique_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Unique file identifier of small (160x160) chat photo, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. </p>
 
 </div>
 </div>
@@ -118,7 +153,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 4 2020 03:28:01 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 01:13:34 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

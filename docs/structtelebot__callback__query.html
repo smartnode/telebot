@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Telebot
+   &#160;<span id="projectnumber">4.7.0</span>
    </div>
    <div id="projectbrief">Library for Telegram bot API</div>
   </td>
@@ -66,6 +67,11 @@ $(function() {
 <div class="title">telebot_callback_query Struct Reference<div class="ingroups"><a class="el" href="group__TELEBOT__API.html">Simple Telegram Bot API</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>This object represents an incoming callback query from a callback button in an inline keyboard. If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present.  
+ <a href="structtelebot__callback__query.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="telebot-types_8h_source.html">telebot-types.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -84,7 +90,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac5fa98507a9c4dcb3ac68246b950a8f4"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__callback__query.html#ac5fa98507a9c4dcb3ac68246b950a8f4">game_short_name</a></td></tr>
 <tr class="separator:ac5fa98507a9c4dcb3ac68246b950a8f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>This object represents an incoming callback query from a callback button in an inline keyboard. If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present. </p>
+</div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a79da9f89c000721570bbba6746603d10"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a79da9f89c000721570bbba6746603d10">&#9670;&nbsp;</a></span>chat_instance</h2>
 
@@ -196,7 +204,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 4 2020 03:28:01 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 01:13:34 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

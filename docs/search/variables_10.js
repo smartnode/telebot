@@ -1,9 +1,11 @@
 var searchData=
 [
-  ['text',['text',['../structtelebot__message.html#ac4f540196bf2ba50b30065b2762ce664',1,'telebot_message']]],
-  ['thumb',['thumb',['../structtelebot__document.html#aa3ae4d29ded01abc3aab5b05a1c30464',1,'telebot_document::thumb()'],['../structtelebot__video.html#a857d9b841d08f830b81e1cfb37013a90',1,'telebot_video::thumb()'],['../structtelebot__animation.html#adbf05ba6ad1d5a488476d00446767054',1,'telebot_animation::thumb()'],['../structtelebot__video__note.html#a7c01dd7fdb785adad988a0f0789b42f3',1,'telebot_video_note::thumb()'],['../structtelebot__sticker.html#a92307627a5ce014836f8207a01e28100',1,'telebot_sticker::thumb()']]],
-  ['title',['title',['../structtelebot__chat.html#a5fa85d8315d41917ff25ac86ffa77139',1,'telebot_chat::title()'],['../structtelebot__audio.html#a3e6775d4fd77fff4c0847e38419f2e3f',1,'telebot_audio::title()'],['../structtelebot__venue.html#abc19ad82f7502423a9eee217cf30adcf',1,'telebot_venue::title()']]],
-  ['token',['token',['../structtelebot__core__handler.html#a7ea1ec5fb5521c2ff31d5c8a9764346c',1,'telebot_core_handler']]],
-  ['total_5fcount',['total_count',['../structtelebot__user__profile__photos.html#ab4dec9d0a631cf0142abaf109bf3ef98',1,'telebot_user_profile_photos']]],
-  ['type',['type',['../structtelebot__chat.html#a758148179571daf78cec1e7c0d87f56c',1,'telebot_chat::type()'],['../structtelebot__message__entity.html#adb3b82a297da4fd530a9a25bdc46abf3',1,'telebot_message_entity::type()']]]
+  ['remove_5fkeyboard',['remove_keyboard',['../structtelebot__reply__keyboard__remove.html#a34a3148cb913c333a92ddaf970ef6cb8',1,'telebot_reply_keyboard_remove']]],
+  ['reply_5fmarkup',['reply_markup',['../structtelebot__message.html#ac2dabb2dd5bb723c5f74fdb5bfddbb2f',1,'telebot_message']]],
+  ['reply_5fto_5fmessage',['reply_to_message',['../structtelebot__message.html#a10930758976ee70ca73e77de7cf5bf45',1,'telebot_message']]],
+  ['request_5fcontact',['request_contact',['../structtelebot__keyboard__button.html#a03149a979611ae311f34d031ebf73023',1,'telebot_keyboard_button']]],
+  ['request_5flocation',['request_location',['../structtelebot__keyboard__button.html#add3c8f6dd16c1003d977a186cc83d6ea',1,'telebot_keyboard_button']]],
+  ['request_5fpoll',['request_poll',['../structtelebot__keyboard__button.html#ad51a3b1c7ce35eef303724a6417bf88b',1,'telebot_keyboard_button']]],
+  ['resize_5fkeyboard',['resize_keyboard',['../structtelebot__reply__keyboard__markup.html#a378aa51fb1d8ecb5189b2a00fc71d6f5',1,'telebot_reply_keyboard_markup']]],
+  ['retry_5fafter',['retry_after',['../structtelebot__response__paramters.html#a0d8e62d6e077a136190345c434f8d70d',1,'telebot_response_paramters']]]
 ];

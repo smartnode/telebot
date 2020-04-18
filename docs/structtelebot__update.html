@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Telebot
+   &#160;<span id="projectnumber">4.7.0</span>
    </div>
    <div id="projectbrief">Library for Telegram bot API</div>
   </td>
@@ -88,8 +89,12 @@ union {</td></tr>
 <tr class="separator:a2a4f000e65317a96385eb18b115bff1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac6e4c65ae13ff80a9003091f8196f28"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="group__TELEBOT__API.html#gaa6116c669875a58d173e08f81b265d24">telebot_message_t</a>&#160;&#160;&#160;<a class="el" href="structtelebot__update.html#a6dde1c016b0997dc9e98f619722f4938">edited_channel_post</a></td></tr>
 <tr class="separator:aac6e4c65ae13ff80a9003091f8196f28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afdf3d24536ce1b495e917bbd1a3ca014"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="structtelebot__callback__query.html">telebot_callback_query_t</a>&#160;&#160;&#160;<a class="el" href="structtelebot__update.html#a1d61a21d497c5fcd36a41a8e18c5fff0">callback_query</a></td></tr>
+<tr class="memitem:afdf3d24536ce1b495e917bbd1a3ca014"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="group__TELEBOT__API.html#ga5c124ec8d5f214d99485ad2fea53929c">telebot_callback_query_t</a>&#160;&#160;&#160;<a class="el" href="structtelebot__update.html#a1d61a21d497c5fcd36a41a8e18c5fff0">callback_query</a></td></tr>
 <tr class="separator:afdf3d24536ce1b495e917bbd1a3ca014"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89bea731cfc3d00d5184aa949f4c447d"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="group__TELEBOT__API.html#ga6b136e1d1dd461c9af1136afd1109225">telebot_poll_t</a>&#160;&#160;&#160;<a class="el" href="structtelebot__update.html#ad637fcb3112bfa31d26270c6a887096b">poll</a></td></tr>
+<tr class="separator:a89bea731cfc3d00d5184aa949f4c447d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9dd76b12a4781d231a1b3d74fb6dcbc0"><td class="memItemLeft" >&#160;&#160;&#160;<a class="el" href="group__TELEBOT__API.html#ga9c6937ceb614cd2b77c6eb7b30e373fc">telebot_poll_answer_t</a>&#160;&#160;&#160;<a class="el" href="structtelebot__update.html#ae36d497ee1b04fdd9848148ea17c46de">poll_anser</a></td></tr>
+<tr class="separator:a9dd76b12a4781d231a1b3d74fb6dcbc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af3e2c5f57c686f19756456c0badf8513"><td class="memItemLeft" valign="top">};&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
 <tr class="separator:af3e2c5f57c686f19756456c0badf8513"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -103,7 +108,7 @@ union {</td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structtelebot__callback__query.html">telebot_callback_query_t</a> telebot_update::callback_query</td>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#ga5c124ec8d5f214d99485ad2fea53929c">telebot_callback_query_t</a> telebot_update::callback_query</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -171,6 +176,36 @@ union {</td></tr>
 
 </div>
 </div>
+<a id="ad637fcb3112bfa31d26270c6a887096b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad637fcb3112bfa31d26270c6a887096b">&#9670;&nbsp;</a></span>poll</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#ga6b136e1d1dd461c9af1136afd1109225">telebot_poll_t</a> telebot_update::poll</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>New incoming shipping query. Only for invoices with flexible price New incoming pre-checkout query. Contains full information about checkout New poll state. Bots receive only updates about stopped polls and polls, which are sent by the bot </p>
+
+</div>
+</div>
+<a id="ae36d497ee1b04fdd9848148ea17c46de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae36d497ee1b04fdd9848148ea17c46de">&#9670;&nbsp;</a></span>poll_anser</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__TELEBOT__API.html#ga9c6937ceb614cd2b77c6eb7b30e373fc">telebot_poll_answer_t</a> telebot_update::poll_anser</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A user changed their answer in a non-anonymous poll. Bots receive new votes only in polls that were sent by the bot itself. </p>
+
+</div>
+</div>
 <a id="ad69604433d48aeb428ee296c173082cc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad69604433d48aeb428ee296c173082cc">&#9670;&nbsp;</a></span>update_id</h2>
 
@@ -207,7 +242,7 @@ union {</td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 4 2020 03:28:01 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 01:13:34 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

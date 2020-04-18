@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Telebot
+   &#160;<span id="projectnumber">4.7.0</span>
    </div>
    <div id="projectbrief">Library for Telegram bot API</div>
   </td>
@@ -76,6 +77,8 @@ $(function() {
 Public Attributes</h2></td></tr>
 <tr class="memitem:ade40752fe9ccc1f4c1a19c4e0ba9b543"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__animation.html#ade40752fe9ccc1f4c1a19c4e0ba9b543">file_id</a></td></tr>
 <tr class="separator:ade40752fe9ccc1f4c1a19c4e0ba9b543"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a720d5f981a433208397a786524baf850"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__animation.html#a720d5f981a433208397a786524baf850">file_unique_id</a></td></tr>
+<tr class="separator:a720d5f981a433208397a786524baf850"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e9a043aed71b00066cb10f6589a0f1d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__animation.html#a9e9a043aed71b00066cb10f6589a0f1d">width</a></td></tr>
 <tr class="separator:a9e9a043aed71b00066cb10f6589a0f1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4fbb35c451b536d555f6c242e7c8fa90"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__animation.html#a4fbb35c451b536d555f6c242e7c8fa90">height</a></td></tr>
@@ -84,6 +87,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a083e5f97e0d6bd9252dba6c9ace302e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbf05ba6ad1d5a488476d00446767054"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__photo.html">telebot_photo</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__animation.html#adbf05ba6ad1d5a488476d00446767054">thumb</a></td></tr>
 <tr class="separator:adbf05ba6ad1d5a488476d00446767054"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21ee1258fa7730252e8049d7e16de5f5"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__animation.html#a21ee1258fa7730252e8049d7e16de5f5">file_name</a></td></tr>
+<tr class="separator:a21ee1258fa7730252e8049d7e16de5f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34325ac1fbc03e1832f118c9ba4f799f"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__animation.html#a34325ac1fbc03e1832f118c9ba4f799f">mime_type</a></td></tr>
 <tr class="separator:a34325ac1fbc03e1832f118c9ba4f799f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68b834607ab5ca811704f7a0cd4ce59a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__animation.html#a68b834607ab5ca811704f7a0cd4ce59a">file_size</a></td></tr>
@@ -118,7 +123,22 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Unique identifier for this file </p>
+<p>Identifier for this file, which can be used to download or reuse the file </p>
+
+</div>
+</div>
+<a id="a21ee1258fa7730252e8049d7e16de5f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21ee1258fa7730252e8049d7e16de5f5">&#9670;&nbsp;</a></span>file_name</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* telebot_animation::file_name</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. Original animation filename as defined by sender </p>
 
 </div>
 </div>
@@ -134,6 +154,21 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Optional. File size </p>
+
+</div>
+</div>
+<a id="a720d5f981a433208397a786524baf850"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a720d5f981a433208397a786524baf850">&#9670;&nbsp;</a></span>file_unique_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* telebot_animation::file_unique_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Unique identifier for this file, which is supposed to be the same over time and for different bots. Can't be used to download or reuse the file. </p>
 
 </div>
 </div>
@@ -203,7 +238,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 4 2020 03:28:01 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 01:13:34 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

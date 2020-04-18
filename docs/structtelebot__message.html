@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Telebot
+   &#160;<span id="projectnumber">4.7.0</span>
    </div>
    <div id="projectbrief">Library for Telegram bot API</div>
   </td>
@@ -84,6 +85,14 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ab71f3e6acc83d4070b8f039ef98a99e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30af44663b9343b696d8fd28ec55bca7"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__user.html">telebot_user</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a30af44663b9343b696d8fd28ec55bca7">forward_from</a></td></tr>
 <tr class="separator:a30af44663b9343b696d8fd28ec55bca7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada22a1a62a66f23ed289c0030d4c22d5"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__chat.html">telebot_chat</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#ada22a1a62a66f23ed289c0030d4c22d5">forward_from_chat</a></td></tr>
+<tr class="separator:ada22a1a62a66f23ed289c0030d4c22d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac710a31dbfb6c7336a1ff6bbce3125ab"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#ac710a31dbfb6c7336a1ff6bbce3125ab">forward_from_message_id</a></td></tr>
+<tr class="separator:ac710a31dbfb6c7336a1ff6bbce3125ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f0907e87f13819d2fbc6e7f360c6ae3"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a9f0907e87f13819d2fbc6e7f360c6ae3">forward_signature</a></td></tr>
+<tr class="separator:a9f0907e87f13819d2fbc6e7f360c6ae3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29b7993cfea86065355d089ea23da247"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a29b7993cfea86065355d089ea23da247">forward_sender_name</a></td></tr>
+<tr class="separator:a29b7993cfea86065355d089ea23da247"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b1d3d901ad0922c9c05b31c52b34db7"><td class="memItemLeft" align="right" valign="top">long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a8b1d3d901ad0922c9c05b31c52b34db7">forward_date</a></td></tr>
 <tr class="separator:a8b1d3d901ad0922c9c05b31c52b34db7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10930758976ee70ca73e77de7cf5bf45"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__message.html">telebot_message</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a10930758976ee70ca73e77de7cf5bf45">reply_to_message</a></td></tr>
@@ -110,6 +119,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_caption_entities
 <tr class="separator:a21c692529497f39392104a4ed343ef02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78be1a53428bea951ccc31dfb76db039"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__document.html">telebot_document</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a78be1a53428bea951ccc31dfb76db039">document</a></td></tr>
 <tr class="separator:a78be1a53428bea951ccc31dfb76db039"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6addfdb4b701594099384706c39e62e6"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__animation.html">telebot_animation</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a6addfdb4b701594099384706c39e62e6">animation</a></td></tr>
+<tr class="separator:a6addfdb4b701594099384706c39e62e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32a2db9b8a412e2c1a59b6ed1d9be175"><td class="memItemLeft" align="right" valign="top">struct telebot_game *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a32a2db9b8a412e2c1a59b6ed1d9be175">game</a></td></tr>
 <tr class="separator:a32a2db9b8a412e2c1a59b6ed1d9be175"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b17614199f063ea1e63c40cc7a6ab22"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__photo.html">telebot_photo</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a4b17614199f063ea1e63c40cc7a6ab22">photos</a></td></tr>
@@ -121,8 +132,6 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_photos</b></td><
 <tr class="separator:a890c2813df040422c6991a3377febb6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15b41390b43bc9b5026a971b7bcb0395"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__video.html">telebot_video</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a15b41390b43bc9b5026a971b7bcb0395">video</a></td></tr>
 <tr class="separator:a15b41390b43bc9b5026a971b7bcb0395"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6addfdb4b701594099384706c39e62e6"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__animation.html">telebot_animation</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a6addfdb4b701594099384706c39e62e6">animation</a></td></tr>
-<tr class="separator:a6addfdb4b701594099384706c39e62e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07da2adedef6d7b5261171a3737f74c4"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__voice.html">telebot_voice</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a07da2adedef6d7b5261171a3737f74c4">voice</a></td></tr>
 <tr class="separator:a07da2adedef6d7b5261171a3737f74c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48f366ca5d4f8cbe958ec4a8cc259d20"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__video__note.html">telebot_video_note</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a48f366ca5d4f8cbe958ec4a8cc259d20">video_note</a></td></tr>
@@ -135,6 +144,10 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_photos</b></td><
 <tr class="separator:ab874668daa401f404596202909fc722a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf7a1cf2d1eaeb7b65d775aa6565d732"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__venue.html">telebot_venue</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#abf7a1cf2d1eaeb7b65d775aa6565d732">venue</a></td></tr>
 <tr class="separator:abf7a1cf2d1eaeb7b65d775aa6565d732"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2671d5bd21a1d3716d8cbaf68f60f494"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__poll.html">telebot_poll</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a2671d5bd21a1d3716d8cbaf68f60f494">poll</a></td></tr>
+<tr class="separator:a2671d5bd21a1d3716d8cbaf68f60f494"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8967c5066e329de85498dc8e1cd47d36"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__dice.html">telebot_dice</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a8967c5066e329de85498dc8e1cd47d36">dice</a></td></tr>
+<tr class="separator:a8967c5066e329de85498dc8e1cd47d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7dac0ae58457dc33ff86f13f0b571146"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__user.html">telebot_user</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a7dac0ae58457dc33ff86f13f0b571146">new_chat_members</a></td></tr>
 <tr class="separator:a7dac0ae58457dc33ff86f13f0b571146"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62c18ca6f58781949615256cc5d49c73"><td class="memItemLeft" align="right" valign="top"><a id="a62c18ca6f58781949615256cc5d49c73"></a>
@@ -170,6 +183,12 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_new_chat_photos<
 <tr class="separator:a1af403d49c54f145213c6ec71cb7ba7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6472743b5ddb8d1ade04d84702226236"><td class="memItemLeft" align="right" valign="top">struct telebot_successful_payment *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a6472743b5ddb8d1ade04d84702226236">successful_payment</a></td></tr>
 <tr class="separator:a6472743b5ddb8d1ade04d84702226236"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a02617fe6b541685689fc40fc525156"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a2a02617fe6b541685689fc40fc525156">connected_website</a></td></tr>
+<tr class="separator:a2a02617fe6b541685689fc40fc525156"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54df3f6062815f400872ab69bdaaaefe"><td class="memItemLeft" align="right" valign="top">struct telebot_passport_data *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#a54df3f6062815f400872ab69bdaaaefe">passport_data</a></td></tr>
+<tr class="separator:a54df3f6062815f400872ab69bdaaaefe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2dabb2dd5bb723c5f74fdb5bfddbb2f"><td class="memItemLeft" align="right" valign="top">struct inline_keyboard_markup *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__message.html#ac2dabb2dd5bb723c5f74fdb5bfddbb2f">reply_markup</a></td></tr>
+<tr class="separator:ac2dabb2dd5bb723c5f74fdb5bfddbb2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This object represents a message. </p>
@@ -279,6 +298,21 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_new_chat_photos<
 
 </div>
 </div>
+<a id="a2a02617fe6b541685689fc40fc525156"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a02617fe6b541685689fc40fc525156">&#9670;&nbsp;</a></span>connected_website</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* telebot_message::connected_website</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. The domain name of the website on which the user has logged in. </p>
+
+</div>
+</div>
 <a id="a26c371cae0b2ba84f8a9a0b9c358b945"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a26c371cae0b2ba84f8a9a0b9c358b945">&#9670;&nbsp;</a></span>contact</h2>
 
@@ -321,6 +355,21 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_new_chat_photos<
       </table>
 </div><div class="memdoc">
 <p>Optional. Informs that the chat photo was deleted </p>
+
+</div>
+</div>
+<a id="a8967c5066e329de85498dc8e1cd47d36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8967c5066e329de85498dc8e1cd47d36">&#9670;&nbsp;</a></span>dice</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structtelebot__dice.html">telebot_dice</a>* telebot_message::dice</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. Message is a dice with random value from 1 to 6 </p>
 
 </div>
 </div>
@@ -396,6 +445,66 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_new_chat_photos<
       </table>
 </div><div class="memdoc">
 <p>Optional. For forwarded messages, sender of the original message </p>
+
+</div>
+</div>
+<a id="ada22a1a62a66f23ed289c0030d4c22d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada22a1a62a66f23ed289c0030d4c22d5">&#9670;&nbsp;</a></span>forward_from_chat</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structtelebot__chat.html">telebot_chat</a>* telebot_message::forward_from_chat</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. For messages forwarded from channels, information about the original channel </p>
+
+</div>
+</div>
+<a id="ac710a31dbfb6c7336a1ff6bbce3125ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac710a31dbfb6c7336a1ff6bbce3125ab">&#9670;&nbsp;</a></span>forward_from_message_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int telebot_message::forward_from_message_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. For messages forwarded from channels, identifier of the original message in the channel </p>
+
+</div>
+</div>
+<a id="a29b7993cfea86065355d089ea23da247"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a29b7993cfea86065355d089ea23da247">&#9670;&nbsp;</a></span>forward_sender_name</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* telebot_message::forward_sender_name</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. Sender's name for messages forwarded from users who disallow adding a link to their account in forwarded messages </p>
+
+</div>
+</div>
+<a id="a9f0907e87f13819d2fbc6e7f360c6ae3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f0907e87f13819d2fbc6e7f360c6ae3">&#9670;&nbsp;</a></span>forward_signature</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* telebot_message::forward_signature</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. For messages forwarded from channels, signature of the post author if present </p>
 
 </div>
 </div>
@@ -594,6 +703,21 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_new_chat_photos<
 
 </div>
 </div>
+<a id="a54df3f6062815f400872ab69bdaaaefe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54df3f6062815f400872ab69bdaaaefe">&#9670;&nbsp;</a></span>passport_data</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct telebot_passport_data* telebot_message::passport_data</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Telegram Passport data </p>
+
+</div>
+</div>
 <a id="a4b17614199f063ea1e63c40cc7a6ab22"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b17614199f063ea1e63c40cc7a6ab22">&#9670;&nbsp;</a></span>photos</h2>
 
@@ -621,6 +745,36 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_new_chat_photos<
       </table>
 </div><div class="memdoc">
 <p>Optional. Specified message was pinned. Note that the Message object in this field will not contain further reply_to_message fields even if it is itself a reply. </p>
+
+</div>
+</div>
+<a id="a2671d5bd21a1d3716d8cbaf68f60f494"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2671d5bd21a1d3716d8cbaf68f60f494">&#9670;&nbsp;</a></span>poll</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structtelebot__poll.html">telebot_poll</a>* telebot_message::poll</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. Message is a native poll, information about the poll </p>
+
+</div>
+</div>
+<a id="ac2dabb2dd5bb723c5f74fdb5bfddbb2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2dabb2dd5bb723c5f74fdb5bfddbb2f">&#9670;&nbsp;</a></span>reply_markup</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct inline_keyboard_markup* telebot_message::reply_markup</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Inline keyboard attached to the message. login_url buttons are represented as ordinary url buttons. </p>
 
 </div>
 </div>
@@ -765,7 +919,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>count_new_chat_photos<
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 4 2020 03:28:01 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 01:13:34 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

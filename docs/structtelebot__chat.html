@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Telebot
+   &#160;<span id="projectnumber">4.7.0</span>
    </div>
    <div id="projectbrief">Library for Telegram bot API</div>
   </td>
@@ -86,8 +87,6 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ac6fe9c56cd1770888e5dd5c180a0768d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a764ec0a1e48c807fcfc3631a7a75a4fd"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#a764ec0a1e48c807fcfc3631a7a75a4fd">last_name</a></td></tr>
 <tr class="separator:a764ec0a1e48c807fcfc3631a7a75a4fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71d77f482ee137b50f5dde82a313c98e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#a71d77f482ee137b50f5dde82a313c98e">all_members_are_administrators</a></td></tr>
-<tr class="separator:a71d77f482ee137b50f5dde82a313c98e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c76abf9401feba5696e3f5125b96cc5"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__chat__photo.html">telebot_chat_photo</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#a0c76abf9401feba5696e3f5125b96cc5">photo</a></td></tr>
 <tr class="separator:a0c76abf9401feba5696e3f5125b96cc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac75b84866a5c5d1d68ad9395b88d5369"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#ac75b84866a5c5d1d68ad9395b88d5369">description</a></td></tr>
@@ -96,6 +95,10 @@ Public Attributes</h2></td></tr>
 <tr class="separator:aa51a12fa6663f99097aefbbfb2785d42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adcaadc0069d303e1ef13ea51d131a132"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__message.html">telebot_message</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#adcaadc0069d303e1ef13ea51d131a132">pinned_message</a></td></tr>
 <tr class="separator:adcaadc0069d303e1ef13ea51d131a132"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68a794460080e439cf766ee5748ee6c6"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structtelebot__chat__permissions.html">telebot_chat_permissions</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#a68a794460080e439cf766ee5748ee6c6">permissions</a></td></tr>
+<tr class="separator:a68a794460080e439cf766ee5748ee6c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa673b2f92af6631c5e62a98b41dc09cc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#aa673b2f92af6631c5e62a98b41dc09cc">slow_mode_delay</a></td></tr>
+<tr class="separator:aa673b2f92af6631c5e62a98b41dc09cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b5ab00d749387616dbfd14a34d2cb94"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#a0b5ab00d749387616dbfd14a34d2cb94">sticker_set_name</a></td></tr>
 <tr class="separator:a0b5ab00d749387616dbfd14a34d2cb94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1cc561b20b0df0749195ea9961a76d00"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat.html#a1cc561b20b0df0749195ea9961a76d00">can_set_sticker_set</a></td></tr>
@@ -104,21 +107,6 @@ Public Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This object represents a chat. </p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
-<a id="a71d77f482ee137b50f5dde82a313c98e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71d77f482ee137b50f5dde82a313c98e">&#9670;&nbsp;</a></span>all_members_are_administrators</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool telebot_chat::all_members_are_administrators</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Optional. True, if a group has 'All Members Are Admins' enabled. </p>
-
-</div>
-</div>
 <a id="a1cc561b20b0df0749195ea9961a76d00"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1cc561b20b0df0749195ea9961a76d00">&#9670;&nbsp;</a></span>can_set_sticker_set</h2>
 
@@ -209,6 +197,21 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a68a794460080e439cf766ee5748ee6c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68a794460080e439cf766ee5748ee6c6">&#9670;&nbsp;</a></span>permissions</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structtelebot__chat__permissions.html">telebot_chat_permissions</a>* telebot_chat::permissions</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. Default chat member permissions, for groups and supergroups. Returned only in getChat. </p>
+
+</div>
+</div>
 <a id="a0c76abf9401feba5696e3f5125b96cc5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0c76abf9401feba5696e3f5125b96cc5">&#9670;&nbsp;</a></span>photo</h2>
 
@@ -236,6 +239,21 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Optional. Pinned message, for supergroups. Returned only in getChat. </p>
+
+</div>
+</div>
+<a id="aa673b2f92af6631c5e62a98b41dc09cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa673b2f92af6631c5e62a98b41dc09cc">&#9670;&nbsp;</a></span>slow_mode_delay</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int telebot_chat::slow_mode_delay</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Optional. For supergroups, the minimum allowed delay between consecutive messages sent by each unpriviledged user. Returned only in getChat. </p>
 
 </div>
 </div>
@@ -305,7 +323,7 @@ Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 4 2020 03:28:01 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 01:13:34 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

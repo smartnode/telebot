@@ -22,6 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">Telebot
+   &#160;<span id="projectnumber">4.7.0</span>
    </div>
    <div id="projectbrief">Library for Telegram bot API</div>
   </td>
@@ -122,22 +123,56 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__venue.html">telebot_venue</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a venue.  <a href="structtelebot__venue.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__poll__option.html">telebot_poll_option</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object contains information about one answer option in a poll.  <a href="structtelebot__poll__option.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__poll__answer.html">telebot_poll_answer</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an answer of a user in a non-anonymous poll.  <a href="structtelebot__poll__answer.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__poll.html">telebot_poll</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object contains information about a poll.  <a href="structtelebot__poll.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__dice.html">telebot_dice</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a dice with random value from 1 to 6.  <a href="structtelebot__dice.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__user__profile__photos.html">telebot_user_profile_photos</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represent a user's profile pictures.  <a href="structtelebot__user__profile__photos.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__file.html">telebot_file</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a file ready to be downloaded.  <a href="structtelebot__file.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__keyboard__button__poll__type.html">telebot_keyboard_button_poll_type</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents type of a poll, which is allowed to be created and sent when the corresponding button is pressed.  <a href="structtelebot__keyboard__button__poll__type.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__keyboard__button.html">telebot_keyboard_button</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents one button of the reply keyboard. For simple text buttons String can be used instead of this object to specify text of the button. Optional fields request_contact, request_location, and request_poll are mutually exclusive.  <a href="structtelebot__keyboard__button.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__reply__keyboard__markup.html">telebot_reply_keyboard_markup</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a custom keyboard with reply options.  <a href="structtelebot__reply__keyboard__markup.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__reply__keyboard__remove.html">telebot_reply_keyboard_remove</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upon receiving a message with this object, Telegram clients will remove the current custom keyboard and display the default letter-keyboard. By default, custom keyboards are displayed until a new keyboard is sent by a bot. An exception is made for one-time keyboards that are hidden immediately after the user presses a button (see <a class="el" href="group__TELEBOT__API.html#ga2c736942d9f0eba7463263c529ddc829" title="This object represents a custom keyboard with reply options. ">telebot_reply_keyboard_markup_t</a>).  <a href="structtelebot__reply__keyboard__remove.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__callback__query.html">telebot_callback_query</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an incoming callback query from a callback button in an inline keyboard. If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present.  <a href="structtelebot__callback__query.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__force__reply.html">telebot_force_reply</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upon receiving a message with this object, Telegram clients will display a reply interface to the user (act as if the user has selected the bot's message and tapped ’Reply'). This can be extremely useful if you want to create user-friendly step-by-step interfaces without having to sacrifice privacy mode.  <a href="structtelebot__force__reply.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__photo.html">telebot_chat_photo</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a chat photo.  <a href="structtelebot__chat__photo.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__mask__position.html">telebot_mask_position</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object describes the position on faces where a mask should be placed by default.  <a href="structtelebot__mask__position.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__member.html">telebot_chat_member</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object contains information about one member of a chat.  <a href="structtelebot__chat__member.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__sticker.html">telebot_sticker</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a sticker.  <a href="structtelebot__sticker.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__chat__permissions.html">telebot_chat_permissions</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes actions that a non-administrator user is allowed to take in a chat.  <a href="structtelebot__chat__permissions.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__boot__command.html">telebot_boot_command</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command.  <a href="structtelebot__boot__command.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__response__paramters.html">telebot_response_paramters</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains information about why a request was unsuccessful.  <a href="structtelebot__response__paramters.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtelebot__update.html">telebot_update</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an incoming update.  <a href="structtelebot__update.html#details">More...</a><br /></td></tr>
@@ -208,6 +243,22 @@ typedef struct <a class="el" href="structtelebot__location.html">telebot_locatio
 typedef struct <a class="el" href="structtelebot__venue.html">telebot_venue</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga5cae1fa0a7204c71ec69d070b4abb242">telebot_venue_t</a></td></tr>
 <tr class="memdesc:ga5cae1fa0a7204c71ec69d070b4abb242"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a venue. <br /></td></tr>
 <tr class="separator:ga5cae1fa0a7204c71ec69d070b4abb242"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga315d462582a1546efe8f6ca136635b5a"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__poll__option.html">telebot_poll_option</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga315d462582a1546efe8f6ca136635b5a">telebot_poll_option_t</a></td></tr>
+<tr class="memdesc:ga315d462582a1546efe8f6ca136635b5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object contains information about one answer option in a poll. <br /></td></tr>
+<tr class="separator:ga315d462582a1546efe8f6ca136635b5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9c6937ceb614cd2b77c6eb7b30e373fc"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__poll__answer.html">telebot_poll_answer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga9c6937ceb614cd2b77c6eb7b30e373fc">telebot_poll_answer_t</a></td></tr>
+<tr class="memdesc:ga9c6937ceb614cd2b77c6eb7b30e373fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an answer of a user in a non-anonymous poll. <br /></td></tr>
+<tr class="separator:ga9c6937ceb614cd2b77c6eb7b30e373fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6b136e1d1dd461c9af1136afd1109225"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__poll.html">telebot_poll</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga6b136e1d1dd461c9af1136afd1109225">telebot_poll_t</a></td></tr>
+<tr class="memdesc:ga6b136e1d1dd461c9af1136afd1109225"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object contains information about a poll. <br /></td></tr>
+<tr class="separator:ga6b136e1d1dd461c9af1136afd1109225"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2a9336dcce5521e310721bb5157a8171"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__dice.html">telebot_dice</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga2a9336dcce5521e310721bb5157a8171">telebot_dice_t</a></td></tr>
+<tr class="memdesc:ga2a9336dcce5521e310721bb5157a8171"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a dice with random value from 1 to 6. <br /></td></tr>
+<tr class="separator:ga2a9336dcce5521e310721bb5157a8171"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0615759659c9decb851b52fce87b5cf2"><td class="memItemLeft" align="right" valign="top">
 typedef struct <a class="el" href="structtelebot__user__profile__photos.html">telebot_user_profile_photos</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga0615759659c9decb851b52fce87b5cf2">telebot_user_profile_photos_t</a></td></tr>
 <tr class="memdesc:ga0615759659c9decb851b52fce87b5cf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represent a user's profile pictures. <br /></td></tr>
@@ -215,21 +266,50 @@ typedef struct <a class="el" href="structtelebot__user__profile__photos.html">te
 <tr class="memitem:ga5b6b4693b608cd8c2160b68e78ebce9b"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structtelebot__file.html">telebot_file</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga5b6b4693b608cd8c2160b68e78ebce9b">telebot_file_t</a></td></tr>
 <tr class="memdesc:ga5b6b4693b608cd8c2160b68e78ebce9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a file ready to be downloaded.  <a href="group__TELEBOT__API.html#ga5b6b4693b608cd8c2160b68e78ebce9b">More...</a><br /></td></tr>
 <tr class="separator:ga5b6b4693b608cd8c2160b68e78ebce9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad5d8e4635bca77d6178af826c068d962"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__keyboard__button__poll__type.html">telebot_keyboard_button_poll_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gad5d8e4635bca77d6178af826c068d962">telebot_keyboard_button_poll_type_t</a></td></tr>
+<tr class="memdesc:gad5d8e4635bca77d6178af826c068d962"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents type of a poll, which is allowed to be created and sent when the corresponding button is pressed. <br /></td></tr>
+<tr class="separator:gad5d8e4635bca77d6178af826c068d962"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7324c6315e21db4af8f731f70fcc1752"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__keyboard__button.html">telebot_keyboard_button</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga7324c6315e21db4af8f731f70fcc1752">telebot_keyboard_button_t</a></td></tr>
+<tr class="memdesc:ga7324c6315e21db4af8f731f70fcc1752"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents one button of the reply keyboard. For simple text buttons String can be used instead of this object to specify text of the button. Optional fields request_contact, request_location, and request_poll are mutually exclusive. <br /></td></tr>
+<tr class="separator:ga7324c6315e21db4af8f731f70fcc1752"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2c736942d9f0eba7463263c529ddc829"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__reply__keyboard__markup.html">telebot_reply_keyboard_markup</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga2c736942d9f0eba7463263c529ddc829">telebot_reply_keyboard_markup_t</a></td></tr>
+<tr class="memdesc:ga2c736942d9f0eba7463263c529ddc829"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a custom keyboard with reply options. <br /></td></tr>
+<tr class="separator:ga2c736942d9f0eba7463263c529ddc829"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaef76807e4653f33def1257a74cc60f4c"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__reply__keyboard__remove.html">telebot_reply_keyboard_remove</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gaef76807e4653f33def1257a74cc60f4c">telebot_reply_keyboard_remove_t</a></td></tr>
+<tr class="memdesc:gaef76807e4653f33def1257a74cc60f4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upon receiving a message with this object, Telegram clients will remove the current custom keyboard and display the default letter-keyboard. By default, custom keyboards are displayed until a new keyboard is sent by a bot. An exception is made for one-time keyboards that are hidden immediately after the user presses a button (see <a class="el" href="group__TELEBOT__API.html#ga2c736942d9f0eba7463263c529ddc829" title="This object represents a custom keyboard with reply options. ">telebot_reply_keyboard_markup_t</a>). <br /></td></tr>
+<tr class="separator:gaef76807e4653f33def1257a74cc60f4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5c124ec8d5f214d99485ad2fea53929c"><td class="memItemLeft" align="right" valign="top">
-typedef struct <a class="el" href="structtelebot__callback__query.html">telebot_callback_query</a>&#160;</td><td class="memItemRight" valign="bottom"><b>telebot_callback_query_t</b></td></tr>
+typedef struct <a class="el" href="structtelebot__callback__query.html">telebot_callback_query</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga5c124ec8d5f214d99485ad2fea53929c">telebot_callback_query_t</a></td></tr>
+<tr class="memdesc:ga5c124ec8d5f214d99485ad2fea53929c"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an incoming callback query from a callback button in an inline keyboard. If the button that originated the query was attached to a message sent by the bot, the field message will be present. If the button was attached to a message sent via the bot (in inline mode), the field inline_message_id will be present. Exactly one of the fields data or game_short_name will be present. <br /></td></tr>
 <tr class="separator:ga5c124ec8d5f214d99485ad2fea53929c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadfa44a56265d0bcd8667099c12a70d41"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__force__reply.html">telebot_force_reply</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gadfa44a56265d0bcd8667099c12a70d41">telebot_force_reply_t</a></td></tr>
+<tr class="memdesc:gadfa44a56265d0bcd8667099c12a70d41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upon receiving a message with this object, Telegram clients will display a reply interface to the user (act as if the user has selected the bot's message and tapped ’Reply'). This can be extremely useful if you want to create user-friendly step-by-step interfaces without having to sacrifice privacy mode. <br /></td></tr>
+<tr class="separator:gadfa44a56265d0bcd8667099c12a70d41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae3ddc4554160b5537ab7d98967e6a2cc"><td class="memItemLeft" align="right" valign="top">
 typedef struct <a class="el" href="structtelebot__chat__photo.html">telebot_chat_photo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#gae3ddc4554160b5537ab7d98967e6a2cc">telebot_chat_photo_t</a></td></tr>
 <tr class="memdesc:gae3ddc4554160b5537ab7d98967e6a2cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a chat photo. <br /></td></tr>
 <tr class="separator:gae3ddc4554160b5537ab7d98967e6a2cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga64f616c9187f6e87cc3cca7fc171ff8b"><td class="memItemLeft" align="right" valign="top">
-typedef struct <a class="el" href="structtelebot__mask__position.html">telebot_mask_position</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga64f616c9187f6e87cc3cca7fc171ff8b">telebot_mask_position_t</a></td></tr>
-<tr class="memdesc:ga64f616c9187f6e87cc3cca7fc171ff8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object describes the position on faces where a mask should be placed by default. <br /></td></tr>
-<tr class="separator:ga64f616c9187f6e87cc3cca7fc171ff8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3b494fc19400ce87204bdb0357ef0de2"><td class="memItemLeft" align="right" valign="top">
-typedef struct <a class="el" href="structtelebot__sticker.html">telebot_sticker</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga3b494fc19400ce87204bdb0357ef0de2">telebot_sticker_t</a></td></tr>
-<tr class="memdesc:ga3b494fc19400ce87204bdb0357ef0de2"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a sticker. <br /></td></tr>
-<tr class="separator:ga3b494fc19400ce87204bdb0357ef0de2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0e9cd56720d63388f69fb4576be73dee"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__chat__member.html">telebot_chat_member</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga0e9cd56720d63388f69fb4576be73dee">telebot_chat_member_t</a></td></tr>
+<tr class="memdesc:ga0e9cd56720d63388f69fb4576be73dee"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object contains information about one member of a chat. <br /></td></tr>
+<tr class="separator:ga0e9cd56720d63388f69fb4576be73dee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8c1e647c378812f35fe5ca541c4d52c3"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__chat__permissions.html">telebot_chat_permissions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga8c1e647c378812f35fe5ca541c4d52c3">telebot_chat_permissions_t</a></td></tr>
+<tr class="memdesc:ga8c1e647c378812f35fe5ca541c4d52c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Describes actions that a non-administrator user is allowed to take in a chat. <br /></td></tr>
+<tr class="separator:ga8c1e647c378812f35fe5ca541c4d52c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4f873521c155d8c07e1cef62304fee6e"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__boot__command.html">telebot_boot_command</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga4f873521c155d8c07e1cef62304fee6e">telebot_boot_command_t</a></td></tr>
+<tr class="memdesc:ga4f873521c155d8c07e1cef62304fee6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents a bot command. <br /></td></tr>
+<tr class="separator:ga4f873521c155d8c07e1cef62304fee6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3cdfefc3f34ba92f6affddb14fe13c6e"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structtelebot__response__paramters.html">telebot_response_paramters</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga3cdfefc3f34ba92f6affddb14fe13c6e">telebot_response_paramters_t</a></td></tr>
+<tr class="memdesc:ga3cdfefc3f34ba92f6affddb14fe13c6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains information about why a request was unsuccessful. <br /></td></tr>
+<tr class="separator:ga3cdfefc3f34ba92f6affddb14fe13c6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga358a9ac5454da4008703da941cf8e1e6"><td class="memItemLeft" align="right" valign="top">
 typedef struct <a class="el" href="structtelebot__update.html">telebot_update</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__TELEBOT__API.html#ga358a9ac5454da4008703da941cf8e1e6">telebot_update_t</a></td></tr>
 <tr class="memdesc:ga358a9ac5454da4008703da941cf8e1e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">This object represents an incoming update. <br /></td></tr>
@@ -257,6 +337,8 @@ Enumerations</h2></td></tr>
 <b>UPDATE_TYPE_SHIPPING_QUERY</b>, 
 <br />
 &#160;&#160;<b>UPDATE_TYPE_PRE_CHECKOUT_QUERY</b>, 
+<b>UPDATE_TYPE_POLL</b>, 
+<b>UPDATE_TYPE_POLL_ANSWER</b>, 
 <b>UPDATE_TYPE_MAX</b>
 <br />
  }<tr class="memdesc:ga72e26ad36ec658059d7c612c3b31f84d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumerations of telegram update types. <br /></td></tr>
@@ -266,11 +348,11 @@ Enumerations</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This file contains types used to create telegram bot. </p>
 <dl class="section author"><dt>Author</dt><dd>Elmurod Talipov </dd></dl>
-<dl class="section date"><dt>Date</dt><dd>2015-12-13 </dd></dl>
+<dl class="section date"><dt>Date</dt><dd>2020-04-19 </dd></dl>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Apr 4 2020 03:28:00 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Apr 19 2020 01:13:33 for Telebot by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>
