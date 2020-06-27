@@ -1572,7 +1572,7 @@ telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h,
         (out_file == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    CURL *curl_h;
+    CURL *curl_h = NULL; 
     CURLcode res;
     long resp_code = 0L;
 
