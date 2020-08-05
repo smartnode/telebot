@@ -39,7 +39,7 @@ static size_t write_data_cb(void *contents, size_t size, size_t nmemb, void *use
     telebot_core_response_t *resp = (telebot_core_response_t *)userp;
     size_t r_size = size * nmemb;
 
-    char *data = (char *)realloc(resp->data, resp->size + r_size);
+    char *data = (char *)realloc(resp->data, resp->size + r_size + 1);
     if (data == NULL)
     {
         ERR("Failed to allocate memory, size:%u", (unsigned int)r_size);
