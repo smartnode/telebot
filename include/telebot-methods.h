@@ -90,8 +90,16 @@ telebot_error_e telebot_get_proxy(telebot_handler_t handle, char **addr);
  * @brief This function is used to get latest updates.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
- * @param[in] allowed_updates Types of updates you want your bot to receive.
- * Referes #telebot_update_type_e.
+ * @param[in] offset Identifier of the first update to be returned. The
+ * negative offset can be specified to retrieve updates starting from -offset
+ * update from the end of the updates queue.
+ * @param[in] limit Number of updates to be retrieved. Values between 1-100
+ * are accepted. Defaults to 100.
+ * @param[in] timeout Timeout in seconds for long polling.
+ * Defaults to 0, i.e. usual short polling. Should be positive,
+ * short polling should be used for testing purposes only.
+ * @param[in] allowed_updates An array of types of updates you want your bot to receive.
+ * Refers to #telebot_update_type_e.
  * @param[in] allowed_updates_count Number of update types.
  * @param[out] updates An array of update objects, it needs to be released with
  * #telebot_put_updates after use.

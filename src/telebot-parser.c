@@ -669,7 +669,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     if (json_object_object_get_ex(obj, "dice", &dice))
     {
         msg->dice = malloc(sizeof(telebot_dice_t));
-        if (telebot_parser_get_dice(poll, msg->dice) != TELEBOT_ERROR_NONE)
+        if (telebot_parser_get_dice(dice, msg->dice) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <dice> from message object");
             TELEBOT_SAFE_FREE(msg->dice);
