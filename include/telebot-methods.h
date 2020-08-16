@@ -1060,7 +1060,7 @@ telebot_error_e telebot_answer_callback_query(telebot_handler_t handle,
  * @brief Change the list of the bot's commands.
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] commands Array of telegram bot commands.
- * @param[in] commands The number of commands in array.
+ * @param[in] count The number of commands in array.
  * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_set_my_commands(telebot_handler_t handle,
