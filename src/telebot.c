@@ -153,7 +153,7 @@ telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
     struct json_object *array = NULL;
     if (allowed_updates_count > 0)
     {
-        struct json_object *array = json_object_new_array();
+        array = json_object_new_array();
         for (int i = 0; i < allowed_updates_count; i++) {
             const char *item = telebot_update_type_str[allowed_updates[i]];
             json_object_array_add(array, json_object_new_string(item));
