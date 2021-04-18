@@ -841,7 +841,20 @@ telebot_error_e telebot_download_file(telebot_handler_t handle, const char *file
         goto finish;
     }
 
-    ret = telebot_parser_get_file(obj, &file);
+    struct json_object *ok = NULL;
+    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    struct json_object *result = NULL;
+    if (!json_object_object_get_ex(obj, "result", &result)) {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    ret = telebot_parser_get_file(result, &file);
     if (ret != TELEBOT_ERROR_NONE)
         goto finish;
 
