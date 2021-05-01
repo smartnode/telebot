@@ -421,7 +421,7 @@ telebot_error_e telebot_put_webhook_info(telebot_webhook_info_t *info)
 
 telebot_error_e telebot_send_message(telebot_handler_t handle, long long int chat_id,
     const char *text, const char *parse_mode, bool disable_web_page_preview,
-    bool disable_notification, int reply_to_message_id, const char *reply_markup)
+    bool disable_notification, int reply_to_message_id, const char *reply_markup, telebot_message_t *msg)
 {
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
@@ -434,6 +434,34 @@ telebot_error_e telebot_send_message(telebot_handler_t handle, long long int cha
     int ret = telebot_core_send_message(_handle->core_h, chat_id, text, parse_mode,
             disable_web_page_preview, disable_notification, reply_to_message_id,
             reply_markup, &response);
+
+    struct json_object *obj = NULL;
+    if (msg) {
+	    obj = telebot_parser_str_to_obj(response.data);
+	    if (obj == NULL)
+	    {
+	        ret = TELEBOT_ERROR_OPERATION_FAILED;
+	        goto finish;
+	    }
+
+	    struct json_object *ok = NULL;
+	    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+	    {
+	        ret = TELEBOT_ERROR_OPERATION_FAILED;
+	        goto finish;
+	    }
+
+	    struct json_object *result = NULL;
+	    if (!json_object_object_get_ex(obj, "result", &result))
+	    {
+	        ret = TELEBOT_ERROR_OPERATION_FAILED;
+	        goto finish;
+	    }
+
+	    ret = telebot_parser_get_message(result, msg);
+    }
+finish:
+    if (obj) json_object_put(obj);
     telebot_core_put_response(&response);
 
     return ret;
