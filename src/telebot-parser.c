@@ -619,7 +619,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
 
     struct json_object *caption = NULL;
     if (json_object_object_get_ex(obj, "caption", &caption))
-        msg->new_chat_title = TELEBOT_SAFE_STRDUP(json_object_get_string(caption));
+        msg->caption = TELEBOT_SAFE_STRDUP(json_object_get_string(caption));
 
     struct json_object *contact = NULL;
     if (json_object_object_get_ex(obj, "contact", &contact))
