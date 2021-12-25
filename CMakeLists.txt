@@ -42,13 +42,13 @@ ADD_SUBDIRECTORY(test)
 # CMake Policy (CMP0002)
 # The logical name of executable and library targets
 # does not have to correspond to the physical file name built.
-INSTALL(FILES telebot.pc DESTINATION lib/pkgconfig)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/telebot.pc DESTINATION lib/pkgconfig)
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib COMPONENT RuntimeLibraries)
 INSTALL(FILES
-    include/telebot.h
-    include/telebot-common.h
-    include/telebot-methods.h
-    include/telebot-types.h
-    include/telebot-core.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-common.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-methods.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-core.h
     DESTINATION include/telebot/)
 
