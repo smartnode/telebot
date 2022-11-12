@@ -18,164 +18,54 @@
  * limitations under the License.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <libgen.h>
-#include <json.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
-#include <telebot-private.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <telebot-common.h>
 #include <telebot-core.h>
+#include <telebot-private.h>
+#include <unistd.h>
 
-void telebot_core_put_response(telebot_core_response_t *response)
+telebot_error_e telebot_core_get_response_code(telebot_core_response_t response)
+{
+    if (response)
+        return response->ret;
+    else
+        // response is NULL, probably could not allocate memory
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+}
+
+const char *telebot_core_get_response_data(telebot_core_response_t response)
+{
+    if (response)
+        return response->data;
+    else
+        return NULL;
+}
+
+void telebot_core_put_response(telebot_core_response_t response)
 {
     if (response)
     {
         TELEBOT_SAFE_FZCNT(response->data, response->size);
+        TELEBOT_SAFE_FREE(response);
     }
 }
 
-static size_t write_data_cb(void *contents, size_t size, size_t nmemb, void *userp)
+telebot_error_e
+telebot_core_create(telebot_core_handler_t *core_h, const char *token)
 {
-    telebot_core_response_t *resp = (telebot_core_response_t *)userp;
-    size_t r_size = size * nmemb;
-
-    char *data = (char *)realloc(resp->data, resp->size + r_size + 1);
-    if (data == NULL)
+    if ((core_h == NULL) || (token == NULL))
     {
-        ERR("Failed to allocate memory, size:%u", (unsigned int)r_size);
-        TELEBOT_SAFE_FZCNT(resp->data, resp->size);
-        return 0;
-    }
-    memcpy((data + resp->size), contents, r_size);
-    resp->data = data;
-    resp->size += r_size;
-    resp->data[resp->size] = 0;
-
-    return r_size;
-}
-
-static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
-    const char *method, telebot_core_mime_t mimes[], size_t size,
-    telebot_core_response_t *resp)
-{
-    CURLcode res;
-    CURL *curl_h = NULL;
-    curl_mime *mime = NULL;
-    long resp_code = 0L;
-    int ret = TELEBOT_ERROR_NONE;
-
-    if (resp == NULL)
-    {
+        ERR("Either pointer for core handler (%p) or token (%p) is null", core_h, token);
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
-    resp->data = (char *)malloc(1);
-    resp->size = 0;
 
-    curl_h = curl_easy_init();
-    if (curl_h == NULL)
-    {
-        ERR("Failed to init curl");
-        ret = TELEBOT_ERROR_OUT_OF_MEMORY;
-        goto finish;
-    }
-
-    char URL[TELEBOT_URL_SIZE];
-    snprintf(URL, TELEBOT_URL_SIZE, "%s/bot%s/%s", TELEBOT_API_URL, core_h->token, method);
-    curl_easy_setopt(curl_h, CURLOPT_URL, URL);
-    curl_easy_setopt(curl_h, CURLOPT_WRITEFUNCTION, write_data_cb);
-    curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, resp);
-
-    if (core_h->proxy_addr != NULL)
-    {
-        curl_easy_setopt(curl_h, CURLOPT_PROXY, core_h->proxy_addr);
-        if (core_h->proxy_auth != NULL)
-        {
-            curl_easy_setopt(curl_h, CURLOPT_PROXYAUTH, CURLAUTH_ANY);
-            curl_easy_setopt(curl_h, CURLOPT_PROXYUSERPWD, core_h->proxy_auth);
-        }
-    }
-
-    if (size > 0)
-    {
-        mime = curl_mime_init(curl_h);
-        if (mime == NULL)
-        {
-            ERR("Failed to create mime");
-            ret = TELEBOT_ERROR_OUT_OF_MEMORY;
-            goto finish;
-        }
-        for (int index = 0; index < size; index++)
-        {
-            curl_mimepart *part = curl_mime_addpart(mime);
-            if (part == NULL)
-            {
-                ERR("Failed to create mime part");
-                ret = TELEBOT_ERROR_OUT_OF_MEMORY;
-                goto finish;
-            }
-            curl_mime_name(part, mimes[index].name);
-            if (mimes[index].type == TELEBOT_MIME_TYPE_FILE)
-                curl_mime_filedata(part, mimes[index].data);
-            else
-                curl_mime_data(part, mimes[index].data, CURL_ZERO_TERMINATED);
-        }
-
-        curl_easy_setopt(curl_h, CURLOPT_MIMEPOST, mime);
-    }
-
-    res = curl_easy_perform(curl_h);
-    if (res != CURLE_OK)
-    {
-        ERR("Failed to curl_easy_perform\nError: %s (%d)", curl_easy_strerror(res), res);
-        ret = TELEBOT_ERROR_OPERATION_FAILED;
-        goto finish;
-    }
-
-    curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
-    if (resp_code != 200L)
-    {
-        ret = TELEBOT_ERROR_OPERATION_FAILED;
-
-        struct json_object *obj = json_tokener_parse(resp->data);
-        if (obj == NULL) {
-            ERR("HTTP error: %ld", resp_code);
-            ERR("Response: %s", resp->data);
-        } else {
-            ERR("HTTP error: %d - \"%s\"",
-                json_object_get_int(json_object_object_get(obj, "error_code")),
-                json_object_get_string(json_object_object_get(obj, "description")));
-        }
-
-        goto finish;
-    }
-
-    DBG("Response: %s", resp->data);
-
-finish:
-    if (ret != TELEBOT_ERROR_NONE)
-        TELEBOT_SAFE_FZCNT(resp->data, resp->size);
-    if (mime)
-        curl_mime_free(mime);
-    if (curl_h)
-        curl_easy_cleanup(curl_h);
-
-    return ret;
-}
-
-telebot_error_e telebot_core_create(telebot_core_handler_t **core_h, const char *token)
-{
-    if ((token == NULL) || (core_h == NULL))
-    {
-        ERR("Token(0x%p) or core_h(0x%p) is NULL", token, core_h);
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
     *core_h = NULL;
 
-    telebot_core_handler_t *_core_h = calloc(1, sizeof(telebot_core_handler_t));
+    telebot_core_handler_t _core_h = malloc(sizeof(telebot_core_handler_t));
     if (_core_h == NULL)
     {
         ERR("Failed to allocate memory");
@@ -198,13 +88,14 @@ telebot_error_e telebot_core_create(telebot_core_handler_t **core_h, const char 
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_destroy(telebot_core_handler_t **core_h)
+telebot_error_e
+telebot_core_destroy(telebot_core_handler_t *core_h)
 {
     curl_global_cleanup();
 
     if ((core_h == NULL) || (*core_h == NULL))
     {
-        ERR("Handler is NULL");
+        ERR("Core handler is null");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -230,8 +121,8 @@ telebot_error_e telebot_core_destroy(telebot_core_handler_t **core_h)
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_set_proxy(telebot_core_handler_t *core_h,
-    const char *addr, const char *auth)
+telebot_error_e
+telebot_core_set_proxy(telebot_core_handler_t core_h, const char *addr, const char *auth)
 {
     if ((addr == NULL) || (core_h == NULL))
     {
@@ -259,7 +150,8 @@ telebot_error_e telebot_core_set_proxy(telebot_core_handler_t *core_h,
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_get_proxy(telebot_core_handler_t *core_h, char **addr)
+telebot_error_e
+telebot_core_get_proxy(telebot_core_handler_t core_h, char **addr)
 {
     if ((addr == NULL) || (core_h == NULL))
     {
@@ -274,16 +166,143 @@ telebot_error_e telebot_core_get_proxy(telebot_core_handler_t *core_h, char **ad
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_core_get_updates(telebot_core_handler_t *core_h,
-    int offset, int limit, int timeout, const char *allowed_updates,
-    telebot_core_response_t *response)
+static size_t write_data_cb(void *contents, size_t size, size_t nmemb, void *userp)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
+    telebot_core_response_t resp = (telebot_core_response_t)userp;
+    size_t r_size = size * nmemb;
+
+    char *data = (char *)realloc(resp->data, resp->size + r_size + 1);
+    if (data == NULL)
     {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        ERR("Failed to allocate memory, size:%u", (unsigned int)r_size);
+        TELEBOT_SAFE_FZCNT(resp->data, resp->size);
+        return 0;
+    }
+    memcpy((data + resp->size), contents, r_size);
+    resp->data = data;
+    resp->size += r_size;
+    resp->data[resp->size] = 0;
+
+    return r_size;
+}
+
+static telebot_core_response_t
+telebot_core_curl_perform(telebot_core_handler_t core_h, const char *method, telebot_core_mime_t mimes[], size_t size)
+{
+    CURLcode res;
+    CURL *curl_h = NULL;
+    curl_mime *mime = NULL;
+    long resp_code = 0L;
+
+    telebot_core_response_t resp = calloc(1, sizeof(struct telebot_core_response));
+    if (resp == NULL)
+    {
+        ERR("Failed to allocate memory for response");
+        return NULL;
     }
 
+    if (core_h == NULL)
+    {
+        ERR("Core handler is NULL");
+        resp->ret = TELEBOT_ERROR_INVALID_PARAMETER;
+        return resp;
+    }
+
+    if (core_h->token == NULL)
+    {
+        ERR("Token is NULL, this should not happen");
+        resp->ret = TELEBOT_ERROR_OPERATION_FAILED;
+        return resp;
+    }
+
+    resp->data = (char *)malloc(1);
+    resp->size = 0;
+    resp->ret = TELEBOT_ERROR_NONE;
+
+    curl_h = curl_easy_init();
+    if (curl_h == NULL)
+    {
+        ERR("Failed to init curl");
+        resp->ret = TELEBOT_ERROR_OUT_OF_MEMORY;
+        goto finish;
+    }
+
+    char URL[TELEBOT_URL_SIZE];
+    snprintf(URL, TELEBOT_URL_SIZE, "%s/bot%s/%s", TELEBOT_API_URL, core_h->token, method);
+    curl_easy_setopt(curl_h, CURLOPT_URL, URL);
+    curl_easy_setopt(curl_h, CURLOPT_WRITEFUNCTION, write_data_cb);
+    curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, resp);
+
+    if (core_h->proxy_addr != NULL)
+    {
+        curl_easy_setopt(curl_h, CURLOPT_PROXY, core_h->proxy_addr);
+        if (core_h->proxy_auth != NULL)
+        {
+            curl_easy_setopt(curl_h, CURLOPT_PROXYAUTH, CURLAUTH_ANY);
+            curl_easy_setopt(curl_h, CURLOPT_PROXYUSERPWD, core_h->proxy_auth);
+        }
+    }
+
+    if (size > 0)
+    {
+        mime = curl_mime_init(curl_h);
+        if (mime == NULL)
+        {
+            ERR("Failed to create mime");
+            resp->ret = TELEBOT_ERROR_OUT_OF_MEMORY;
+            goto finish;
+        }
+        for (int index = 0; index < size; index++)
+        {
+            curl_mimepart *part = curl_mime_addpart(mime);
+            if (part == NULL)
+            {
+                ERR("Failed to create mime part");
+                resp->ret = TELEBOT_ERROR_OUT_OF_MEMORY;
+                goto finish;
+            }
+            curl_mime_name(part, mimes[index].name);
+            if (mimes[index].type == TELEBOT_MIME_TYPE_FILE)
+                curl_mime_filedata(part, mimes[index].data);
+            else
+                curl_mime_data(part, mimes[index].data, CURL_ZERO_TERMINATED);
+        }
+
+        curl_easy_setopt(curl_h, CURLOPT_MIMEPOST, mime);
+    }
+
+    res = curl_easy_perform(curl_h);
+    if (res != CURLE_OK)
+    {
+        ERR("Failed to curl_easy_perform\nError: %s (%d)", curl_easy_strerror(res), res);
+        resp->ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
+    if (resp_code != 200L)
+    {
+        ERR("Wrong HTTP response received, response: %ld", resp_code);
+        resp->ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    DBG("Response: %s", resp->data);
+
+finish:
+    if (resp->ret != TELEBOT_ERROR_NONE)
+        TELEBOT_SAFE_FZCNT(resp->data, resp->size);
+    if (mime)
+        curl_mime_free(mime);
+    if (curl_h)
+        curl_easy_cleanup(curl_h);
+
+    return resp;
+}
+
+telebot_core_response_t
+telebot_core_get_updates(telebot_core_handler_t core_h, int offset, int limit, int timeout, const char *allowed_updates)
+{
     if (limit > TELEBOT_UPDATE_COUNT_MAX_LIMIT)
         limit = TELEBOT_UPDATE_COUNT_MAX_LIMIT;
 
@@ -312,18 +331,23 @@ telebot_error_e telebot_core_get_updates(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_UPDATES, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_UPDATES, mimes, index);
 }
 
-telebot_error_e telebot_core_set_webhook(telebot_core_handler_t *core_h, const char *url,
-    const char *certificate, int max_connections, const char *allowed_updates,
-    telebot_core_response_t *response)
+static telebot_core_response_t telebot_core_get_error_response(telebot_error_e ret)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (url == NULL))
-    {
-        ERR("Handler, token, or url is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    telebot_core_response_t resp = calloc(1, sizeof(struct telebot_core_response));
+    if (resp)
+        resp->ret = ret;
+
+    return resp;
+}
+
+telebot_core_response_t
+telebot_core_set_webhook(telebot_core_handler_t core_h, const char *url, const char *certificate, int max_connections,
+                         const char *allowed_updates)
+{
+    CHECK_ARG_NULL(url);
 
     int index = 0;
     telebot_core_mime_t mimes[4]; // number of arguments
@@ -352,55 +376,33 @@ telebot_error_e telebot_core_set_webhook(telebot_core_handler_t *core_h, const c
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_WEBHOOK, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_WEBHOOK, mimes, index);
 }
 
-telebot_error_e telebot_core_delete_webhook(telebot_core_handler_t *core_h,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_delete_webhook(telebot_core_handler_t core_h)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_WEBHOOK, NULL, 0, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_WEBHOOK, NULL, 0);
 }
 
-telebot_error_e telebot_core_get_webhook_info(telebot_core_handler_t *core_h,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_webhook_info(telebot_core_handler_t core_h)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_WEBHOOK_INFO, NULL, 0, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_WEBHOOK_INFO, NULL, 0);
 }
 
-telebot_error_e telebot_core_get_me(telebot_core_handler_t *core_h,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_me(telebot_core_handler_t core_h)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_ME, NULL, 0, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_ME, NULL, 0);
 }
 
-telebot_error_e telebot_core_send_message(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *text, const char *parse_mode,
-    bool disable_web_page_preview, bool disable_notification, int reply_to_message_id,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_message(telebot_core_handler_t core_h, long long int chat_id, const char *text, const char *parse_mode,
+                          bool disable_web_page_preview, bool disable_notification, int reply_to_message_id,
+                          const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (text == NULL))
-    {
-        ERR("Handler, token or text is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(text);
 
     int index = 0;
     telebot_core_mime_t mimes[7]; // number of arguments
@@ -448,23 +450,17 @@ telebot_error_e telebot_core_send_message(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_MESSAGE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_MESSAGE, mimes, index);
 }
 
-telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
-    long long int chat_id, long long int from_chat_id, bool disable_notification,
-    int message_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_forward_message(telebot_core_handler_t core_h, long long int chat_id, long long int from_chat_id,
+                             bool disable_notification, int message_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL.");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     if (message_id <= 0)
     {
         ERR("Valid message_id is required.");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
     }
 
     int index = 0;
@@ -489,19 +485,15 @@ telebot_error_e telebot_core_forward_message(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", message_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_FORWARD_MESSAGE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_FORWARD_MESSAGE, mimes, index);
 }
 
-telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *photo, bool is_file, const char *caption,
-    const char *parse_mode, bool disable_notification, int reply_to_message_id,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_photo(telebot_core_handler_t core_h, long long int chat_id, const char *photo, bool is_file,
+                        const char *caption, const char *parse_mode, bool disable_notification,
+                        int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (photo == NULL))
-    {
-        ERR("Handler, token or photo is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(photo);
 
     int index = 0;
     telebot_core_mime_t mimes[7]; // number of arguments
@@ -551,20 +543,16 @@ telebot_error_e telebot_core_send_photo(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_PHOTO, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_PHOTO, mimes, index);
 }
 
-telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *audio, bool is_file, const char *caption,
-    const char *parse_mode, int duration, const char *performer, const char *title,
-    const char *thumb, bool disable_notification, int reply_to_message_id,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_audio(telebot_core_handler_t core_h, long long int chat_id, const char *audio, bool is_file,
+                        const char *caption, const char *parse_mode, int duration, const char *performer,
+                        const char *title, const char *thumb, bool disable_notification, int reply_to_message_id,
+                        const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (audio == NULL))
-    {
-        ERR("Handler, token or audio is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(audio);
 
     int index = 0;
     telebot_core_mime_t mimes[11]; // number of arguments
@@ -646,21 +634,15 @@ telebot_error_e telebot_core_send_audio(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_AUDIO, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_AUDIO, mimes, index);
 }
 
-telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *document, bool is_file, const char *thumb,
-    const char *caption, const char *parse_mode, bool disable_notification,
-    int reply_to_message_id, const char *reply_markup,
-    telebot_core_response_t *response)
-
+telebot_core_response_t
+telebot_core_send_document(telebot_core_handler_t core_h, long long int chat_id, const char *document, bool is_file,
+                           const char *thumb, const char *caption, const char *parse_mode, bool disable_notification,
+                           int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (document == NULL))
-    {
-        ERR("Handler, token or document is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(document);
 
     int index = 0;
     telebot_core_mime_t mimes[8]; // number of arguments
@@ -718,21 +700,16 @@ telebot_error_e telebot_core_send_document(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_DOCUMENT, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_DOCUMENT, mimes, index);
 }
 
-telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *video, bool is_file, int duration,
-    int width, int height, const char *thumb, const char *caption,
-    const char *parse_mode, bool supports_streaming, bool disable_notification,
-    int reply_to_message_id, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_video(telebot_core_handler_t core_h, long long int chat_id, const char *video, bool is_file,
+                        int duration, int width, int height, const char *thumb, const char *caption,
+                        const char *parse_mode, bool supports_streaming, bool disable_notification,
+                        int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (video == NULL))
-    {
-        ERR("Handler, token or video is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(video);
 
     int index = 0;
     telebot_core_mime_t mimes[12]; // number of arguments
@@ -819,20 +796,16 @@ telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO, mimes, index);
 }
 
-telebot_error_e telebot_core_send_animation(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *animation, bool is_file, int duration,
-    int width, int height, const char *thumb, const char *caption,
-    const char *parse_mode, bool disable_notification, int reply_to_message_id,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_animation(telebot_core_handler_t core_h, long long int chat_id, const char *animation, bool is_file,
+                            int duration, int width, int height, const char *thumb, const char *caption,
+                            const char *parse_mode, bool disable_notification, int reply_to_message_id,
+                            const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (animation == NULL))
-    {
-        ERR("Handler, token or animation is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(animation);
 
     int index = 0;
     telebot_core_mime_t mimes[11]; // number of arguments
@@ -914,20 +887,15 @@ telebot_error_e telebot_core_send_animation(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_ANIMATION, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_ANIMATION, mimes, index);
 }
 
-telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *voice, bool is_file, const char *caption,
-    const char *parse_mode, int duration, bool disable_notification,
-    int reply_to_message_id, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_voice(telebot_core_handler_t core_h, long long int chat_id, const char *voice, bool is_file,
+                        const char *caption, const char *parse_mode, int duration, bool disable_notification,
+                        int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (voice == NULL))
-    {
-        ERR("Handler, token or voice is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(voice);
 
     int index = 0;
     telebot_core_mime_t mimes[8]; // number of arguments
@@ -985,19 +953,15 @@ telebot_error_e telebot_core_send_voice(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VOICE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VOICE, mimes, index);
 }
 
-telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
-    long long int chat_id, char *video_note, bool is_file, int duration, int length,
-    const char *thumb, bool disable_notification, int reply_to_message_id,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_video_note(telebot_core_handler_t core_h, long long int chat_id, char *video_note, bool is_file,
+                             int duration, int length, const char *thumb, bool disable_notification,
+                             int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (video_note == NULL))
-    {
-        ERR("Handler, token or video_note is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(video_note);
 
     int index = 0;
     telebot_core_mime_t mimes[8]; // number of arguments
@@ -1056,32 +1020,74 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO_NOTE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO_NOTE, mimes, index);
 }
 
-telebot_error_e telebot_core_send_media_group(
-    telebot_core_handler_t *core_h,
-    long long int chat_id,
-    char *media_paths[],
-    int count,
-    bool disable_notification,
-    int reply_to_message_id,
-    telebot_core_response_t *response)
+// Helper function to determine media type based on file extension
+static const char *telebot_core_get_media_type(const char *filename)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) ||
-        (media_paths == NULL) || (count < 2) || (count > 10))
+    const char *ext = strrchr(filename, '.');
+    if (ext == NULL)
+        return "document"; // No extension, treat as document
+
+    ext++; // Skip the dot
+
+    // Convert to lowercase for comparison
+    char ext_lower[10];
+    int i = 0;
+    while (ext[i] != '\0' && i < 9)
     {
-        ERR("Invalid parameters: core_h, token, media_paths, or count (%d)", count);
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        ext_lower[i] = (ext[i] >= 'A' && ext[i] <= 'Z') ? ext[i] - 'A' + 'a' : ext[i];
+        i++;
     }
+    ext_lower[i] = '\0';
+
+    // Check for photo extensions
+    if (strcmp(ext_lower, "jpg") == 0 || strcmp(ext_lower, "jpeg") == 0 ||
+        strcmp(ext_lower, "png") == 0 || strcmp(ext_lower, "bmp") == 0 ||
+        strcmp(ext_lower, "tiff") == 0 || strcmp(ext_lower, "webp") == 0)
+    {
+        return "photo";
+    }
+    // Check for video extensions
+    else if (strcmp(ext_lower, "mp4") == 0 || strcmp(ext_lower, "mpeg") == 0 ||
+             strcmp(ext_lower, "avi") == 0 || strcmp(ext_lower, "mov") == 0 ||
+             strcmp(ext_lower, "mkv") == 0 || strcmp(ext_lower, "wmv") == 0 ||
+             strcmp(ext_lower, "flv") == 0 || strcmp(ext_lower, "webm") == 0 ||
+             strcmp(ext_lower, "3gp") == 0 || strcmp(ext_lower, "m4v") == 0)
+    {
+        return "video";
+    }
+    // Check for audio extensions
+    else if (strcmp(ext_lower, "mp3") == 0 || strcmp(ext_lower, "m4a") == 0 ||
+             strcmp(ext_lower, "flac") == 0 || strcmp(ext_lower, "ogg") == 0 ||
+             strcmp(ext_lower, "oga") == 0 || strcmp(ext_lower, "wav") == 0 ||
+             strcmp(ext_lower, "aac") == 0 || strcmp(ext_lower, "opus") == 0)
+    {
+        return "audio";
+    }
+    // Everything else is treated as document (including gif)
+    else
+    {
+        return "document";
+    }
+}
+
+telebot_core_response_t
+telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_id, char *media_paths[], int count,
+                              bool disable_notification, int reply_to_message_id)
+{
+    CHECK_ARG_NULL(media_paths);
+    CHECK_ARG_CONDITION(count <= 0, "Invalid media path count, should be greater than 0");
+    CHECK_ARG_CONDITION(count > 10, "Invalid media path count, should be less than or equal to 10")
 
     // Validate all media paths are non-NULL
     for (int i = 0; i < count; ++i)
     {
         if (media_paths[i] == NULL)
         {
-            ERR("Media path at index %d is NULL", i);
-            return TELEBOT_ERROR_INVALID_PARAMETER;
+            ERR("Invalid media path at index %d is null", i);
+            return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
         }
     }
 
@@ -1090,72 +1096,31 @@ telebot_error_e telebot_core_send_media_group(
     if (media_array == NULL)
     {
         ERR("Failed to create JSON media array");
-        return TELEBOT_ERROR_OUT_OF_MEMORY;
+        return telebot_core_get_error_response(TELEBOT_ERROR_OUT_OF_MEMORY);
     }
 
     // Allocate memory for filenames
-    char **filenames = calloc(count, sizeof(char*));
+    char **filenames = calloc(count, sizeof(char *));
     if (filenames == NULL)
     {
         json_object_put(media_array);
         ERR("Failed to allocate memory for filenames");
-        return TELEBOT_ERROR_OUT_OF_MEMORY;
-    }
-
-    // Helper function to determine media type based on file extension
-    const char* get_media_type(const char* filename) {
-        const char* ext = strrchr(filename, '.');
-        if (ext == NULL) return "document"; // No extension, treat as document
-
-        ext++; // Skip the dot
-
-        // Convert to lowercase for comparison
-        char ext_lower[10];
-        int i = 0;
-        while (ext[i] != '\0' && i < 9) {
-            ext_lower[i] = (ext[i] >= 'A' && ext[i] <= 'Z') ? ext[i] - 'A' + 'a' : ext[i];
-            i++;
-        }
-        ext_lower[i] = '\0';
-
-        // Check for photo extensions
-        if (strcmp(ext_lower, "jpg") == 0 || strcmp(ext_lower, "jpeg") == 0 ||
-            strcmp(ext_lower, "png") == 0 || strcmp(ext_lower, "bmp") == 0 ||
-            strcmp(ext_lower, "tiff") == 0 || strcmp(ext_lower, "webp") == 0) {
-            return "photo";
-        }
-        // Check for video extensions
-        else if (strcmp(ext_lower, "mp4") == 0 || strcmp(ext_lower, "mpeg") == 0 ||
-                 strcmp(ext_lower, "avi") == 0 || strcmp(ext_lower, "mov") == 0 ||
-                 strcmp(ext_lower, "mkv") == 0 || strcmp(ext_lower, "wmv") == 0 ||
-                 strcmp(ext_lower, "flv") == 0 || strcmp(ext_lower, "webm") == 0 ||
-                 strcmp(ext_lower, "3gp") == 0 || strcmp(ext_lower, "m4v") == 0) {
-            return "video";
-        }
-        // Check for audio extensions
-        else if (strcmp(ext_lower, "mp3") == 0 || strcmp(ext_lower, "m4a") == 0 ||
-                 strcmp(ext_lower, "flac") == 0 || strcmp(ext_lower, "ogg") == 0 ||
-                 strcmp(ext_lower, "oga") == 0 || strcmp(ext_lower, "wav") == 0 ||
-                 strcmp(ext_lower, "aac") == 0 || strcmp(ext_lower, "opus") == 0) {
-            return "audio";
-        }
-        // Everything else is treated as document (including gif)
-        else {
-            return "document";
-        }
+        return telebot_core_get_error_response(TELEBOT_ERROR_OUT_OF_MEMORY);
     }
 
     // Determine media types for validation
-    const char **media_types = calloc(count, sizeof(char*));
+    const char **media_types = calloc(count, sizeof(char *));
     if (media_types == NULL)
     {
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
+        {
             free(filenames[i]);
         }
         free(filenames);
         json_object_put(media_array);
         ERR("Failed to allocate memory for media types");
-        return TELEBOT_ERROR_OUT_OF_MEMORY;
+        return telebot_core_get_error_response(TELEBOT_ERROR_OUT_OF_MEMORY);
+        ;
     }
 
     for (int i = 0; i < count; ++i)
@@ -1176,21 +1141,27 @@ telebot_error_e telebot_core_send_media_group(
             free(media_types);
             json_object_put(media_array);
             ERR("Failed to duplicate filename");
-            return TELEBOT_ERROR_OUT_OF_MEMORY;
+            return telebot_core_get_error_response(TELEBOT_ERROR_OUT_OF_MEMORY);
+            ;
         }
 
         // Determine media type
-        media_types[i] = get_media_type(filename);
+        media_types[i] = telebot_core_get_media_type(filename);
     }
 
     // Validate media group composition
     // Count unique types in the group
     int photo_count = 0, video_count = 0, audio_count = 0, document_count = 0;
-    for (int i = 0; i < count; i++) {
-        if (strcmp(media_types[i], "photo") == 0) photo_count++;
-        else if (strcmp(media_types[i], "video") == 0) video_count++;
-        else if (strcmp(media_types[i], "audio") == 0) audio_count++;
-        else if (strcmp(media_types[i], "document") == 0) document_count++;
+    for (int i = 0; i < count; i++)
+    {
+        if (strcmp(media_types[i], "photo") == 0)
+            photo_count++;
+        else if (strcmp(media_types[i], "video") == 0)
+            video_count++;
+        else if (strcmp(media_types[i], "audio") == 0)
+            audio_count++;
+        else if (strcmp(media_types[i], "document") == 0)
+            document_count++;
     }
 
     // Check valid combinations:
@@ -1198,24 +1169,29 @@ telebot_error_e telebot_core_send_media_group(
     // 2. Mixed photo and video only
     bool valid_combination = false;
 
-    if (photo_count == count || video_count == count || audio_count == count || document_count == count) {
+    if (photo_count == count || video_count == count || audio_count == count || document_count == count)
+    {
         // All same type - valid
         valid_combination = true;
-    } else if (photo_count > 0 && video_count > 0 && audio_count == 0 && document_count == 0) {
+    }
+    else if (photo_count > 0 && video_count > 0 && audio_count == 0 && document_count == 0)
+    {
         // Mixed photo and video only - valid
         valid_combination = true;
     }
 
-    if (!valid_combination) {
+    if (!valid_combination)
+    {
         // Free allocated resources
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++)
+        {
             free(filenames[i]);
         }
         free(filenames);
         free(media_types);
         json_object_put(media_array);
         ERR("Invalid media group composition: only homogeneous groups or mixed photo/video groups are allowed");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
     }
 
     // Create JSON objects for media array
@@ -1245,7 +1221,7 @@ telebot_error_e telebot_core_send_media_group(
         free(filenames);
         json_object_put(media_array);
         ERR("Failed to serialize media JSON");
-        return TELEBOT_ERROR_OPERATION_FAILED;
+        return telebot_core_get_error_response(TELEBOT_ERROR_OPERATION_FAILED);
     }
 
     // Prepare MIME parts
@@ -1290,8 +1266,7 @@ telebot_error_e telebot_core_send_media_group(
     }
 
     // Perform request
-    telebot_error_e ret = telebot_core_curl_perform(
-        core_h, TELEBOT_METHOD_SEND_MEDIA_GROUP, mimes, index, response);
+    telebot_core_response_t response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_MEDIA_GROUP, mimes, index);
 
     // Clean up allocated filenames
     for (int i = 0; i < count; i++)
@@ -1299,24 +1274,18 @@ telebot_error_e telebot_core_send_media_group(
         free(filenames[i]);
     }
     free(filenames);
-    
+
     // Clean up JSON object
     json_object_put(media_array);
 
-    return ret;
+    return response;
 }
 
-telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
-    long long int chat_id, float latitude, float longitude, int live_period,
-    bool disable_notification, int reply_to_message_id, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_location(telebot_core_handler_t core_h, long long int chat_id, float latitude, float longitude,
+                           int live_period, bool disable_notification, int reply_to_message_id,
+                           const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     int index = 0;
     telebot_core_mime_t mimes[7]; // number of arguments
     mimes[index].name = "chat_id";
@@ -1363,20 +1332,14 @@ telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_LOCATION, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_LOCATION, mimes, index);
 }
 
-telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *core_h,
-    long long int chat_id, int message_id, const char *inline_message_id,
-    float latitude, float longitude, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_edit_message_live_location(telebot_core_handler_t core_h, long long int chat_id, int message_id,
+                                        const char *inline_message_id, float latitude, float longitude,
+                                        const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     int index = 0;
     telebot_core_mime_t mimes[6]; // number of arguments
     mimes[index].name = "chat_id";
@@ -1418,19 +1381,13 @@ telebot_error_e telebot_core_edit_message_live_location(telebot_core_handler_t *
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_LIVE_LOCATION, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_LIVE_LOCATION, mimes, index);
 }
 
-telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *core_h,
-    long long int chat_id, int message_id, char *inline_message_id,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_stop_message_live_location(telebot_core_handler_t core_h, long long int chat_id, int message_id,
+                                        char *inline_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     int index = 0;
     telebot_core_mime_t mimes[4]; // number of arguments
     mimes[index].name = "chat_id";
@@ -1462,21 +1419,16 @@ telebot_error_e telebot_core_stop_message_live_location(telebot_core_handler_t *
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_STOP_MESSAGE_LIVE_LOCATION, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_STOP_MESSAGE_LIVE_LOCATION, mimes, index);
 }
 
-telebot_error_e telebot_core_send_venue(telebot_core_handler_t *core_h,
-    long long int chat_id, float latitude, float longitude, const char *title,
-    const char *address, const char *foursquare_id, const char *foursquare_type,
-    bool disable_notification, int reply_to_message_id, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_venue(telebot_core_handler_t core_h, long long int chat_id, float latitude, float longitude,
+                        const char *title, const char *address, const char *foursquare_id, const char *foursquare_type,
+                        bool disable_notification, int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (title == NULL) ||
-        (address == NULL))
-    {
-        ERR("Handler, token, title, or address is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(title);
+    CHECK_ARG_NULL(address);
 
     int index = 0;
     telebot_core_mime_t mimes[10]; // number of arguments
@@ -1542,20 +1494,16 @@ telebot_error_e telebot_core_send_venue(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VENUE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VENUE, mimes, index);
 }
 
-telebot_error_e telebot_core_send_contact(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *phone_number, const char *first_name,
-    const char *last_name, const char *vcard, bool disable_notification,
-    int reply_to_message_id, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_contact(telebot_core_handler_t core_h, long long int chat_id, const char *phone_number,
+                          const char *first_name, const char *last_name, const char *vcard, bool disable_notification,
+                          int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (phone_number == NULL) || (first_name == NULL))
-    {
-        ERR("Handler, token, phone_number, or first_name is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(phone_number);
+    CHECK_ARG_NULL(first_name);
 
     int index = 0;
     telebot_core_mime_t mimes[8]; // number of arguments
@@ -1611,21 +1559,16 @@ telebot_error_e telebot_core_send_contact(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CONTACT, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CONTACT, mimes, index);
 }
 
-telebot_error_e telebot_core_send_poll(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *question, const char *options,
-    bool is_anonymous, const char *type, bool allows_multiple_answers,
-    int correct_option_id, bool is_closed, bool disable_notification,
-    int reply_to_message_id, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_poll(telebot_core_handler_t core_h, long long int chat_id, const char *question, const char *options,
+                       bool is_anonymous, const char *type, bool allows_multiple_answers, int correct_option_id,
+                       bool is_closed, bool disable_notification, int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (question == NULL) || (options == NULL))
-    {
-        ERR("Handler, token, phone_number, or first_name is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(question);
+    CHECK_ARG_NULL(options);
 
     int index = 0;
     telebot_core_mime_t mimes[11]; // number of arguments
@@ -1696,19 +1639,13 @@ telebot_error_e telebot_core_send_poll(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_POLL, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_POLL, mimes, index);
 }
 
-telebot_error_e telebot_core_send_dice(telebot_core_handler_t *core_h,
-    long long int chat_id, bool disable_notification, int reply_to_message_id,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_dice(telebot_core_handler_t core_h, long long int chat_id, bool disable_notification,
+                       int reply_to_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, token, phone_number, or first_name is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     int index = 0;
     telebot_core_mime_t mimes[4]; // number of arguments
     mimes[index].name = "chat_id";
@@ -1737,17 +1674,13 @@ telebot_error_e telebot_core_send_dice(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_DICE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_DICE, mimes, index);
 }
 
-telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *action, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_send_chat_action(telebot_core_handler_t core_h, long long int chat_id, const char *action)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (action == NULL))
-    {
-        ERR("Handler, token or action is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(action);
 
     int index = 0;
     telebot_core_mime_t mimes[2]; // number of arguments
@@ -1761,23 +1694,13 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", action);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CHAT_ACTION, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_CHAT_ACTION, mimes, index);
 }
 
-telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *core_h,
-    int user_id, int offset, int limit, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_user_profile_photos(telebot_core_handler_t core_h, int user_id, int offset, int limit)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (user_id <= 0)
-    {
-        ERR("Invalid value of user_id");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((user_id <= 0), "Invalid value of user_id");
 
     int index = 0;
     telebot_core_mime_t mimes[3]; // number of arguments
@@ -1796,17 +1719,13 @@ telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *cor
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", limit);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_USER_PHOTOS, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_USER_PHOTOS, mimes, index);
 }
 
-telebot_error_e telebot_core_get_file(telebot_core_handler_t *core_h, const char *file_id,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_file(telebot_core_handler_t core_h, const char *file_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (file_id == NULL))
-    {
-        ERR("Handler, token or file_id is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(file_id);
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -1815,22 +1734,21 @@ telebot_error_e telebot_core_get_file(telebot_core_handler_t *core_h, const char
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", file_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_FILE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_FILE, mimes, index);
 }
 
-static size_t write_file_cb(void *contents, size_t size, size_t nmemb,
-                            void *userp)
+static size_t
+write_file_cb(void *contents, size_t size, size_t nmemb, void *userp)
 {
     size_t written = fwrite(contents, size, nmemb, (FILE *)userp);
     return written;
 }
 
-telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h,
-        const char *file_path, const char *out_file)
+telebot_error_e
+telebot_core_download_file(telebot_core_handler_t core_h, const char *file_path, const char *out_file)
 {
     int ret = TELEBOT_ERROR_NONE;
-    if ((core_h == NULL) || (core_h->token == NULL) || (file_path == NULL) ||
-        (out_file == NULL))
+    if ((core_h == NULL) || (core_h->token == NULL) || (file_path == NULL) || (out_file == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
     CURL *curl_h = NULL;
@@ -1840,7 +1758,7 @@ telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h,
     FILE *fp = fopen(out_file, "w");
     if (fp == NULL)
     {
-        ret = TELEBOT_ERROR_INVALID_PARAMETER;
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
@@ -1887,20 +1805,10 @@ finish:
     return ret;
 }
 
-telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, long until_date, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_kick_chat_member(telebot_core_handler_t core_h, long long int chat_id, int user_id, long until_date)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (user_id <= 0)
-    {
-        ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((user_id <= 0), "Valid user_id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[3]; // number of arguments
@@ -1922,23 +1830,13 @@ telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_KICK_CHAT_MEMBER, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_KICK_CHAT_MEMBER, mimes, index);
 }
 
-telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_unban_chat_member(telebot_core_handler_t core_h, long long int chat_id, int user_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (user_id <= 0)
-    {
-        ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((user_id <= 0), "Valid user_id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[2]; // number of arguments
@@ -1952,26 +1850,16 @@ telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNBAN_CHAT_MEMBER, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNBAN_CHAT_MEMBER, mimes, index);
 }
 
-telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, long until_date, bool can_send_messages,
-    bool can_send_media_messages, bool can_send_polls, bool can_send_other_messages,
-    bool can_add_web_page_previews, bool can_change_info, bool can_invite_users,
-    bool can_pin_messages, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_restrict_chat_member(telebot_core_handler_t core_h, long long int chat_id, int user_id, long until_date,
+                                  bool can_send_messages, bool can_send_media_messages, bool can_send_polls,
+                                  bool can_send_other_messages, bool can_add_web_page_previews, bool can_change_info,
+                                  bool can_invite_users, bool can_pin_messages)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (user_id <= 0)
-    {
-        ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((user_id <= 0), "Valid user_id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[11]; // number of arguments
@@ -2033,26 +1921,16 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_pin_messages ? "true" : "false"));
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, mimes, index);
 }
 
-telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, bool can_change_info, bool can_post_messages,
-    bool can_edit_messages, bool can_delete_messages, bool can_invite_users,
-    bool can_restrict_members, bool can_pin_messages, bool can_promote_members,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_promote_chat_member(telebot_core_handler_t core_h, long long int chat_id, int user_id, bool can_change_info,
+                                 bool can_post_messages, bool can_edit_messages, bool can_delete_messages,
+                                 bool can_invite_users, bool can_restrict_members, bool can_pin_messages,
+                                 bool can_promote_members)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (user_id <= 0)
-    {
-        ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((user_id <= 0), "Valid user_id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[10]; // number of arguments
@@ -2106,24 +1984,14 @@ telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_promote_members ? "true" : "false"));
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_PROMOTE_CHAT_MEMBER, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_PROMOTE_CHAT_MEMBER, mimes, index);
 }
 
-telebot_error_e telebot_core_set_chat_admin_custom_title(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, const char *custom_title,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_set_chat_admin_custom_title(telebot_core_handler_t core_h, long long int chat_id, int user_id,
+                                         const char *custom_title)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (user_id <= 0)
-    {
-        ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((user_id <= 0), "Valid user_id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[3]; // number of arguments
@@ -2142,21 +2010,15 @@ telebot_error_e telebot_core_set_chat_admin_custom_title(telebot_core_handler_t 
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", custom_title);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_ADMIN_TITLE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_ADMIN_TITLE, mimes, index);
 }
 
-telebot_error_e telebot_core_set_chat_permissions(telebot_core_handler_t *core_h,
-    long long int chat_id, bool can_send_messages, bool can_send_media_messages,
-    bool can_send_polls, bool can_send_other_messages, bool can_add_web_page_previews,
-    bool can_change_info, bool can_invite_users, bool can_pin_messages,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_set_chat_permissions(telebot_core_handler_t core_h, long long int chat_id, bool can_send_messages,
+                                  bool can_send_media_messages, bool can_send_polls, bool can_send_other_messages,
+                                  bool can_add_web_page_previews, bool can_change_info, bool can_invite_users,
+                                  bool can_pin_messages)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     int index = 0;
     telebot_core_mime_t mimes[9]; // number of arguments
     mimes[index].name = "chat_id";
@@ -2204,18 +2066,12 @@ telebot_error_e telebot_core_set_chat_permissions(telebot_core_handler_t *core_h
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_pin_messages ? "true" : "false"));
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_PERMISSIONS, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_PERMISSIONS, mimes, index);
 }
 
-telebot_error_e telebot_core_export_chat_invite_link(telebot_core_handler_t *core_h,
-    long long int chat_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_export_chat_invite_link(telebot_core_handler_t core_h, long long int chat_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
     mimes[index].name = "chat_id";
@@ -2223,23 +2079,13 @@ telebot_error_e telebot_core_export_chat_invite_link(telebot_core_handler_t *cor
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EXPORT_CHAT_INVITE_LINK, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EXPORT_CHAT_INVITE_LINK, mimes, index);
 }
 
-telebot_error_e telebot_core_set_chat_photo(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *photo, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_set_chat_photo(telebot_core_handler_t core_h, long long int chat_id, const char *photo)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (photo == NULL)
-    {
-        ERR("Valid photo is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(photo);
 
     int index = 0;
     telebot_core_mime_t mimes[2]; // number of arguments
@@ -2253,17 +2099,13 @@ telebot_error_e telebot_core_set_chat_photo(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", photo);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_PHOTO, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_PHOTO, mimes, index);
 }
 
-telebot_error_e telebot_core_delete_chat_photo(telebot_core_handler_t *core_h,
-    long long int chat_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_delete_chat_photo(telebot_core_handler_t core_h, long long int chat_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Invalid chat id");
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -2272,23 +2114,14 @@ telebot_error_e telebot_core_delete_chat_photo(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_CHAT_PHOTO, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_CHAT_PHOTO, mimes, index);
 }
 
-telebot_error_e telebot_core_set_chat_title(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *title, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_set_chat_title(telebot_core_handler_t core_h, long long int chat_id, const char *title)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if ((title == NULL) || (strlen(title) > 255))
-    {
-        ERR("Valid title is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    CHECK_ARG_CONDITION((title == NULL) || (strlen(title) > 255), "Valid title is required");
 
     int index = 0;
     telebot_core_mime_t mimes[2]; // number of arguments
@@ -2302,23 +2135,15 @@ telebot_error_e telebot_core_set_chat_title(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", title);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_TITLE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_TITLE, mimes, index);
 }
 
-telebot_error_e telebot_core_set_chat_description(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *description, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_set_chat_description(telebot_core_handler_t core_h, long long int chat_id, const char *description)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if ((description == NULL) || (strlen(description) > 255))
-    {
-        ERR("Valid title is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    CHECK_ARG_CONDITION((description == NULL) || (strlen(description) > 255),
+                        "Valid description is required");
 
     int index = 0;
     telebot_core_mime_t mimes[2]; // number of arguments
@@ -2332,24 +2157,15 @@ telebot_error_e telebot_core_set_chat_description(telebot_core_handler_t *core_h
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", description);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_DESCRIPTION, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_DESCRIPTION, mimes, index);
 }
 
-telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
-    long long int chat_id, int message_id, bool disable_notification,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_pin_chat_message(telebot_core_handler_t core_h, long long int chat_id, int message_id,
+                              bool disable_notification)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (message_id <= 0)
-    {
-        ERR("Valid message_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    CHECK_ARG_CONDITION((message_id <= 0), "Valid message_id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[3]; // number of arguments
@@ -2368,17 +2184,13 @@ telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (disable_notification ? "true" : "false"));
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_PIN_CHAT_MESSAGE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_PIN_CHAT_MESSAGE, mimes, index);
 }
 
-telebot_error_e telebot_core_unpin_chat_message(telebot_core_handler_t *core_h,
-    long long int chat_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_unpin_chat_message(telebot_core_handler_t core_h, long long int chat_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -2387,17 +2199,13 @@ telebot_error_e telebot_core_unpin_chat_message(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNPIN_CHAT_MESSAGE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNPIN_CHAT_MESSAGE, mimes, index);
 }
 
-telebot_error_e telebot_core_leave_chat(telebot_core_handler_t *core_h,
-    long long int chat_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_leave_chat(telebot_core_handler_t core_h, long long int chat_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -2406,17 +2214,13 @@ telebot_error_e telebot_core_leave_chat(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_LEAVE_CHAT, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_LEAVE_CHAT, mimes, index);
 }
 
-telebot_error_e telebot_core_get_chat(telebot_core_handler_t *core_h,
-    long long int chat_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_chat(telebot_core_handler_t core_h, long long int chat_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -2425,17 +2229,13 @@ telebot_error_e telebot_core_get_chat(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT, mimes, index);
 }
 
-telebot_error_e telebot_core_get_chat_admins(telebot_core_handler_t *core_h,
-    long long int chat_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_chat_admins(telebot_core_handler_t core_h, long long int chat_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -2444,17 +2244,13 @@ telebot_error_e telebot_core_get_chat_admins(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_ADMINS, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_ADMINS, mimes, index);
 }
 
-telebot_error_e telebot_core_get_chat_members_count(telebot_core_handler_t *core_h,
-    long long int chat_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_chat_members_count(telebot_core_handler_t core_h, long long int chat_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -2463,23 +2259,14 @@ telebot_error_e telebot_core_get_chat_members_count(telebot_core_handler_t *core
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBERS_COUNT, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBERS_COUNT, mimes, index);
 }
 
-telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_chat_member(telebot_core_handler_t core_h, long long int chat_id, int user_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (user_id <= 0)
-    {
-        ERR("Valid user_id is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    CHECK_ARG_CONDITION((user_id <= 0), "Valid user_id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[2]; // number of arguments
@@ -2493,24 +2280,14 @@ telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBER, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBER, mimes, index);
 }
 
-telebot_error_e telebot_core_set_chat_sticker_set(telebot_core_handler_t *core_h,
-    long long int chat_id, const char *sticker_set_name,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_set_chat_sticker_set(telebot_core_handler_t core_h, long long int chat_id, const char *sticker_set_name)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if (sticker_set_name == NULL)
-    {
-        ERR("Valid sticker_set_name is required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    CHECK_ARG_NULL(sticker_set_name);
 
     int index = 0;
     telebot_core_mime_t mimes[2]; // number of arguments
@@ -2524,17 +2301,13 @@ telebot_error_e telebot_core_set_chat_sticker_set(telebot_core_handler_t *core_h
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", sticker_set_name);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_STICKER_SET, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_STICKER_SET, mimes, index);
 }
 
-telebot_error_e telebot_core_delete_chat_sticker_set(telebot_core_handler_t *core_h,
-    long long int chat_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_delete_chat_sticker_set(telebot_core_handler_t core_h, long long int chat_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -2543,19 +2316,14 @@ telebot_error_e telebot_core_delete_chat_sticker_set(telebot_core_handler_t *cor
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DEL_CHAT_STICKER_SET, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DEL_CHAT_STICKER_SET, mimes, index);
 }
 
-telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_h,
-    const char *callback_query_id, const char *text, bool show_alert,
-    const char *url, int cache_time, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_answer_callback_query(telebot_core_handler_t core_h, const char *callback_query_id, const char *text,
+                                   bool show_alert, const char *url, int cache_time)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) ||
-        (callback_query_id == NULL))
-    {
-        ERR("Handler, token or callback_query_id is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(callback_query_id);
 
     int index = 0;
     telebot_core_mime_t mimes[5]; // number of arguments
@@ -2593,17 +2361,13 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_CALLBACK_QUERY, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_CALLBACK_QUERY, mimes, index);
 }
 
-telebot_error_e telebot_core_set_my_commands(telebot_core_handler_t *core_h,
-        const char *commands, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_set_my_commands(telebot_core_handler_t core_h, const char *commands)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (commands == NULL))
-    {
-        ERR("Handler, token, or commands is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_NULL(commands);
 
     int index = 0;
     telebot_core_mime_t mimes[1]; // number of arguments
@@ -2612,36 +2376,24 @@ telebot_error_e telebot_core_set_my_commands(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", commands);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_COMMANDS, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_COMMANDS, mimes, index);
 }
 
-telebot_error_e telebot_core_get_my_commands(telebot_core_handler_t *core_h,
-        telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_get_my_commands(telebot_core_handler_t core_h)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler, or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_COMMANDS, NULL, 0, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_COMMANDS, NULL, 0);
 }
 
-telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
-    long long int chat_id, int message_id, const char *inline_message_id,
-    const char *text, const char *parse_mode, bool disable_web_page_preview,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_edit_message_text(telebot_core_handler_t core_h, long long int chat_id, int message_id,
+                               const char *inline_message_id, const char *text, const char *parse_mode,
+                               bool disable_web_page_preview, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL) || (text == NULL))
-    {
-        ERR("Handler, token, or text is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL))
     {
         ERR("Either valid chat_id & message_id or inline_message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
     }
 
     int index = 0;
@@ -2693,24 +2445,18 @@ telebot_error_e telebot_core_edit_message_text(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_TEXT, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_TEXT, mimes, index);
 }
 
-telebot_error_e telebot_core_edit_message_caption(telebot_core_handler_t *core_h,
-    long long int chat_id, int message_id, const char *inline_message_id,
-    const char *caption, const char *parse_mode, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_edit_message_caption(telebot_core_handler_t core_h, long long int chat_id, int message_id,
+                                  const char *inline_message_id, const char *caption, const char *parse_mode,
+                                  const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL))
     {
         ERR("Either valid chat_id & message_id or inline_message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
     }
 
     int index = 0;
@@ -2757,23 +2503,17 @@ telebot_error_e telebot_core_edit_message_caption(telebot_core_handler_t *core_h
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_CAPTION, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_CAPTION, mimes, index);
 }
 
-telebot_error_e telebot_core_edit_message_reply_markup(telebot_core_handler_t *core_h,
-    long long int chat_id, int message_id, const char *inline_message_id,
-    const char *reply_markup, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_edit_message_reply_markup(telebot_core_handler_t core_h, long long int chat_id, int message_id,
+                                       const char *inline_message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
     if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL))
     {
         ERR("Either valid chat_id & message_id or inline_message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
+        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
     }
 
     int index = 0;
@@ -2807,24 +2547,14 @@ telebot_error_e telebot_core_edit_message_reply_markup(telebot_core_handler_t *c
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP, mimes, index);
 }
 
-telebot_error_e telebot_core_stop_poll(telebot_core_handler_t *core_h,
-    long long int chat_id, int message_id, const char *reply_markup,
-    telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_stop_poll(telebot_core_handler_t core_h, long long int chat_id, int message_id, const char *reply_markup)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if ((chat_id == 0) || (message_id <= 0))
-    {
-        ERR("Valid chat_id and message_id required");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0) || (message_id <= 0),
+                        "Valid chat_id and message_id required");
 
     int index = 0;
     telebot_core_mime_t mimes[3]; // number of arguments
@@ -2846,23 +2576,14 @@ telebot_error_e telebot_core_stop_poll(telebot_core_handler_t *core_h,
         ++index;
     }
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_STOP_POLL, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_STOP_POLL, mimes, index);
 }
 
-telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
-    long long int chat_id, int message_id, telebot_core_response_t *response)
+telebot_core_response_t
+telebot_core_delete_message(telebot_core_handler_t core_h, long long int chat_id, int message_id)
 {
-    if ((core_h == NULL) || (core_h->token == NULL))
-    {
-        ERR("Handler or token is NULL");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
-
-    if ((message_id) <= 0)
-    {
-        ERR("message_id is invalid");
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-    }
+    CHECK_ARG_CONDITION((chat_id <= 0) || (message_id <= 0),
+                        "Valid chat_id and message_id required");
 
     int index = 0;
     telebot_core_mime_t mimes[2]; // number of arguments
@@ -2876,5 +2597,5 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", message_id);
     ++index;
 
-    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGE, mimes, index, response);
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGE, mimes, index);
 }

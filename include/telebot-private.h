@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+#include <telebot.h>
+
 #ifndef __TELEBOT_PRIVATE_H__
 #define __TELEBOT_PRIVATE_H__
 
@@ -93,15 +95,49 @@
     #define DBG(x, ...)
 #endif
 
+#define CHECK_ARG_NULL(PARAM)                                                    \
+    if (PARAM == NULL)                                                           \
+    {                                                                            \
+        ERR("Argument '%s' is null)", #PARAM);                                   \
+        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
+    }
+
+#define CHECK_ARG_CONDITION(CONDITION, MESSAGE)                                  \
+    if (CONDITION)                                                               \
+    {                                                                            \
+        ERR(MESSAGE);                                                            \
+        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
+    }
+
 typedef enum {
     TELEBOT_MIME_TYPE_DATA = 0,
     TELEBOT_MIME_TYPE_FILE,
     TELEBOT_MIME_TYPE_MAX,
 } telebot_core_mime_e;
+
 typedef struct {
     telebot_core_mime_e type;
     const char *name;
     char data[TELEBOT_BUFFER_PAGE];
 } telebot_core_mime_t;
+
+
+/**
+ * @brief This object represents core handler.
+ */
+struct telebot_core_handler {
+    char *token;       /**< Telegam bot token */
+    char *proxy_addr;  /**< Proxy address (optional) */
+    char *proxy_auth;  /**< Proxy authentication (optional) */
+};
+
+/**
+ * @brief This object represents a telegram bot response.
+ */
+struct telebot_core_response {
+    telebot_error_e ret;  /**< Telegram bot response code */
+    size_t size;          /**< Telegam bot response size */
+    char *data;           /**< Telegam bot response object */
+};
 
 #endif /* __TELEBOT_PRIVATE_H__ */

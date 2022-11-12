@@ -22,10 +22,6 @@
 #include <json.h>
 #include <json_object.h>
 #include <telebot-private.h>
-#include <telebot-common.h>
-#include <telebot-types.h>
-#include <telebot-methods.h>
-#include <telebot-stickers.h>
 #include <telebot-parser.h>
 
 static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
@@ -38,9 +34,12 @@ static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
 static telebot_error_e telebot_parser_get_photos(struct json_object *obj, telebot_photo_t **photos, int *count);
 static telebot_error_e telebot_parser_get_users(struct json_object *obj, telebot_user_t **users, int *count);
 
-struct json_object *telebot_parser_str_to_obj(char *data)
+struct json_object *telebot_parser_str_to_obj(const char *data)
 {
-    return json_tokener_parse(data);
+    if (data)
+        return json_tokener_parse(data);
+    else
+        return NULL;
 }
 
 telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_update_t **updates, int *count)

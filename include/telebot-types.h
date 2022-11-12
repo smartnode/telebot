@@ -1293,7 +1293,7 @@ typedef struct telebot_webhook_info {
 /**
  * @brief This is opaque object to represent a telebot handler.
  */
-typedef struct telebot_handler_s *telebot_handler_t;
+typedef struct telebot_handler *telebot_handler_t;
 
 /**
  * @} // end of APIs

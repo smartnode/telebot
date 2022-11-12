@@ -19,7 +19,7 @@
 #ifndef __TELEBOT_PARSER_H__
 #define __TELEBOT_PARSER_H__
 
-struct json_object *telebot_parser_str_to_obj(char *data);
+struct json_object *telebot_parser_str_to_obj(const char *data);
 
 /** Get update from Json Object */
 telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_update_t **updates, int *count);
