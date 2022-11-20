@@ -61,7 +61,7 @@ typedef enum telebot_update_type {
  */
 typedef struct telebot_user {
     /** Unique identifier for this user or bot. */
-    int id;
+    long long int id;
 
     /** True, if this user is bot. */
     bool is_bot;
@@ -77,6 +77,12 @@ typedef struct telebot_user {
 
     /** Optional. IETF language tag of the user's language. */
     char *language_code;
+
+    /** Optional. True, if this user is a Telegram Premium user. */
+    bool is_premium;
+
+    /** Optional. True, if this user added the bot to the attachment menu. */
+    bool added_to_attachment_menu;
 
     /** Optional. Optional. True, if the bot can be invited to groups. Returned only in getMe. */
     bool can_join_groups;
