@@ -117,8 +117,52 @@ typedef struct telebot_chat {
     /** Optional. Last name of the other party in a private chat. */
     char *last_name;
 
+    /** Optional. True, if the supergroup chat is a forum (has topics enabled). */
+    bool is_forum;
+
     /** Optional. Chat photo. Returned only in getChat. */
     struct telebot_chat_photo *photo;
+
+    /** Optional. If non-empty, the list of all active chat usernames;
+     * for private chats, supergroups and channels. Returned only in getChat.
+     */
+    char **active_usernames;
+    int count_active_usernames;
+
+    /**
+     * Optional. Custom emoji identifier of emoji status of the other party in
+     * a private chat. Returned only in getChat.
+     */
+    char *emoji_status_custom_emoji_id;
+
+    /** Optional. Bio of the other party in a private chat. Returned only in getChat. */
+    char *bio;
+
+    /**
+     * Optional. True, if privacy settings of the other party in the private
+     * chat allows to use tg://user?id=<user_id> links only in chats with the user.
+     * Returned only in getChat.
+     */
+    bool has_private_forwards;
+
+    /**
+     * Optional. True, if the privacy settings of the other party restrict
+     * sending voice and video note messages in the private chat.
+     * Returned only in getChat.
+     */
+    bool has_restricted_voice_and_video_messages;
+
+    /**
+     * Optional. True, if users need to join the supergroup before they can
+     * send messages. Returned only in getChat.
+     */
+    bool join_to_send_messages;
+
+    /**
+     * Optional. True, if all users directly joining the supergroup need
+     * to be approved by supergroup administrators. Returned only in getChat.
+     */
+    bool join_by_request;
 
     /**
      * Optional. Desription, for supergroups and channel chats.
@@ -135,15 +179,29 @@ typedef struct telebot_chat {
     /** Optional. Pinned message, for supergroups. Returned only in getChat. */
     struct telebot_message *pinned_message;
 
-    /** Optional. Default chat member permissions, for groups and supergroups.
+    /**
+     * Optional. Default chat member permissions, for groups and supergroups.
      * Returned only in getChat.
      */
     struct telebot_chat_permissions *permissions;
 
-    /**  Optional. For supergroups, the minimum allowed delay between consecutive
+    /**
+     * Optional. For supergroups, the minimum allowed delay between consecutive
      * messages sent by each unpriviledged user. Returned only in getChat.
      */
     int slow_mode_delay;
+
+    /**
+     * Optional. The time after which all messages sent to the chat will be
+     * automatically deleted; in seconds. Returned only in getChat.
+     */
+    int message_auto_delete_time;
+
+    /**
+     * Optional. True, if messages from the chat can't be forwarded to other chats.
+     * Returned only in getChat.
+     */
+    bool has_protected_content;
 
     /**
      * Optional. For supergroups, name of group sticker set.
@@ -157,6 +215,18 @@ typedef struct telebot_chat {
      */
     bool can_set_sticker_set;
 
+    /**
+     * Optional. Unique identifier for the linked chat, i.e. the discussion
+     * group identifier for a channel and vice versa; for supergroups and
+     * channel chats. Returned only in getChat.
+     */
+    long long int linked_chat_id;
+
+    /**
+     * Optional. For supergroups, the location to which the supergroup is connected.
+     * Returned only in getChat.
+     */
+    struct telebot_chat_location *location;
 } telebot_chat_t;
 
 
@@ -1295,6 +1365,21 @@ typedef struct telebot_webhook_info {
     int allowed_updates_count;
 
 } telebot_webhook_info_t;
+
+/**
+ * @brief Thi object represetns information about the current status of a webhook.
+ */
+typedef struct telebot_chat_location {
+    /**
+     * The location to which the supergroup is connected. Can't be a live location.
+    */
+    struct telebot_location *location;
+
+    /**
+     * Location address; 1-64 characters, as defined by the chat owner
+    */
+    char *address;
+} telebot_chat_location_t;
 
 /**
  * @brief This is opaque object to represent a telebot handler.
