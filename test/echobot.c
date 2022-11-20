@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    printf("ID: %d\n", me.id);
+    printf("ID: %lld\n", me.id);
     printf("First Name: %s\n", me.first_name);
     printf("User Name: %s\n", me.username);
 
