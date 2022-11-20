@@ -39,15 +39,23 @@ struct telebot_handler
 };
 
 static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
-    "message", "edited_message", "channel_post",
-    "edited_channel_post", "inline_query",
-    "chonse_inline_result", "callback_query",
-    "shipping_query", "pre_checkout_query",
-    "poll", "poll_answer"};
+    "message",
+    "edited_message",
+    "channel_post",
+    "edited_channel_post",
+    "inline_query",
+    "chonse_inline_result",
+    "callback_query",
+    "shipping_query",
+    "pre_checkout_query",
+    "poll",
+    "poll_answer"
+};
 
 static void telebot_put_user(telebot_user_t *user);
 static void telebot_put_chat_photo(telebot_chat_photo_t *photo);
 static void telebot_put_chat_permissions(telebot_chat_permissions_t *permissions);
+static void telebot_put_chat_location(telebot_chat_location_t *chat_location);
 static void telebot_put_message(telebot_message_t *msg);
 static void telebot_put_telebot_message_entity(telebot_message_entity_t *entity);
 static void telebot_put_audio(telebot_audio_t *audio);
@@ -131,9 +139,10 @@ telebot_error_e telebot_get_proxy(telebot_handler_t handle, char **addr)
     return telebot_core_get_proxy(handle->core_h, addr);
 }
 
-telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset, int limit, int timeout,
-                                    telebot_update_type_e allowed_updates[], int allowed_updates_count,
-                                    telebot_update_t **updates, int *count)
+telebot_error_e
+telebot_get_updates(telebot_handler_t handle, int offset, int limit, int timeout,
+                    telebot_update_type_e allowed_updates[], int allowed_updates_count,
+                    telebot_update_t **updates, int *count)
 {
     int ret = TELEBOT_ERROR_NONE;
     telebot_core_response_t response;
@@ -1594,6 +1603,14 @@ telebot_error_e telebot_put_chat(telebot_chat_t *chat)
     telebot_put_chat_photo(chat->photo);
     TELEBOT_SAFE_FREE(chat->photo);
 
+    for (size_t index=0; index < chat->count_active_usernames; index++)
+        TELEBOT_SAFE_FREE(chat->active_usernames[index]);
+    TELEBOT_SAFE_FREE(chat->active_usernames);
+    chat->count_active_usernames = 0;
+
+    TELEBOT_SAFE_FREE(chat->emoji_status_custom_emoji_id);
+    TELEBOT_SAFE_FREE(chat->bio);
+
     TELEBOT_SAFE_FREE(chat->description);
     TELEBOT_SAFE_FREE(chat->invite_link);
 
@@ -1604,6 +1621,8 @@ telebot_error_e telebot_put_chat(telebot_chat_t *chat)
     TELEBOT_SAFE_FREE(chat->permissions);
 
     TELEBOT_SAFE_FREE(chat->sticker_set_name);
+    telebot_put_chat_location(chat->location);
+    TELEBOT_SAFE_FREE(chat->location);
 
     return TELEBOT_ERROR_NONE;
 }
@@ -1624,6 +1643,12 @@ static void telebot_put_chat_permissions(telebot_chat_permissions_t *permissions
         return;
     // Nothing for now
     return;
+}
+
+static void telebot_put_chat_location(telebot_chat_location_t *chat_location)
+{
+    TELEBOT_SAFE_FREE(chat_location->address);
+    telebot_put_location(chat_location->location);
 }
 
 static void telebot_put_message(telebot_message_t *msg)

@@ -114,4 +114,7 @@ telebot_error_e telebot_parser_get_array_bot_command(struct json_object *obj, te
 /** Prase response paramters object */
 telebot_error_e telebot_parser_get_response_parameters(struct json_object *obj, telebot_response_paramters_t *resp_param);
 
+/** Prase chat location object object */
+telebot_error_e telebot_parser_get_chat_location(struct json_object *obj, telebot_chat_location_t *chat_location);
+
 #endif /* __TELEBOT_PARSER_H__ */
