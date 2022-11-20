@@ -88,11 +88,11 @@
 #define TELEBOT_METHOD_DELETE_MESSAGE               "deleteMessage"
 
 #ifdef DEBUG
-    #define ERR(fmt, args...) fprintf(stderr, "[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
-    #define DBG(fmt, args...) fprintf(stdout, "[DEBUG][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
+#define ERR(fmt, args...) fprintf(stderr, "[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
+#define DBG(fmt, args...) fprintf(stdout, "[DEBUG][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
 #else
-    #define ERR(x, ...)
-    #define DBG(x, ...)
+#define ERR(x, ...)
+#define DBG(x, ...)
 #endif
 
 #define CHECK_ARG_NULL(PARAM)                                                    \
@@ -109,35 +109,62 @@
         return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
     }
 
-typedef enum {
-    TELEBOT_MIME_TYPE_DATA = 0,
+typedef enum
+{
+    TELEBOT_MIME_TYPE_CHAR,
+    TELEBOT_MIME_TYPE_INT,
+    TELEBOT_MIME_TYPE_U_INT,
+    TELEBOT_MIME_TYPE_LONG_INT,
+    TELEBOT_MIME_TYPE_U_LONG_INT,
+    TELEBOT_MIME_TYPE_LONG_LONG_INT,
+    TELEBOT_MIME_TYPE_U_LONG_LONG_INT,
+    TELEBOT_MIME_TYPE_FLOAT,
+    TELEBOT_MIME_TYPE_DOUBLE,
+    TELEBOT_MIME_TYPE_LONG_DOUBLE,
+    TELEBOT_MIME_TYPE_STRING,
     TELEBOT_MIME_TYPE_FILE,
     TELEBOT_MIME_TYPE_MAX,
 } telebot_core_mime_e;
 
-typedef struct {
+typedef struct telebot_core_mime_s
+{
     telebot_core_mime_e type;
     const char *name;
-    char data[TELEBOT_BUFFER_PAGE];
-} telebot_core_mime_t;
+    union
+    {
+        char c;
+        int d;
+        unsigned int u;
+        long int ld;
+        unsigned long int lu;
+        long long lld;
+        unsigned long long llu;
+        float f;
+        double lf;
+        long double llf;
+        const char *s;
+    } data;
 
+} telebot_core_mime_t;
 
 /**
  * @brief This object represents core handler.
  */
-struct telebot_core_handler {
-    char *token;       /**< Telegam bot token */
-    char *proxy_addr;  /**< Proxy address (optional) */
-    char *proxy_auth;  /**< Proxy authentication (optional) */
+struct telebot_core_handler
+{
+    char *token;      /**< Telegam bot token */
+    char *proxy_addr; /**< Proxy address (optional) */
+    char *proxy_auth; /**< Proxy authentication (optional) */
 };
 
 /**
  * @brief This object represents a telegram bot response.
  */
-struct telebot_core_response {
-    telebot_error_e ret;  /**< Telegram bot response code */
-    size_t size;          /**< Telegam bot response size */
-    char *data;           /**< Telegam bot response object */
+struct telebot_core_response
+{
+    telebot_error_e ret; /**< Telegram bot response code */
+    size_t size;         /**< Telegam bot response size */
+    char *data;          /**< Telegam bot response object */
 };
 
 #endif /* __TELEBOT_PRIVATE_H__ */
