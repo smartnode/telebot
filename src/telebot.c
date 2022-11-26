@@ -1659,6 +1659,9 @@ static void telebot_put_message(telebot_message_t *msg)
     telebot_put_user(msg->from);
     TELEBOT_SAFE_FREE(msg->from);
 
+    telebot_put_chat(msg->sender_chat);
+    TELEBOT_SAFE_FREE(msg->sender_chat);
+
     telebot_put_chat(msg->chat);
     TELEBOT_SAFE_FREE(msg->chat);
 
@@ -1674,6 +1677,9 @@ static void telebot_put_message(telebot_message_t *msg)
     telebot_put_message(msg->reply_to_message);
     TELEBOT_SAFE_FREE(msg->reply_to_message);
 
+    telebot_put_user(msg->via_bot);
+    TELEBOT_SAFE_FREE(msg->via_bot);
+
     TELEBOT_SAFE_FREE(msg->media_group_id);
     TELEBOT_SAFE_FREE(msg->author_signature);
     TELEBOT_SAFE_FREE(msg->text);
@@ -1686,26 +1692,14 @@ static void telebot_put_message(telebot_message_t *msg)
         msg->count_entities = 0;
     }
 
-    if (msg->caption_entities)
-    {
-        for (int index = 0; index < msg->count_caption_entities; index++)
-            telebot_put_telebot_message_entity(&(msg->caption_entities[index]));
-        TELEBOT_SAFE_FREE(msg->caption_entities);
-        msg->count_caption_entities = 0;
-    }
+    telebot_put_animation(msg->animation);
+    TELEBOT_SAFE_FREE(msg->animation);
 
     telebot_put_audio(msg->audio);
     TELEBOT_SAFE_FREE(msg->audio);
 
     telebot_put_document(msg->document);
     TELEBOT_SAFE_FREE(msg->document);
-
-    // TODO
-    // telebot_put_game(msg->game);
-    // TELEBOT_SAFE_FREE(msg->game);
-
-    telebot_put_animation(msg->animation);
-    TELEBOT_SAFE_FREE(msg->animation);
 
     if (msg->photos)
     {
@@ -1722,28 +1716,39 @@ static void telebot_put_message(telebot_message_t *msg)
     telebot_put_video(msg->video);
     TELEBOT_SAFE_FREE(msg->video);
 
-    telebot_put_voice(msg->voice);
-    TELEBOT_SAFE_FREE(msg->voice);
-
     telebot_put_video_note(msg->video_note);
     TELEBOT_SAFE_FREE(msg->video_note);
 
+    telebot_put_voice(msg->voice);
+    TELEBOT_SAFE_FREE(msg->voice);
+
     TELEBOT_SAFE_FREE(msg->caption);
+    if (msg->caption_entities)
+    {
+        for (int index = 0; index < msg->count_caption_entities; index++)
+            telebot_put_telebot_message_entity(&(msg->caption_entities[index]));
+        TELEBOT_SAFE_FREE(msg->caption_entities);
+        msg->count_caption_entities = 0;
+    }
 
     telebot_put_contact(msg->contact);
     TELEBOT_SAFE_FREE(msg->contact);
 
-    telebot_put_location(msg->location);
-    TELEBOT_SAFE_FREE(msg->location);
+    telebot_put_dice(msg->dice);
+    TELEBOT_SAFE_FREE(msg->dice);
 
-    telebot_put_venue(msg->venue);
-    TELEBOT_SAFE_FREE(msg->venue);
+    // TODO
+    // telebot_put_game(msg->game);
+    // TELEBOT_SAFE_FREE(msg->game);
 
     telebot_put_poll(msg->poll);
     TELEBOT_SAFE_FREE(msg->poll);
 
-    telebot_put_dice(msg->dice);
-    TELEBOT_SAFE_FREE(msg->dice);
+    telebot_put_venue(msg->venue);
+    TELEBOT_SAFE_FREE(msg->venue);
+
+    telebot_put_location(msg->location);
+    TELEBOT_SAFE_FREE(msg->location);
 
     if (msg->new_chat_members)
     {
@@ -1770,6 +1775,8 @@ static void telebot_put_message(telebot_message_t *msg)
         TELEBOT_SAFE_FREE(msg->new_chat_photos);
         msg->count_new_chat_photos = 0;
     }
+
+    TELEBOT_SAFE_FREE(msg->message_auto_delete_timer_changed);
 
     telebot_put_message(msg->pinned_message);
 

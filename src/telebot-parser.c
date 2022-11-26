@@ -532,6 +532,10 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     }
 
     /* Optional Fields */
+    struct json_object *message_thread_id = NULL;
+    if (json_object_object_get_ex(obj, "message_thread_id", &message_thread_id))
+        msg->message_thread_id = json_object_get_int(message_thread_id);
+
     struct json_object *from = NULL;
     if (json_object_object_get_ex(obj, "from", &from))
     {
@@ -540,6 +544,17 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         {
             ERR("Failed to get <from user> from message object");
             TELEBOT_SAFE_FREE(msg->from);
+        }
+    }
+
+    struct json_object *sender_chat = NULL;
+    if (json_object_object_get_ex(obj, "sender_chat", &sender_chat))
+    {
+        msg->sender_chat = malloc(sizeof(telebot_chat_t));
+        if (telebot_parser_get_chat(sender_chat, msg->sender_chat) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <sender_chat> from message object");
+            TELEBOT_SAFE_FREE(msg->sender_chat);
         }
     }
 
@@ -581,6 +596,14 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     if (json_object_object_get_ex(obj, "forward_date", &forward_date))
         msg->forward_date = json_object_get_int(forward_date);
 
+    struct json_object *is_topic_message = NULL;
+    if (json_object_object_get_ex(obj, "is_topic_message", &is_topic_message))
+        msg->is_topic_message = json_object_get_boolean(is_topic_message);
+
+    struct json_object *is_automatic_forward = NULL;
+    if (json_object_object_get_ex(obj, "is_automatic_forward", &is_automatic_forward))
+        msg->is_automatic_forward = json_object_get_boolean(is_automatic_forward);
+
     struct json_object *reply_to_message = NULL;
     if (json_object_object_get_ex(obj, "reply_to_message", &reply_to_message))
     {
@@ -592,9 +615,24 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         }
     }
 
+    struct json_object *via_bot = NULL;
+    if (json_object_object_get_ex(obj, "via_bot", &via_bot))
+    {
+        msg->via_bot = malloc(sizeof(telebot_user_t));
+        if (telebot_parser_get_user(via_bot, msg->via_bot) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <via_bot> from message object");
+            TELEBOT_SAFE_FREE(msg->via_bot);
+        }
+    }
+
     struct json_object *edit_date = NULL;
     if (json_object_object_get_ex(obj, "edit_date", &edit_date))
         msg->edit_date = json_object_get_int(edit_date);
+
+    struct json_object *has_protected_content = NULL;
+    if (json_object_object_get_ex(obj, "has_protected_content", &has_protected_content))
+        msg->has_protected_content = json_object_get_boolean(has_protected_content);
 
     struct json_object *media_group_id = NULL;
     if (json_object_object_get_ex(obj, "media_group_id", &media_group_id))
@@ -616,12 +654,15 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
             ERR("Failed to get <entities> from message object");
     }
 
-    struct json_object *caption_entities = NULL;
-    if (json_object_object_get_ex(obj, "caption_entities", &caption_entities))
+    struct json_object *animation = NULL;
+    if (json_object_object_get_ex(obj, "animation", &animation))
     {
-        if (telebot_parser_get_message_entities(caption_entities, &(msg->caption_entities),
-                                                &(msg->count_caption_entities)) != TELEBOT_ERROR_NONE)
-            ERR("Failed to get <caption_entities> from message object");
+        msg->animation = malloc(sizeof(telebot_animation_t));
+        if (telebot_parser_get_animation(animation, msg->animation) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <animation> from message object");
+            TELEBOT_SAFE_FREE(msg->animation);
+        }
     }
 
     struct json_object *audio = NULL;
@@ -646,8 +687,6 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         }
     }
 
-    // TODO: implement game parsing
-
     struct json_object *photo = NULL;
     if (json_object_object_get_ex(obj, "photo", &photo))
     {
@@ -656,6 +695,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     }
 
     // TODO: implement sticker parsing
+
     struct json_object *video = NULL;
     if (json_object_object_get_ex(obj, "video", &video))
     {
@@ -664,17 +704,6 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         {
             ERR("Failed to get <video> from message object");
             TELEBOT_SAFE_FREE(msg->video);
-        }
-    }
-
-    struct json_object *voice = NULL;
-    if (json_object_object_get_ex(obj, "voice", &voice))
-    {
-        msg->voice = calloc(1, sizeof(telebot_voice_t));
-        if (telebot_parser_get_voice(voice, msg->voice) != TELEBOT_ERROR_NONE)
-        {
-            ERR("Failed to get <voice> from message object");
-            TELEBOT_SAFE_FREE(msg->voice);
         }
     }
 
@@ -689,9 +718,28 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         }
     }
 
+    struct json_object *voice = NULL;
+    if (json_object_object_get_ex(obj, "voice", &voice))
+    {
+        msg->voice = malloc(sizeof(telebot_voice_t));
+        if (telebot_parser_get_voice(voice, msg->voice) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <voice> from message object");
+            TELEBOT_SAFE_FREE(msg->voice);
+        }
+    }
+
     struct json_object *caption = NULL;
     if (json_object_object_get_ex(obj, "caption", &caption))
         msg->caption = TELEBOT_SAFE_STRDUP(json_object_get_string(caption));
+
+    struct json_object *caption_entities = NULL;
+    if (json_object_object_get_ex(obj, "caption_entities", &caption_entities))
+    {
+        if (telebot_parser_get_message_entities(caption_entities, &(msg->caption_entities),
+                                                &(msg->count_caption_entities)) != TELEBOT_ERROR_NONE)
+            ERR("Failed to get <caption_entities> from message object");
+    }
 
     struct json_object *contact = NULL;
     if (json_object_object_get_ex(obj, "contact", &contact))
@@ -701,39 +749,6 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         {
             ERR("Failed to get <contact> from message object");
             TELEBOT_SAFE_FREE(msg->contact);
-        }
-    }
-
-    struct json_object *location = NULL;
-    if (json_object_object_get_ex(obj, "location", &location))
-    {
-        msg->location = calloc(1, sizeof(telebot_location_t));
-        if (telebot_parser_get_location(location, msg->location) != TELEBOT_ERROR_NONE)
-        {
-            ERR("Failed to get <location> from message object");
-            TELEBOT_SAFE_FREE(msg->location);
-        }
-    }
-
-    struct json_object *venue = NULL;
-    if (json_object_object_get_ex(obj, "venue", &venue))
-    {
-        msg->venue = calloc(1, sizeof(telebot_venue_t));
-        if (telebot_parser_get_venue(venue, msg->venue) != TELEBOT_ERROR_NONE)
-        {
-            ERR("Failed to get <venue> from message object");
-            TELEBOT_SAFE_FREE(msg->venue);
-        }
-    }
-
-    struct json_object *poll = NULL;
-    if (json_object_object_get_ex(obj, "poll", &poll))
-    {
-        msg->poll = calloc(1, sizeof(telebot_poll_t));
-        if (telebot_parser_get_poll(poll, msg->poll) != TELEBOT_ERROR_NONE)
-        {
-            ERR("Failed to get <poll> from message object");
-            TELEBOT_SAFE_FREE(msg->poll);
         }
     }
 
@@ -748,24 +763,60 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         }
     }
 
-    struct json_object *ncm = NULL;
-    if (json_object_object_get_ex(obj, "new_chat_members", &ncm))
+    // TODO: implement game parsing
+
+    struct json_object *poll = NULL;
+    if (json_object_object_get_ex(obj, "poll", &poll))
     {
-        if (telebot_parser_get_users(ncm, &(msg->new_chat_members), &(msg->count_new_chat_members)) != TELEBOT_ERROR_NONE)
+        msg->poll = malloc(sizeof(telebot_poll_t));
+        if (telebot_parser_get_poll(poll, msg->poll) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <poll> from message object");
+            TELEBOT_SAFE_FREE(msg->poll);
+        }
+    }
+
+    struct json_object *venue = NULL;
+    if (json_object_object_get_ex(obj, "venue", &venue))
+    {
+        msg->venue = malloc(sizeof(telebot_venue_t));
+        if (telebot_parser_get_venue(venue, msg->venue) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <venue> from message object");
+            TELEBOT_SAFE_FREE(msg->venue);
+        }
+    }
+
+    struct json_object *location = NULL;
+    if (json_object_object_get_ex(obj, "location", &location))
+    {
+        msg->location = malloc(sizeof(telebot_location_t));
+        if (telebot_parser_get_location(location, msg->location) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <location> from message object");
+            TELEBOT_SAFE_FREE(msg->location);
+        }
+    }
+
+    struct json_object *new_chat_members = NULL;
+    if (json_object_object_get_ex(obj, "new_chat_members", &new_chat_members))
+    {
+        int ret = telebot_parser_get_users(new_chat_members, &(msg->new_chat_members), &(msg->count_new_chat_members));
+        if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <new_chat_members> from message object");
     }
 
-    struct json_object *lcm = NULL;
-    if (json_object_object_get_ex(obj, "left_chat_members", &lcm))
+    struct json_object *left_chat_members = NULL;
+    if (json_object_object_get_ex(obj, "left_chat_members", &left_chat_members))
     {
-        if (telebot_parser_get_users(lcm, &(msg->left_chat_members), &(msg->count_left_chat_members)) !=
-            TELEBOT_ERROR_NONE)
+        int ret = telebot_parser_get_users(left_chat_members, &(msg->left_chat_members), &(msg->count_left_chat_members));
+        if (ret != TELEBOT_ERROR_NONE)
             ERR("Failed to get <left_chat_members> from message object");
     }
 
-    struct json_object *nct = NULL;
-    if (json_object_object_get_ex(obj, "new_chat_title", &nct))
-        msg->new_chat_title = TELEBOT_SAFE_STRDUP(json_object_get_string(nct));
+    struct json_object *new_chat_title = NULL;
+    if (json_object_object_get_ex(obj, "new_chat_title", &new_chat_title))
+        msg->new_chat_title = TELEBOT_SAFE_STRDUP(json_object_get_string(new_chat_title));
 
     struct json_object *new_chat_photo = NULL;
     if (json_object_object_get_ex(obj, "new_chat_photo", &new_chat_photo))
@@ -779,25 +830,38 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     if (json_object_object_get_ex(obj, "delete_chat_photo", &del_chat_photo))
         msg->delete_chat_photo = json_object_get_boolean(del_chat_photo);
 
-    struct json_object *gcc = NULL;
-    if (json_object_object_get_ex(obj, "group_chat_created", &gcc))
-        msg->group_chat_created = json_object_get_boolean(gcc);
+    struct json_object *group_chat_created = NULL;
+    if (json_object_object_get_ex(obj, "group_chat_created", &group_chat_created))
+        msg->group_chat_created = json_object_get_boolean(group_chat_created);
 
-    struct json_object *sgcc = NULL;
-    if (json_object_object_get_ex(obj, "supergroup_chat_created", &sgcc))
-        msg->supergroup_chat_created = json_object_get_boolean(sgcc);
+    struct json_object *supergroup_chat_created = NULL;
+    if (json_object_object_get_ex(obj, "supergroup_chat_created", &supergroup_chat_created))
+        msg->supergroup_chat_created = json_object_get_boolean(supergroup_chat_created);
 
-    struct json_object *cacc = NULL;
-    if (json_object_object_get_ex(obj, "channel_chat_created", &cacc))
-        msg->channel_chat_created = json_object_get_boolean(cacc);
+    struct json_object *channel_chat_created = NULL;
+    if (json_object_object_get_ex(obj, "channel_chat_created", &channel_chat_created))
+        msg->channel_chat_created = json_object_get_boolean(channel_chat_created);
 
-    struct json_object *mtci = NULL;
-    if (json_object_object_get_ex(obj, "migrate_to_chat_id", &mtci))
-        msg->migrate_to_chat_id = json_object_get_int64(mtci);
+    struct json_object *message_auto_delete_timer_changed = NULL;
+    if (json_object_object_get_ex(obj, "message_auto_delete_timer_changed", &message_auto_delete_timer_changed))
+    {
+        msg->message_auto_delete_timer_changed = malloc(sizeof(telebot_message_auto_delete_timer_changed_t));
+        int ret = telebot_parser_get_message_auto_delete_timer_changed(message_auto_delete_timer_changed,
+                                                                       msg->message_auto_delete_timer_changed);
+        if (ret != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <message_auto_delete_timer_changed> from message object");
+            TELEBOT_SAFE_FREE(msg->message_auto_delete_timer_changed);
+        }
+    }
 
-    struct json_object *mftci = NULL;
-    if (json_object_object_get_ex(obj, "migrate_from_chat_id", &mftci))
-        msg->migrate_from_chat_id = json_object_get_int64(mftci);
+    struct json_object *migrate_to_chat_id = NULL;
+    if (json_object_object_get_ex(obj, "migrate_to_chat_id", &migrate_to_chat_id))
+        msg->migrate_to_chat_id = json_object_get_int64(migrate_to_chat_id);
+
+    struct json_object *migrate_from_chat_id = NULL;
+    if (json_object_object_get_ex(obj, "migrate_from_chat_id", &migrate_from_chat_id))
+        msg->migrate_from_chat_id = json_object_get_int64(migrate_from_chat_id);
 
     struct json_object *pinned_message = NULL;
     if (json_object_object_get_ex(obj, "pinned_message", &pinned_message))
@@ -2085,7 +2149,7 @@ telebot_error_e telebot_parser_get_response_parameters(struct json_object *obj, 
     memset(resp_param, 0, sizeof(telebot_response_paramters_t));
     struct json_object *migrate_to_chat_id = NULL;
     if (json_object_object_get_ex(obj, "migrate_to_chat_id", &migrate_to_chat_id))
-        resp_param->migrate_to_chat_id = json_object_get_int(migrate_to_chat_id);
+        resp_param->migrate_to_chat_id = json_object_get_int64(migrate_to_chat_id);
 
     struct json_object *retry_after = NULL;
     if (json_object_object_get_ex(obj, "retry_after", &retry_after))
@@ -2125,6 +2189,24 @@ telebot_error_e telebot_parser_get_chat_location(struct json_object *obj, telebo
         TELEBOT_SAFE_FREE(chat_location->address);
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e
+telebot_parser_get_message_auto_delete_timer_changed(struct json_object *obj,
+                                                     telebot_message_auto_delete_timer_changed_t *timer_changed)
+{
+    if ((obj == NULL) || (timer_changed == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    struct json_object *message_auto_delete_time = NULL;
+    if (!json_object_object_get_ex(obj, "message_auto_delete_time", &message_auto_delete_time))
+    {
+        ERR("Object is not message auto-delete timer type, message_auto_delete_time not found");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+    timer_changed->message_auto_delete_time = json_object_get_int(message_auto_delete_time);
 
     return TELEBOT_ERROR_NONE;
 }
