@@ -103,7 +103,7 @@ telebot_error_e telebot_parser_get_file(struct json_object *obj, telebot_file_t 
 telebot_error_e telebot_parser_get_callback_query(struct json_object *obj, telebot_callback_query_t *cb_query);
 
 /** Prase chat photo object */
-telebot_error_e  telebot_parser_get_chat_photo(struct json_object *obj, telebot_chat_photo_t *photo);
+telebot_error_e telebot_parser_get_chat_photo(struct json_object *obj, telebot_chat_photo_t *photo);
 
 /** Prase bot command object */
 telebot_error_e telebot_parser_get_bot_command(struct json_object *obj, telebot_bot_command_t *command);
@@ -116,5 +116,8 @@ telebot_error_e telebot_parser_get_response_parameters(struct json_object *obj, 
 
 /** Prase chat location object object */
 telebot_error_e telebot_parser_get_chat_location(struct json_object *obj, telebot_chat_location_t *chat_location);
+
+/** Prase chat message auto-delete timer changed object object */
+telebot_error_e telebot_parser_get_message_auto_delete_timer_changed(struct json_object *obj, telebot_message_auto_delete_timer_changed_t *timer_changed);
 
 #endif /* __TELEBOT_PARSER_H__ */

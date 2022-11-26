@@ -237,8 +237,24 @@ typedef struct telebot_message {
     /** Unique message identifier */
     int message_id;
 
+    /**
+     * Unique identifier of a message thread to which the message belongs;
+     * for supergroups only
+     */
+    int message_thread_id;
+
     /** Optional. Sender, can be empty for messages sent to channels */
     struct telebot_user *from;
+
+    /**
+     * Optional. Sender of the message, sent on behalf of a chat. For example,
+     * the channel itself for channel posts, the supergroup itself for messages
+     * from anonymous group administrators, the linked channel for messages
+     * automatically forwarded to the discussion group. For backward compatibility,
+     * the field from contains a fake sender user in non-channel chats,
+     * if the message was sent on behalf of a chat.
+     */
+    struct telebot_chat *sender_chat;
 
     /** Date the message was sent in Unix time */
     long date;
@@ -279,6 +295,15 @@ typedef struct telebot_message {
      */
     long forward_date;
 
+    /** Optional. True, if the message is sent to a forum topic */
+    bool is_topic_message;
+
+    /**
+     * Optional. True, if the message is a channel post that was automatically
+     * forwarded to the connected discussion group
+     */
+    bool is_automatic_forward;
+
     /**
      * For replies, the original message. Note that the Message object in this
      * field will not contain further reply_to_message fields even if it itself
@@ -286,8 +311,14 @@ typedef struct telebot_message {
      */
     struct telebot_message *reply_to_message;
 
+    /** Optional. Bot through which the message was sent */
+    struct telebot_user *via_bot;
+
     /** Optional. Date the message was last edited in Unix time */
     long edit_date;
+
+    /** Optional. True, if the message can't be forwarded */
+    bool has_protected_content;
 
     /**
      * Optional. The unique identifier of a media message group this message
@@ -309,23 +340,17 @@ typedef struct telebot_message {
     int count_entities;
 
     /**
-     * Optional. For messages with a caption, special entities like usernames,
-     * URLs, bot commands, etc. that appear in the caption.
+     * Optional. Message is an animation, information about the animation.
+     * For backward compatibility, when this field is set, the document field
+     * will also be set
      */
-    struct telebot_message_entity *caption_entities;
-    int count_caption_entities;
+    struct telebot_animation *animation;
 
     /** Optional. Message is an audio file, information about the file */
     struct telebot_audio *audio;
 
     /** Optional. Message is a general file, information about the file */
     struct telebot_document *document;
-
-    /** Optional. Message is a animation, information about the animation */
-    struct telebot_animation *animation;
-
-    /** Optional. Message is a game, information about the game. */
-    struct telebot_game *game; //TODO:define type
 
     /** Optional. Message is a photo, available sizes of the photo */
     struct telebot_photo *photos;
@@ -337,29 +362,39 @@ typedef struct telebot_message {
     /** Optional. Message is a video, information about the video */
     struct telebot_video *video;
 
-    /** Optional. Message is a voice message, information about the file */
-    struct telebot_voice *voice;
-
     /** Optional. Message is a video note, information about the video message */
     struct telebot_video_note *video_note;
+
+    /** Optional. Message is a voice message, information about the file */
+    struct telebot_voice *voice;
 
     /** Optional. Caption for the photo or video */
     char *caption;
 
+    /**
+     * Optional. For messages with a caption, special entities like usernames,
+     * URLs, bot commands, etc. that appear in the caption.
+     */
+    struct telebot_message_entity *caption_entities;
+    int count_caption_entities;
+
     /** Optional. Message is a shared contact, information about the contact */
     struct telebot_contact *contact;
 
-    /** Optional. Message is a shared location, information about the location */
-    struct telebot_location *location;
+    /** Optional. Message is a dice with random value from 1 to 6 */
+    struct telebot_dice *dice;
 
-    /** Optional. Message is a venue, information about the venue */
-    struct telebot_venue *venue;
+    /** Optional. Message is a game, information about the game. */
+    struct telebot_game *game; //TODO:define type
 
     /** Optional. Message is a native poll, information about the poll */
     struct telebot_poll *poll;
 
-    /** Optional. Message is a dice with random value from 1 to 6 */
-    struct telebot_dice *dice;
+    /** Optional. Message is a venue, information about the venue */
+    struct telebot_venue *venue;
+
+    /** Optional. Message is a shared location, information about the location */
+    struct telebot_location *location;
 
     /**
      * Optional. New members that were added to the group or supergroup and
@@ -393,6 +428,9 @@ typedef struct telebot_message {
 
     /** Optional. Service message: the channel has been created */
     bool channel_chat_created;
+
+    /** Optional. Service message: auto-delete timer settings changed in the chat */
+    struct telebot_message_auto_delete_timer_changed *message_auto_delete_timer_changed;
 
     /**
      * Optional. The group has been migrated to a supergroup with the specified
@@ -430,6 +468,36 @@ typedef struct telebot_message {
 
     /** Telegram Passport data */
     struct telebot_passport_data *passport_data; //TODO:define type
+
+    /**
+     * Optional. Service message. A user in the chat triggered another user's
+     * proximity alert while sharing Live Location.
+     */
+    struct telebot_proximity_alert_triggered *proximity_alert_triggered; //TODO:define type
+
+    /** Optional. Service message: forum topic created. */
+    struct telebot_forum_topic_created *forum_topic_created; //TODO:define type
+
+    /** Optional. Service message: forum topic closed. */
+    struct telebot_forum_topic_closed *forum_topic_closed; //TODO:define type
+
+    /** Optional. Service message: forum topic reopened. */
+    struct telebot_forum_topic_reopened *forum_topic_reopened; //TODO:define type
+
+    /** Optional. Service message: video chat scheduled. */
+    struct telebot_video_chat_scheduled *video_chat_scheduled; //TODO:define type
+
+    /** Optional. Service message: video chat started. */
+    struct telebot_video_chat_started *video_chat_started; //TODO:define type
+
+    /** Optional. Service message: video chat ended. */
+    struct telebot_video_chat_ended *video_chat_ended; //TODO:define type
+
+    /** Optional. Service message: new participants invited to a video chat. */
+    struct telebot_video_chat_participants_invited *video_chat_participants_invited; //TODO:define type
+
+    /** Optional. Service message: data sent by a Web App. */
+    struct telebot_web_app_data *web_app_data; //TODO:define type
 
     /**
      * Inline keyboard attached to the message. login_url buttons are
@@ -1370,16 +1438,21 @@ typedef struct telebot_webhook_info {
  * @brief Thi object represetns information about the current status of a webhook.
  */
 typedef struct telebot_chat_location {
-    /**
-     * The location to which the supergroup is connected. Can't be a live location.
-    */
+    /** The location to which the supergroup is connected. Can't be a live location.*/
     struct telebot_location *location;
 
-    /**
-     * Location address; 1-64 characters, as defined by the chat owner
-    */
+    /** Location address; 1-64 characters, as defined by the chat owner */
     char *address;
 } telebot_chat_location_t;
+
+/**
+ * @brief This object represents a service message about a change in
+ * auto-delete timer settings.
+ */
+typedef struct telebot_message_auto_delete_timer_changed {
+    /** New auto-delete time for messages in the chat; in seconds */
+    int message_auto_delete_time;
+} telebot_message_auto_delete_timer_changed_t;
 
 /**
  * @brief This is opaque object to represent a telebot handler.
