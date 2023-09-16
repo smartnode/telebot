@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <json.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <telebot-private.h>
@@ -134,8 +135,18 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
     curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
     if (resp_code != 200L)
     {
-        ERR("Wrong HTTP response received, response: %ld", resp_code);
         ret = TELEBOT_ERROR_OPERATION_FAILED;
+
+        struct json_object *obj = json_tokener_parse(resp->data);
+        if (obj == NULL) {
+            ERR("HTTP error: %ld", resp_code);
+            ERR("Response: %s", resp->data);
+        } else {
+            ERR("HTTP error: %d - \"%s\"",
+                json_object_get_int(json_object_object_get(obj, "error_code")),
+                json_object_get_string(json_object_object_get(obj, "description")));
+        }
+
         goto finish;
     }
 
@@ -1572,7 +1583,7 @@ telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h,
         (out_file == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    CURL *curl_h = NULL; 
+    CURL *curl_h = NULL;
     CURLcode res;
     long resp_code = 0L;
 
