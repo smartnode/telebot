@@ -1199,6 +1199,31 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
  */
 void telebot_core_put_response(telebot_core_response_t *response);
 
+////////////////////////////////////////////////////////////////////////////////////////
+//ozlb
+////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Use this method to change the bot's short description, which is shown on the bot's profile page and is sent together with the link when users share the bot.
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] short_description New short description for the bot; 0-120 characters.
+ * @param[out] response Response data that contains "True" on success.
+ * It MUST be freed with #telebot_core_put_response().
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_core_set_my_short_description(telebot_core_handler_t *core_h,
+        const char *short_description,
+        telebot_core_response_t *response);
+
+/**
+ * @brief Use this method to get the current bot short description for the given user language. Returns BotShortDescription on success.
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[out] response Response data, MUST be freed with #telebot_core_put_response().
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_core_get_my_short_description(telebot_core_handler_t *core_h,
+        telebot_core_response_t *response);
+
 /**
  * @} // end of APIs
  */
