@@ -25,10 +25,10 @@
 #include <errno.h>
 #include <json.h>
 #include <json_object.h>
-#include <telebot.h>
-#include <telebot-core.h>
-#include <telebot-private.h>
-#include <telebot-parser.h>
+#include "telebot.h"
+#include "telebot-core.h"
+#include "telebot-private.h"
+#include "telebot-parser.h"
 
 typedef struct telebot_handler_s
 {
@@ -1967,3 +1967,83 @@ static void telebot_put_callback_query(telebot_callback_query_t *query)
 //TODO: static void telebot_put_invoice(telebot_invoice_t *invoice);
 //TODO: static void telebot_put_payment(telebot_successful_payment_t *payment);
 //TODO: static void telebot_put_game(telebot_game_t *game);
+
+////////////////////////////////////////////////////////////////////////////////////////
+//ozlb
+////////////////////////////////////////////////////////////////////////////////////////
+
+telebot_error_e telebot_set_my_short_description(telebot_handler_t handle,
+    const char *short_description)
+{
+    telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (short_description == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_core_response_t response;
+    int ret = telebot_core_set_my_short_description(_handle->core_h, short_description,
+        &response);
+    telebot_core_put_response(&response);
+
+    return ret;
+}
+
+telebot_error_e telebot_get_my_short_description(telebot_handler_t handle, char **short_description)
+{
+    telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if (short_description == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    *short_description = NULL;
+
+    telebot_core_response_t response;
+    int ret = telebot_core_get_my_short_description(_handle->core_h, &response);
+    if (ret != TELEBOT_ERROR_NONE)
+        return ret;
+
+    struct json_object *obj = telebot_parser_str_to_obj(response.data);
+    if (obj == NULL)
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    struct json_object *ok = NULL;
+    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    struct json_object *result = NULL;
+    if (!json_object_object_get_ex(obj, "result", &result))
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+
+    struct json_object *j_short_description = NULL;
+    if (json_object_object_get_ex(result, "short_description", &j_short_description))
+    {
+        *short_description = TELEBOT_SAFE_STRDUP(json_object_get_string(j_short_description));
+        if (*short_description == NULL)
+            ret = TELEBOT_ERROR_OUT_OF_MEMORY;
+        else
+            ret = TELEBOT_ERROR_NONE;
+    }
+    else
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+finish:
+    if (obj) json_object_put(obj);
+    telebot_core_put_response(&response);
+
+    return ret;
+}

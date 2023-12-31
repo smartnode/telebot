@@ -20,12 +20,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <json.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
-#include <telebot-private.h>
-#include <telebot-common.h>
-#include <telebot-core.h>
+#include "telebot-private.h"
+#include "telebot-common.h"
+#include "telebot-core.h"
 
 void telebot_core_put_response(telebot_core_response_t *response)
 {
@@ -135,18 +134,8 @@ static telebot_error_e telebot_core_curl_perform(telebot_core_handler_t *core_h,
     curl_easy_getinfo(curl_h, CURLINFO_RESPONSE_CODE, &resp_code);
     if (resp_code != 200L)
     {
+        ERR("Wrong HTTP response received, response: %ld", resp_code);
         ret = TELEBOT_ERROR_OPERATION_FAILED;
-
-        struct json_object *obj = json_tokener_parse(resp->data);
-        if (obj == NULL) {
-            ERR("HTTP error: %ld", resp_code);
-            ERR("Response: %s", resp->data);
-        } else {
-            ERR("HTTP error: %d - \"%s\"",
-                json_object_get_int(json_object_object_get(obj, "error_code")),
-                json_object_get_string(json_object_object_get(obj, "description")));
-        }
-
         goto finish;
     }
 
@@ -2627,4 +2616,45 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
     ++index;
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGE, mimes, index, response);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+//ozlb
+////////////////////////////////////////////////////////////////////////////////////////
+
+telebot_error_e telebot_core_set_my_short_description(telebot_core_handler_t *core_h,
+    const char *short_description, telebot_core_response_t *response)
+{
+    if ((core_h == NULL) || (core_h->token == NULL))
+    {
+        ERR("Handler, or token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    if ((short_description == NULL) || (strlen(short_description) > 120))
+    {
+        ERR("Valid title is required");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    int index = 0;
+    telebot_core_mime_t mimes[1]; // number of arguments
+    mimes[index].name = "short_description";
+    mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", short_description);
+    ++index;
+
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_SHORT_DESCRIPTION, mimes, index, response);
+}
+
+telebot_error_e telebot_core_get_my_short_description(telebot_core_handler_t *core_h,
+    telebot_core_response_t *response)
+{
+    if ((core_h == NULL) || (core_h->token == NULL))
+    {
+        ERR("Handler or token is NULL");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_SHORT_DESCRIPTION, NULL, 0, response);
 }
