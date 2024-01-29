@@ -1968,10 +1968,6 @@ static void telebot_put_callback_query(telebot_callback_query_t *query)
 //TODO: static void telebot_put_payment(telebot_successful_payment_t *payment);
 //TODO: static void telebot_put_game(telebot_game_t *game);
 
-////////////////////////////////////////////////////////////////////////////////////////
-//ozlb
-////////////////////////////////////////////////////////////////////////////////////////
-
 telebot_error_e telebot_set_my_short_description(telebot_handler_t handle,
     const char *short_description)
 {
