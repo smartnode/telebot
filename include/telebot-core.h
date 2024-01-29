@@ -1199,10 +1199,6 @@ telebot_error_e telebot_core_delete_message(telebot_core_handler_t *core_h,
  */
 void telebot_core_put_response(telebot_core_response_t *response);
 
-////////////////////////////////////////////////////////////////////////////////////////
-//ozlb
-////////////////////////////////////////////////////////////////////////////////////////
-
 /**
  * @brief Use this method to change the bot's short description, which is shown on the bot's profile page and is sent together with the link when users share the bot.
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
