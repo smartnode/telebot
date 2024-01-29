@@ -23,9 +23,9 @@
 #include <json.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
-#include "telebot-private.h"
-#include "telebot-common.h"
-#include "telebot-core.h"
+#include <telebot-private.h>
+#include <telebot-common.h>
+#include <telebot-core.h>
 
 void telebot_core_put_response(telebot_core_response_t *response)
 {
