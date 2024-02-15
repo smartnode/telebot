@@ -485,7 +485,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *forward_from_chat = NULL;
     if (json_object_object_get_ex(obj, "forward_from_chat", &forward_from_chat))
     {
-        msg->forward_from = malloc(sizeof(telebot_user_t));
+        msg->forward_from_chat = malloc(sizeof(telebot_chat_t));
         if (telebot_parser_get_chat(forward_from_chat, msg->forward_from_chat) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <forward from> from message object");
