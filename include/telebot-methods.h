@@ -881,6 +881,7 @@ telebot_error_e telebot_set_chat_title(telebot_handler_t handle, long long int c
 telebot_error_e telebot_set_chat_description(telebot_handler_t handle,
     long long int chat_id, const char *description);
 
+
 /**
  * @brief Pin a message in a supergroup or a channel. The bot must be an administrator
  * in the chat for this to work and must have the 'can_pin_messages' admin right
@@ -1179,6 +1180,31 @@ telebot_error_e telebot_stop_poll(telebot_handler_t handle, long long int chat_i
  */
 telebot_error_e telebot_delete_message(telebot_handler_t handle, long long int chat_id,
     int message_id);
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+//ozlb
+////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Use this method to change the bot's short description, which is shown on the bot's profile page and is sent together with the link when users share the bot.
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] short_description New chat description, 0-120 characters.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_my_short_description(telebot_handler_t handle,
+    const char *short_description);
+
+/**
+ * @brief Use this method to get the current bot description for the given user language. Returns BotDescription on success.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[out] short_description 	String 	The bot's short description
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, and user object is
+ * stored in input parameter.
+ */
+telebot_error_e telebot_get_my_short_description(telebot_handler_t handle, char **short_description);
 
 /**
  * @} // end of APIs
