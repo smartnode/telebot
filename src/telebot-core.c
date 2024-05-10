@@ -172,7 +172,7 @@ telebot_error_e telebot_core_create(telebot_core_handler_t **core_h, const char 
     }
     *core_h = NULL;
 
-    telebot_core_handler_t *_core_h = malloc(sizeof(telebot_core_handler_t));
+    telebot_core_handler_t *_core_h = calloc(1, sizeof(telebot_core_handler_t));
     if (_core_h == NULL)
     {
         ERR("Failed to allocate memory");

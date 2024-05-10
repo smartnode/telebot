@@ -73,7 +73,7 @@ telebot_error_e telebot_create(telebot_handler_t *handle, char *token)
     if ((token == NULL) || (handle == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    telebot_hdata_t *_handle = (telebot_hdata_t *)malloc(sizeof(telebot_hdata_t));
+    telebot_hdata_t *_handle = (telebot_hdata_t *)calloc(1, sizeof(telebot_hdata_t));
     if (_handle == NULL)
     {
         ERR("Failed to allocate memory");

@@ -331,7 +331,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj, telebot_chat_t 
     struct json_object *chat_photo = NULL;
     if (json_object_object_get_ex(obj, "photo", &chat_photo))
     {
-        chat->photo = malloc(sizeof(telebot_chat_photo_t));
+        chat->photo = calloc(1, sizeof(telebot_chat_photo_t));
         if (telebot_parser_get_chat_photo(chat_photo, chat->photo) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <photo> from chat object");
@@ -350,7 +350,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj, telebot_chat_t 
     struct json_object *pinned_message = NULL;
     if (json_object_object_get_ex(obj, "pinned_message", &pinned_message))
     {
-        chat->pinned_message = malloc(sizeof(telebot_message_t));
+        chat->pinned_message = calloc(1, sizeof(telebot_message_t));
         if (telebot_parser_get_message(pinned_message, chat->pinned_message) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <pinned_message> from chat object");
@@ -361,7 +361,7 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj, telebot_chat_t 
     struct json_object *permissions = NULL;
     if (json_object_object_get_ex(obj, "permissions", &permissions))
     {
-        chat->permissions = malloc(sizeof(telebot_chat_permissions_t));
+        chat->permissions = calloc(1, sizeof(telebot_chat_permissions_t));
         if (telebot_parser_get_chat_permissions(permissions, chat->permissions) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <permissions> from chat object");
@@ -451,7 +451,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         ERR("Failed to get <date> from message object");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    msg->chat = malloc(sizeof(telebot_chat_t));
+    msg->chat = calloc(1, sizeof(telebot_chat_t));
     if (telebot_parser_get_chat(chat, msg->chat) != TELEBOT_ERROR_NONE)
     {
         ERR("Failed to get <chat> from message object");
@@ -463,7 +463,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *from = NULL;
     if (json_object_object_get_ex(obj, "from", &from))
     {
-        msg->from = malloc(sizeof(telebot_user_t));
+        msg->from = calloc(1, sizeof(telebot_user_t));
         if (telebot_parser_get_user(from, msg->from) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <from user> from message object");
@@ -474,7 +474,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *forward_from = NULL;
     if (json_object_object_get_ex(obj, "forward_from", &forward_from))
     {
-        msg->forward_from = malloc(sizeof(telebot_user_t));
+        msg->forward_from = calloc(1, sizeof(telebot_user_t));
         if (telebot_parser_get_user(forward_from, msg->forward_from) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <forward from> from message object");
@@ -485,7 +485,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *forward_from_chat = NULL;
     if (json_object_object_get_ex(obj, "forward_from_chat", &forward_from_chat))
     {
-        msg->forward_from_chat = malloc(sizeof(telebot_chat_t));
+        msg->forward_from_chat = calloc(1, sizeof(telebot_chat_t));
         if (telebot_parser_get_chat(forward_from_chat, msg->forward_from_chat) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <forward from> from message object");
@@ -512,7 +512,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *reply_to_message = NULL;
     if (json_object_object_get_ex(obj, "reply_to_message", &reply_to_message))
     {
-        msg->reply_to_message = malloc(sizeof(telebot_message_t));
+        msg->reply_to_message = calloc(1, sizeof(telebot_message_t));
         if (telebot_parser_get_message(reply_to_message, msg->reply_to_message) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <reply_to_message> from message object");
@@ -555,7 +555,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *audio = NULL;
     if (json_object_object_get_ex(obj, "audio", &audio))
     {
-        msg->audio = malloc(sizeof(telebot_audio_t));
+        msg->audio = calloc(1, sizeof(telebot_audio_t));
         if (telebot_parser_get_audio(audio, msg->audio) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <audio> from message object");
@@ -566,7 +566,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *document = NULL;
     if (json_object_object_get_ex(obj, "document", &document))
     {
-        msg->document = malloc(sizeof(telebot_document_t));
+        msg->document = calloc(1, sizeof(telebot_document_t));
         if (telebot_parser_get_document(document, msg->document) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <document> from message object");
@@ -587,7 +587,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *video = NULL;
     if (json_object_object_get_ex(obj, "video", &video))
     {
-        msg->video = malloc(sizeof(telebot_video_t));
+        msg->video = calloc(1, sizeof(telebot_video_t));
         if (telebot_parser_get_video(video, msg->video) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <video> from message object");
@@ -598,7 +598,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *voice = NULL;
     if (json_object_object_get_ex(obj, "voice", &voice))
     {
-        msg->voice = malloc(sizeof(telebot_voice_t));
+        msg->voice = calloc(1, sizeof(telebot_voice_t));
         if (telebot_parser_get_voice(voice, msg->voice) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <voice> from message object");
@@ -609,7 +609,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *video_note = NULL;
     if (json_object_object_get_ex(obj, "video_note", &video_note))
     {
-        msg->video_note = malloc(sizeof(telebot_video_note_t));
+        msg->video_note = calloc(1, sizeof(telebot_video_note_t));
         if (telebot_parser_get_video_note(video_note, msg->video_note) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <video_note> from message object");
@@ -624,7 +624,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *contact = NULL;
     if (json_object_object_get_ex(obj, "contact", &contact))
     {
-        msg->contact = malloc(sizeof(telebot_contact_t));
+        msg->contact = calloc(1, sizeof(telebot_contact_t));
         if (telebot_parser_get_contact(contact, msg->contact) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <contact> from message object");
@@ -635,7 +635,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *location = NULL;
     if (json_object_object_get_ex(obj, "location", &location))
     {
-        msg->location = malloc(sizeof(telebot_location_t));
+        msg->location = calloc(1, sizeof(telebot_location_t));
         if (telebot_parser_get_location(location, msg->location) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <location> from message object");
@@ -646,7 +646,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *venue = NULL;
     if (json_object_object_get_ex(obj, "venue", &venue))
     {
-        msg->venue = malloc(sizeof(telebot_venue_t));
+        msg->venue = calloc(1, sizeof(telebot_venue_t));
         if (telebot_parser_get_venue(venue, msg->venue) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <venue> from message object");
@@ -657,7 +657,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *poll = NULL;
     if (json_object_object_get_ex(obj, "poll", &poll))
     {
-        msg->poll = malloc(sizeof(telebot_poll_t));
+        msg->poll = calloc(1, sizeof(telebot_poll_t));
         if (telebot_parser_get_poll(poll, msg->poll) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <poll> from message object");
@@ -668,7 +668,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *dice = NULL;
     if (json_object_object_get_ex(obj, "dice", &dice))
     {
-        msg->dice = malloc(sizeof(telebot_dice_t));
+        msg->dice = calloc(1, sizeof(telebot_dice_t));
         if (telebot_parser_get_dice(dice, msg->dice) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <dice> from message object");
@@ -730,7 +730,7 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *pinned_message = NULL;
     if (json_object_object_get_ex(obj, "pinned_message", &pinned_message))
     {
-        msg->pinned_message = malloc(sizeof(telebot_message_t));
+        msg->pinned_message = calloc(1, sizeof(telebot_message_t));
         if (telebot_parser_get_message(pinned_message, msg->pinned_message) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <pinned_message> from message object");
@@ -786,7 +786,7 @@ telebot_error_e telebot_parser_get_message_entity(struct json_object *obj, teleb
     struct json_object *user = NULL;
     if (json_object_object_get_ex(obj, "user", &user))
     {
-        entity->user = malloc(sizeof(telebot_user_t));
+        entity->user = calloc(1, sizeof(telebot_user_t));
         if (telebot_parser_get_user(user, entity->user) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <user> from message entity object");
@@ -940,7 +940,7 @@ telebot_error_e telebot_parser_get_audio(struct json_object *obj, telebot_audio_
     struct json_object *thumb;
     if (json_object_object_get_ex(obj, "thumb", &thumb))
     {
-        audio->thumb = malloc(sizeof(telebot_photo_t));
+        audio->thumb = calloc(1, sizeof(telebot_photo_t));
         if (telebot_parser_get_photo(thumb, audio->thumb) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <thumb> from audio object");
@@ -977,7 +977,7 @@ telebot_error_e telebot_parser_get_document(struct json_object *obj, telebot_doc
     struct json_object *thumb = NULL;
     if (json_object_object_get_ex(obj, "thumb", &thumb))
     {
-        document->thumb = malloc(sizeof(telebot_photo_t));
+        document->thumb = calloc(1, sizeof(telebot_photo_t));
         if (telebot_parser_get_photo(thumb, document->thumb) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <thumb> from document object");
@@ -1059,7 +1059,7 @@ telebot_error_e telebot_parser_get_video(struct json_object *obj, telebot_video_
     struct json_object *thumb = NULL;
     if (json_object_object_get_ex(obj, "thumb", &thumb))
     {
-        video->thumb = malloc(sizeof(telebot_photo_t));
+        video->thumb = calloc(1, sizeof(telebot_photo_t));
         if (telebot_parser_get_photo(thumb, video->thumb) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <thumb> from video object");
@@ -1137,7 +1137,7 @@ telebot_error_e telebot_parser_get_animation(struct json_object *obj, telebot_an
     struct json_object *thumb = NULL;
     if (json_object_object_get_ex(obj, "thumb", &thumb))
     {
-        animation->thumb = malloc(sizeof(telebot_photo_t));
+        animation->thumb = calloc(1, sizeof(telebot_photo_t));
         if (telebot_parser_get_photo(thumb, animation->thumb) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <thumb> from animation object");
@@ -1203,7 +1203,7 @@ telebot_error_e telebot_parser_get_video_note(struct json_object *obj, telebot_v
     struct json_object *thumb;
     if (json_object_object_get_ex(obj, "thumb", &thumb))
     {
-        video_note->thumb = malloc(sizeof(telebot_photo_t));
+        video_note->thumb = calloc(1, sizeof(telebot_photo_t));
         if (telebot_parser_get_photo(thumb, video_note->thumb) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <thumb> from video note object");
@@ -1351,7 +1351,7 @@ telebot_error_e telebot_parser_get_venue(struct json_object *obj, telebot_venue_
     struct json_object *location = NULL;
     if (json_object_object_get_ex(obj, "location", &location))
     {
-        venue->location = malloc(sizeof(telebot_location_t));
+        venue->location = calloc(1, sizeof(telebot_location_t));
         if (telebot_parser_get_location(location, venue->location) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <location> from venue object");
@@ -1707,7 +1707,7 @@ telebot_error_e telebot_parser_get_callback_query(struct json_object *obj, teleb
     struct json_object *from = NULL;
     if (json_object_object_get_ex(obj, "from", &from))
     {
-        cb_query->from = malloc(sizeof(telebot_user_t));
+        cb_query->from = calloc(1, sizeof(telebot_user_t));
         if (telebot_parser_get_user(from, cb_query->from) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <from> from callback_query object");
@@ -1726,7 +1726,7 @@ telebot_error_e telebot_parser_get_callback_query(struct json_object *obj, teleb
     struct json_object *message = NULL;
     if (json_object_object_get_ex(obj, "message", &message))
     {
-        cb_query->message = malloc(sizeof(telebot_message_t));
+        cb_query->message = calloc(1, sizeof(telebot_message_t));
         if (telebot_parser_get_message(message, cb_query->message) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <message> from callback_query object");
@@ -1817,7 +1817,7 @@ telebot_error_e telebot_parser_get_chat_member(struct json_object *obj, telebot_
     struct json_object *user = NULL;
     if (json_object_object_get_ex(obj, "user", &user))
     {
-        member->user = malloc(sizeof(telebot_user_t));
+        member->user = calloc(1, sizeof(telebot_user_t));
         if (telebot_parser_get_user(user, member->user) != TELEBOT_ERROR_NONE)
         {
             ERR("Failed to get <user> from chat member object");
