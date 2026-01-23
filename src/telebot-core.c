@@ -1056,6 +1056,129 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO_NOTE, mimes, index, response);
 }
 
+telebot_error_e telebot_core_send_media_group(
+    telebot_core_handler_t *core_h,
+    long long int chat_id,
+    char *media_paths[],
+    int count,
+    bool disable_notification,
+    int reply_to_message_id,
+    telebot_core_response_t *response)
+{
+    if ((core_h == NULL) || (core_h->token == NULL) ||
+        (media_paths == NULL) || (count < 2) || (count > 10))
+    {
+        ERR("Invalid parameters: core_h, token, media_paths, or count (%d)", count);
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    // Validate all media paths are non-NULL
+    for (int i = 0; i < count; ++i)
+    {
+        if (media_paths[i] == NULL)
+        {
+            ERR("Media path at index %d is NULL", i);
+            return TELEBOT_ERROR_INVALID_PARAMETER;
+        }
+    }
+
+    // Build media array using json-c
+    struct json_object *media_array = json_object_new_array();
+    if (media_array == NULL)
+    {
+        ERR("Failed to create JSON media array");
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    for (int i = 0; i < count; ++i)
+    {
+        struct json_object *item = json_object_new_object();
+        json_object_object_add(item, "type", json_object_new_string("photo"));
+        char attach_name[32];
+        snprintf(attach_name, sizeof(attach_name), "photo%d", i);
+        json_object_object_add(item, "media", json_object_new_string(attach_name));
+        json_object_array_add(media_array, item);
+    }
+
+    const char *media_json_str = json_object_to_json_string(media_array);
+    if (media_json_str == NULL)
+    {
+        json_object_put(media_array);
+        ERR("Failed to serialize media JSON");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    // Prepare MIME parts
+    telebot_core_mime_t mimes[10];
+    int index = 0;
+
+    // chat_id
+    mimes[index].name = "chat_id";
+    mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
+    ++index;
+
+    // media (JSON string)
+    mimes[index].name = "media";
+    mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", media_json_str);
+    ++index;
+
+    // disable_notification
+    mimes[index].name = "disable_notification";
+    mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s",
+             (disable_notification ? "true" : "false"));
+    ++index;
+
+    // reply_to_message_id (optional)
+    if (reply_to_message_id > 0)
+    {
+        mimes[index].name = "reply_to_message_id";
+        mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+        snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", reply_to_message_id);
+        ++index;
+    }
+
+    // Attach actual photo files as "photo0", "photo1", ...
+    for (int i = 0; i < count; ++i)
+    {
+        char *name = NULL;
+        if (asprintf(&name, "photo%d", i) < 0)
+        {
+            // Clean up previously allocated names
+            for (int j = 0; j < index; ++j)
+            {
+                if (strncmp(mimes[j].name, "photo", 5) == 0)
+                    free((void *)mimes[j].name);
+            }
+            json_object_put(media_array);
+            ERR("Failed to allocate memory for media field name");
+            return TELEBOT_ERROR_OUT_OF_MEMORY;
+        }
+        mimes[index].name = name;
+        mimes[index].type = TELEBOT_MIME_TYPE_FILE;
+        snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", media_paths[i]);
+        ++index;
+    }
+
+    // Perform request
+    telebot_error_e ret = telebot_core_curl_perform(
+        core_h, TELEBOT_METHOD_SEND_MEDIA_GROUP, mimes, index, response);
+
+    // Clean up dynamically allocated field names
+    for (int i = 0; i < index; ++i)
+    {
+        if (strncmp(mimes[i].name, "photo", 5) == 0)
+            free((void *)mimes[i].name);
+    }
+
+    // Clean up JSON object
+    json_object_put(media_array);
+
+    return ret;
+}
+
 telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
     long long int chat_id, float latitude, float longitude, int live_period,
     bool disable_notification, int reply_to_message_id, const char *reply_markup,
