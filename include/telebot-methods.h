@@ -447,6 +447,25 @@ telebot_error_e telebot_send_video_note(telebot_handler_t handle, long long int 
     bool disable_notification, int reply_to_message_id, const char *reply_markup);
 
 /**
+ * @brief Send a group of photos as an album.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] chat_id Unique identifier for the target chat or username of the target channel.
+ * @param[in] media_paths Array of file paths to photos to send.
+ * @param[in] count Number of photos in the array (2–10).
+ * @param[in] disable_notification Sends the message silently.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_send_media_group(
+    telebot_handler_t handle,
+    long long int chat_id,
+    char *media_paths[],
+    int count,
+    bool disable_notification,
+    int reply_to_message_id);
+
+/**
  * @brief Send point on the map.
  * @param[in] handle The telebot handler created with #telebot_create().
  * @param[in] chat_id Unique identifier for the target chat or username of the
