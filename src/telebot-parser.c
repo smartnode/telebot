@@ -1586,7 +1586,7 @@ telebot_error_e telebot_parser_get_dice(struct json_object *obj, telebot_dice_t 
     if ((obj == NULL) || (dice == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    memset(dice, 0, sizeof(telebot_location_t));
+    memset(dice, 0, sizeof(telebot_dice_t));
     struct json_object *value = NULL;
     if (!json_object_object_get_ex(obj, "value", &value))
     {
