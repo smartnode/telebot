@@ -127,7 +127,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         struct json_object *poll_answer = NULL;
         if (json_object_object_get_ex(item, "poll_answer", &poll_answer))
         {
-            if (telebot_parser_get_poll_answer(poll_answer, &(result[index].poll_anser)) != TELEBOT_ERROR_NONE)
+            if (telebot_parser_get_poll_answer(poll_answer, &(result[index].poll_answer)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse poll answer of bot update");
             result[index].update_type = TELEBOT_UPDATE_TYPE_POLL_ANSWER;
             continue;
