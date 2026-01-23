@@ -244,7 +244,7 @@ telebot_error_e telebot_put_updates(telebot_update_t *updates, int count)
             telebot_put_poll(&(updates[index].poll));
             break;
         case TELEBOT_UPDATE_TYPE_POLL_ANSWER:
-            telebot_put_poll_answer(&(updates[index].poll_anser));
+            telebot_put_poll_answer(&(updates[index].poll_answer));
         default:
             ERR("Unsupported update type: %d", updates[index].update_type);
         }
