@@ -2113,7 +2113,7 @@ telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", message_id);
     ++index;
 
-    mimes[index].name = "message_id";
+    mimes[index].name = "disable_notification";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (disable_notification ? "true" : "false"));
     ++index;
