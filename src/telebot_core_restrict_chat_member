@@ -1780,7 +1780,7 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
 
     mimes[index].name = "can_pin_messages";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_invite_users ? "true" : "false"));
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_pin_messages ? "true" : "false"));
     ++index;
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, mimes, index, response);
@@ -2115,7 +2115,7 @@ telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
 
     mimes[index].name = "message_id";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (disable_notification ? "True" : "False"));
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (disable_notification ? "true" : "false"));
     ++index;
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_PIN_CHAT_MESSAGE, mimes, index, response);
@@ -2324,7 +2324,7 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_
 
     mimes[index].name = "show_alert";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (show_alert ? "True" : "False"));
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (show_alert ? "true" : "false"));
     ++index;
 
     if (url != NULL)
