@@ -606,6 +606,35 @@ telebot_error_e telebot_send_video_note(telebot_handler_t handle, long long int 
     return ret;
 }
 
+telebot_error_e telebot_send_media_group(
+    telebot_handler_t handle,
+    long long int chat_id,
+    char *media_paths[],
+    int count,
+    bool disable_notification,
+    int reply_to_message_id)
+{
+    telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
+    if (_handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    if ((media_paths == NULL) || (count < 2) || (count > 10))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_core_response_t response;
+    telebot_error_e ret = telebot_core_send_media_group(
+        _handle->core_h,
+        chat_id,
+        media_paths,
+        count,
+        disable_notification,
+        reply_to_message_id,
+        &response);
+
+    telebot_core_put_response(&response);
+    return ret;
+}
+
 telebot_error_e telebot_send_location(telebot_handler_t handle, long long int chat_id,
     float latitude, float longitude, int live_period, bool disable_notification,
     int reply_to_message_id, const char *reply_markup)
