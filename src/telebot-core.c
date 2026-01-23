@@ -1109,7 +1109,7 @@ telebot_error_e telebot_core_send_media_group(
     }
 
     // Prepare MIME parts
-    telebot_core_mime_t mimes[10];
+    telebot_core_mime_t mimes[20]; // max: chat_id + media + disable_notif + reply_id + 10 files
     int index = 0;
 
     // chat_id
@@ -1140,23 +1140,12 @@ telebot_error_e telebot_core_send_media_group(
         ++index;
     }
 
-    // Attach actual photo files as "photo0", "photo1", ...
+    // Attach actual photo files as "photo0", "photo1", ..., "photo9"
+    char field_names[10][32]; // Stack-allocated names: photo0..photo9
     for (int i = 0; i < count; ++i)
     {
-        char *name = NULL;
-        if (asprintf(&name, "photo%d", i) < 0)
-        {
-            // Clean up previously allocated names
-            for (int j = 0; j < index; ++j)
-            {
-                if (strncmp(mimes[j].name, "photo", 5) == 0)
-                    free((void *)mimes[j].name);
-            }
-            json_object_put(media_array);
-            ERR("Failed to allocate memory for media field name");
-            return TELEBOT_ERROR_OUT_OF_MEMORY;
-        }
-        mimes[index].name = name;
+        snprintf(field_names[i], sizeof(field_names[i]), "photo%d", i);
+        mimes[index].name = field_names[i]; // Point to stack buffer
         mimes[index].type = TELEBOT_MIME_TYPE_FILE;
         snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", media_paths[i]);
         ++index;
@@ -1165,13 +1154,6 @@ telebot_error_e telebot_core_send_media_group(
     // Perform request
     telebot_error_e ret = telebot_core_curl_perform(
         core_h, TELEBOT_METHOD_SEND_MEDIA_GROUP, mimes, index, response);
-
-    // Clean up dynamically allocated field names
-    for (int i = 0; i < index; ++i)
-    {
-        if (strncmp(mimes[i].name, "photo", 5) == 0)
-            free((void *)mimes[i].name);
-    }
 
     // Clean up JSON object
     json_object_put(media_array);
