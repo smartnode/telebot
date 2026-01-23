@@ -31,7 +31,7 @@
 static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
     "message", "edited_message", "channel_post",
     "edited_channel_post", "inline_query",
-    "chonse_inline_result", "callback_query",
+    "chosen_inline_result", "callback_query",
     "shipping_query", "pre_checkout_query",
     "poll", "poll_answer"};
 
