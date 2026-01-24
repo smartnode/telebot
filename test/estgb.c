@@ -54,8 +54,9 @@ struct {
 char* concatFilename(char *path, char *filename) {
 	int isSlash = 2;
 	char *result = NULL;
+	size_t path_len = strlen(path);
 
-	if (path[strlen(path)] == '\\')
+	if (path_len > 0 && path[path_len - 1] == '\\')
 		isSlash = 1;
 
 	if (isSlash == 2)
