@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 /*
  * telebot
  *
@@ -20,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <libgen.h>
 #include <json.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
@@ -238,7 +241,7 @@ telebot_error_e telebot_core_set_proxy(telebot_core_handler_t *core_h,
     core_h->proxy_addr = strdup(addr);
     if (core_h->proxy_addr == NULL)
     {
-        ERR("Failed to allocate memor for proxy address");
+        ERR("Failed to allocate memorу for proxy address");
         return TELEBOT_ERROR_OUT_OF_MEMORY;
     }
 
@@ -247,7 +250,7 @@ telebot_error_e telebot_core_set_proxy(telebot_core_handler_t *core_h,
         core_h->proxy_auth = strdup(auth);
         if (core_h->proxy_auth == NULL)
         {
-            ERR("Failed to allocate memor for proxy authorization");
+            ERR("Failed to allocate memorу for proxy authorization");
             TELEBOT_SAFE_FREE(core_h->proxy_addr);
             return TELEBOT_ERROR_OUT_OF_MEMORY;
         }
@@ -727,7 +730,7 @@ telebot_error_e telebot_core_send_video(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (video == NULL))
     {
-        ERR("Handler, token or document is NULL");
+        ERR("Handler, token or video is NULL");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -827,7 +830,7 @@ telebot_error_e telebot_core_send_animation(telebot_core_handler_t *core_h,
 {
     if ((core_h == NULL) || (core_h->token == NULL) || (animation == NULL))
     {
-        ERR("Handler, token or document is NULL");
+        ERR("Handler, token or animation is NULL");
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
@@ -1054,6 +1057,253 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
     }
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_VIDEO_NOTE, mimes, index, response);
+}
+
+telebot_error_e telebot_core_send_media_group(
+    telebot_core_handler_t *core_h,
+    long long int chat_id,
+    char *media_paths[],
+    int count,
+    bool disable_notification,
+    int reply_to_message_id,
+    telebot_core_response_t *response)
+{
+    if ((core_h == NULL) || (core_h->token == NULL) ||
+        (media_paths == NULL) || (count < 2) || (count > 10))
+    {
+        ERR("Invalid parameters: core_h, token, media_paths, or count (%d)", count);
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    // Validate all media paths are non-NULL
+    for (int i = 0; i < count; ++i)
+    {
+        if (media_paths[i] == NULL)
+        {
+            ERR("Media path at index %d is NULL", i);
+            return TELEBOT_ERROR_INVALID_PARAMETER;
+        }
+    }
+
+    // Build media array using json-c
+    struct json_object *media_array = json_object_new_array();
+    if (media_array == NULL)
+    {
+        ERR("Failed to create JSON media array");
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    // Allocate memory for filenames
+    char **filenames = calloc(count, sizeof(char*));
+    if (filenames == NULL)
+    {
+        json_object_put(media_array);
+        ERR("Failed to allocate memory for filenames");
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    // Helper function to determine media type based on file extension
+    const char* get_media_type(const char* filename) {
+        const char* ext = strrchr(filename, '.');
+        if (ext == NULL) return "document"; // No extension, treat as document
+
+        ext++; // Skip the dot
+
+        // Convert to lowercase for comparison
+        char ext_lower[10];
+        int i = 0;
+        while (ext[i] != '\0' && i < 9) {
+            ext_lower[i] = (ext[i] >= 'A' && ext[i] <= 'Z') ? ext[i] - 'A' + 'a' : ext[i];
+            i++;
+        }
+        ext_lower[i] = '\0';
+
+        // Check for photo extensions
+        if (strcmp(ext_lower, "jpg") == 0 || strcmp(ext_lower, "jpeg") == 0 ||
+            strcmp(ext_lower, "png") == 0 || strcmp(ext_lower, "bmp") == 0 ||
+            strcmp(ext_lower, "tiff") == 0 || strcmp(ext_lower, "webp") == 0) {
+            return "photo";
+        }
+        // Check for video extensions
+        else if (strcmp(ext_lower, "mp4") == 0 || strcmp(ext_lower, "mpeg") == 0 ||
+                 strcmp(ext_lower, "avi") == 0 || strcmp(ext_lower, "mov") == 0 ||
+                 strcmp(ext_lower, "mkv") == 0 || strcmp(ext_lower, "wmv") == 0 ||
+                 strcmp(ext_lower, "flv") == 0 || strcmp(ext_lower, "webm") == 0 ||
+                 strcmp(ext_lower, "3gp") == 0 || strcmp(ext_lower, "m4v") == 0) {
+            return "video";
+        }
+        // Check for audio extensions
+        else if (strcmp(ext_lower, "mp3") == 0 || strcmp(ext_lower, "m4a") == 0 ||
+                 strcmp(ext_lower, "flac") == 0 || strcmp(ext_lower, "ogg") == 0 ||
+                 strcmp(ext_lower, "oga") == 0 || strcmp(ext_lower, "wav") == 0 ||
+                 strcmp(ext_lower, "aac") == 0 || strcmp(ext_lower, "opus") == 0) {
+            return "audio";
+        }
+        // Everything else is treated as document (including gif)
+        else {
+            return "document";
+        }
+    }
+
+    // Determine media types for validation
+    const char **media_types = calloc(count, sizeof(char*));
+    if (media_types == NULL)
+    {
+        for (int i = 0; i < count; i++) {
+            free(filenames[i]);
+        }
+        free(filenames);
+        json_object_put(media_array);
+        ERR("Failed to allocate memory for media types");
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
+    }
+
+    for (int i = 0; i < count; ++i)
+    {
+        // Extract filename from path using basename
+        const char *filename = basename(media_paths[i]);
+
+        // Allocate memory for filename
+        filenames[i] = strdup(filename);
+        if (filenames[i] == NULL)
+        {
+            // Free previously allocated resources
+            for (int j = 0; j < i; j++)
+            {
+                free(filenames[j]);
+            }
+            free(filenames);
+            free(media_types);
+            json_object_put(media_array);
+            ERR("Failed to duplicate filename");
+            return TELEBOT_ERROR_OUT_OF_MEMORY;
+        }
+
+        // Determine media type
+        media_types[i] = get_media_type(filename);
+    }
+
+    // Validate media group composition
+    // Count unique types in the group
+    int photo_count = 0, video_count = 0, audio_count = 0, document_count = 0;
+    for (int i = 0; i < count; i++) {
+        if (strcmp(media_types[i], "photo") == 0) photo_count++;
+        else if (strcmp(media_types[i], "video") == 0) video_count++;
+        else if (strcmp(media_types[i], "audio") == 0) audio_count++;
+        else if (strcmp(media_types[i], "document") == 0) document_count++;
+    }
+
+    // Check valid combinations:
+    // 1. All of the same type
+    // 2. Mixed photo and video only
+    bool valid_combination = false;
+
+    if (photo_count == count || video_count == count || audio_count == count || document_count == count) {
+        // All same type - valid
+        valid_combination = true;
+    } else if (photo_count > 0 && video_count > 0 && audio_count == 0 && document_count == 0) {
+        // Mixed photo and video only - valid
+        valid_combination = true;
+    }
+
+    if (!valid_combination) {
+        // Free allocated resources
+        for (int i = 0; i < count; i++) {
+            free(filenames[i]);
+        }
+        free(filenames);
+        free(media_types);
+        json_object_put(media_array);
+        ERR("Invalid media group composition: only homogeneous groups or mixed photo/video groups are allowed");
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    }
+
+    // Create JSON objects for media array
+    for (int i = 0; i < count; ++i)
+    {
+        struct json_object *item = json_object_new_object();
+        json_object_object_add(item, "type", json_object_new_string(media_types[i]));
+
+        // Create attach:// reference using snprintf instead of asprintf
+        char attach_ref[256]; // Sufficient size for "attach://" + filename
+        snprintf(attach_ref, sizeof(attach_ref), "attach://%s", filenames[i]);
+        json_object_object_add(item, "media", json_object_new_string(attach_ref));
+        json_object_array_add(media_array, item);
+    }
+
+    // Free temporary media types array
+    free(media_types);
+
+    const char *media_json_str = json_object_to_json_string(media_array);
+    if (media_json_str == NULL)
+    {
+        // Free allocated filenames
+        for (int i = 0; i < count; i++)
+        {
+            free(filenames[i]);
+        }
+        free(filenames);
+        json_object_put(media_array);
+        ERR("Failed to serialize media JSON");
+        return TELEBOT_ERROR_OPERATION_FAILED;
+    }
+
+    // Prepare MIME parts
+    telebot_core_mime_t mimes[20]; // max: chat_id + media + disable_notif + reply_id + 10 files
+    int index = 0;
+
+    // chat_id
+    mimes[index].name = "chat_id";
+    mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", chat_id);
+    ++index;
+
+    // media (JSON string)
+    mimes[index].name = "media";
+    mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", media_json_str);
+    ++index;
+
+    // disable_notification
+    mimes[index].name = "disable_notification";
+    mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s",
+             (disable_notification ? "true" : "false"));
+    ++index;
+
+    // reply_to_message_id (optional)
+    if (reply_to_message_id > 0)
+    {
+        mimes[index].name = "reply_to_message_id";
+        mimes[index].type = TELEBOT_MIME_TYPE_DATA;
+        snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", reply_to_message_id);
+        ++index;
+    }
+
+    // Attach actual photo files using the correct names
+    for (int i = 0; i < count; ++i)
+    {
+        mimes[index].name = filenames[i]; // Use actual filename instead of generated name
+        mimes[index].type = TELEBOT_MIME_TYPE_FILE;
+        snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", media_paths[i]);
+        ++index;
+    }
+
+    // Perform request
+    telebot_error_e ret = telebot_core_curl_perform(
+        core_h, TELEBOT_METHOD_SEND_MEDIA_GROUP, mimes, index, response);
+
+    // Clean up allocated filenames
+    for (int i = 0; i < count; i++)
+    {
+        free(filenames[i]);
+    }
+    free(filenames);
+    
+    // Clean up JSON object
+    json_object_put(media_array);
+
+    return ret;
 }
 
 telebot_error_e telebot_core_send_location(telebot_core_handler_t *core_h,
@@ -1780,7 +2030,7 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
 
     mimes[index].name = "can_pin_messages";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_invite_users ? "true" : "false"));
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_pin_messages ? "true" : "false"));
     ++index;
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_RESTRICT_CHAT_MEMBER, mimes, index, response);
@@ -1951,7 +2201,7 @@ telebot_error_e telebot_core_set_chat_permissions(telebot_core_handler_t *core_h
 
     mimes[index].name = "can_pin_messages";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_invite_users ? "true" : "false"));
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (can_pin_messages ? "true" : "false"));
     ++index;
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_PERMISSIONS, mimes, index, response);
@@ -2113,9 +2363,9 @@ telebot_error_e telebot_core_pin_chat_message(telebot_core_handler_t *core_h,
     snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", message_id);
     ++index;
 
-    mimes[index].name = "message_id";
+    mimes[index].name = "disable_notification";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (disable_notification ? "True" : "False"));
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (disable_notification ? "true" : "false"));
     ++index;
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_PIN_CHAT_MESSAGE, mimes, index, response);
@@ -2324,7 +2574,7 @@ telebot_error_e telebot_core_answer_callback_query(telebot_core_handler_t *core_
 
     mimes[index].name = "show_alert";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (show_alert ? "True" : "False"));
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%s", (show_alert ? "true" : "false"));
     ++index;
 
     if (url != NULL)

@@ -441,6 +441,27 @@ telebot_error_e telebot_core_send_video_note(telebot_core_handler_t *core_h,
         const char *reply_markup, telebot_core_response_t *response);
 
 /**
+ * @brief Send a group of photos as an album.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier for the target chat or username of the target channel.
+ * @param[in] media_paths Array of file paths to photos to send.
+ * @param[in] count Number of photos in the array (2–10).
+ * @param[in] disable_notification Sends the message silently. Users will receive a notification with no sound.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[out] response Response data that contains the sent messages on success. It MUST be freed with #telebot_core_put_response().
+ * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ */
+telebot_error_e telebot_core_send_media_group(
+    telebot_core_handler_t *core_h,
+    long long int chat_id,
+    char *media_paths[],
+    int count,
+    bool disable_notification,
+    int reply_to_message_id,
+    telebot_core_response_t *response);
+
+/**
  * @brief Send point on the map.
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
  * @param[in] chat_id Unique identifier for the target chat or username of the

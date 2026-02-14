@@ -31,7 +31,7 @@
 static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
     "message", "edited_message", "channel_post",
     "edited_channel_post", "inline_query",
-    "chonse_inline_result", "callback_query",
+    "chosen_inline_result", "callback_query",
     "shipping_query", "pre_checkout_query",
     "poll", "poll_answer"};
 
@@ -127,7 +127,7 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
         struct json_object *poll_answer = NULL;
         if (json_object_object_get_ex(item, "poll_answer", &poll_answer))
         {
-            if (telebot_parser_get_poll_answer(poll_answer, &(result[index].poll_anser)) != TELEBOT_ERROR_NONE)
+            if (telebot_parser_get_poll_answer(poll_answer, &(result[index].poll_answer)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse poll answer of bot update");
             result[index].update_type = TELEBOT_UPDATE_TYPE_POLL_ANSWER;
             continue;
@@ -1586,7 +1586,7 @@ telebot_error_e telebot_parser_get_dice(struct json_object *obj, telebot_dice_t 
     if ((obj == NULL) || (dice == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    memset(dice, 0, sizeof(telebot_location_t));
+    memset(dice, 0, sizeof(telebot_dice_t));
     struct json_object *value = NULL;
     if (!json_object_object_get_ex(obj, "value", &value))
     {

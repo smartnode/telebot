@@ -1242,7 +1242,7 @@ typedef struct telebot_update {
          * A user changed their answer in a non-anonymous poll. Bots receive
          * new votes only in polls that were sent by the bot itself.
          */
-        telebot_poll_answer_t poll_anser;
+        telebot_poll_answer_t poll_answer;
     };
 } telebot_update_t;
 
