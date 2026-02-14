@@ -84,6 +84,9 @@
 #define TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP    "editMessageReplyMarkup"
 #define TELEBOT_METHOD_STOP_POLL                    "stopPoll"
 #define TELEBOT_METHOD_DELETE_MESSAGE               "deleteMessage"
+//ozlb
+#define TELEBOT_METHOD_SET_MY_SHORT_DESCRIPTION     "setMyShortDescription"
+#define TELEBOT_METHOD_GET_MY_SHORT_DESCRIPTION     "getMyShortDescription"
 
 #ifdef DEBUG
     #define ERR(fmt, args...) fprintf(stderr, "[ERROR][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
