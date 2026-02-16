@@ -49,8 +49,7 @@ static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
     "shipping_query",
     "pre_checkout_query",
     "poll",
-    "poll_answer"
-};
+    "poll_answer"};
 
 static void telebot_put_user(telebot_user_t *user);
 static void telebot_put_chat_photo(telebot_chat_photo_t *photo);
@@ -619,17 +618,15 @@ telebot_error_e telebot_send_video_note(telebot_handler_t handle, long long int 
 telebot_error_e telebot_send_media_group(telebot_handler_t handle, long long int chat_id, char *media_paths[],
                                          int count, bool disable_notification, int reply_to_message_id)
 {
-    telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
-    if (_handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+    telebot_core_response_t response;
 
     if ((media_paths == NULL) || (count < 2) || (count > 10))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    telebot_core_response_t response;
-    telebot_error_e ret = telebot_core_send_media_group(_handle->core_h, chat_id, media_paths, count, disable_notification,
-                                                        reply_to_message_id, &response);
-    telebot_core_put_response(&response);
+    response = telebot_core_send_media_group(handle->core_h, chat_id, media_paths, count, disable_notification,
+                                             reply_to_message_id);
+    int ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
     return ret;
 }
 
@@ -1603,7 +1600,7 @@ telebot_error_e telebot_put_chat(telebot_chat_t *chat)
     telebot_put_chat_photo(chat->photo);
     TELEBOT_SAFE_FREE(chat->photo);
 
-    for (size_t index=0; index < chat->count_active_usernames; index++)
+    for (size_t index = 0; index < chat->count_active_usernames; index++)
         TELEBOT_SAFE_FREE(chat->active_usernames[index]);
     TELEBOT_SAFE_FREE(chat->active_usernames);
     chat->count_active_usernames = 0;

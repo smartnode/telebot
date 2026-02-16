@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <json.h>
+#include <json_object.h>
 #include <telebot-common.h>
 #include <telebot-core.h>
 #include <telebot-private.h>
@@ -65,12 +67,13 @@ telebot_core_create(telebot_core_handler_t *core_h, const char *token)
 
     *core_h = NULL;
 
-    telebot_core_handler_t _core_h = malloc(sizeof(telebot_core_handler_t));
+    telebot_core_handler_t _core_h = malloc(sizeof(struct telebot_core_handler));
     if (_core_h == NULL)
     {
         ERR("Failed to allocate memory");
         return TELEBOT_ERROR_OUT_OF_MEMORY;
     }
+
     _core_h->token = strdup(token);
     if (_core_h->token == NULL)
     {
@@ -1131,15 +1134,15 @@ static const char *telebot_core_get_media_type(const char *filename)
 }
 
 telebot_core_response_t
-telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_id, char *media_paths[], int count,
+telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_id, char *media_paths[], int path_count,
                               bool disable_notification, int reply_to_message_id)
 {
     CHECK_ARG_NULL(media_paths);
-    CHECK_ARG_CONDITION(count <= 0, "Invalid media path count, should be greater than 0");
-    CHECK_ARG_CONDITION(count > 10, "Invalid media path count, should be less than or equal to 10")
+    CHECK_ARG_CONDITION(path_count <= 0, "Invalid media path count, should be greater than 0");
+    CHECK_ARG_CONDITION(path_count > 10, "Invalid media path count, should be less than or equal to 10")
 
     // Validate all media paths are non-NULL
-    for (int i = 0; i < count; ++i)
+    for (int i = 0; i < path_count; ++i)
     {
         if (media_paths[i] == NULL)
         {
@@ -1157,7 +1160,7 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
     }
 
     // Allocate memory for filenames
-    char **filenames = calloc(count, sizeof(char *));
+    char **filenames = calloc(path_count, sizeof(char *));
     if (filenames == NULL)
     {
         json_object_put(media_array);
@@ -1166,10 +1169,10 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
     }
 
     // Determine media types for validation
-    const char **media_types = calloc(count, sizeof(char *));
+    const char **media_types = calloc(path_count, sizeof(char *));
     if (media_types == NULL)
     {
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < path_count; i++)
         {
             free(filenames[i]);
         }
@@ -1180,7 +1183,7 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
         ;
     }
 
-    for (int i = 0; i < count; ++i)
+    for (int i = 0; i < path_count; ++i)
     {
         // Extract filename from path using basename
         const char *filename = basename(media_paths[i]);
@@ -1209,7 +1212,7 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
     // Validate media group composition
     // Count unique types in the group
     int photo_count = 0, video_count = 0, audio_count = 0, document_count = 0;
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < path_count; i++)
     {
         if (strcmp(media_types[i], "photo") == 0)
             photo_count++;
@@ -1226,7 +1229,7 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
     // 2. Mixed photo and video only
     bool valid_combination = false;
 
-    if (photo_count == count || video_count == count || audio_count == count || document_count == count)
+    if (photo_count == path_count || video_count == path_count || audio_count == path_count || document_count == path_count)
     {
         // All same type - valid
         valid_combination = true;
@@ -1240,7 +1243,7 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
     if (!valid_combination)
     {
         // Free allocated resources
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < path_count; i++)
         {
             free(filenames[i]);
         }
@@ -1252,7 +1255,7 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
     }
 
     // Create JSON objects for media array
-    for (int i = 0; i < count; ++i)
+    for (int i = 0; i < path_count; ++i)
     {
         struct json_object *item = json_object_new_object();
         json_object_object_add(item, "type", json_object_new_string(media_types[i]));
@@ -1271,7 +1274,7 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
     if (media_json_str == NULL)
     {
         // Free allocated filenames
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < path_count; i++)
         {
             free(filenames[i]);
         }
@@ -1283,49 +1286,49 @@ telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_
 
     // Prepare MIME parts
     telebot_core_mime_t mimes[20]; // max: chat_id + media + disable_notif + reply_id + 10 files
-    int index = 0;
+    int count = 0;
 
     // chat_id
-    mimes[index].name = "chat_id";
-    mimes[index].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[index].data.lld = chat_id;
-    ++index;
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
 
     // media (JSON string)
-    mimes[index].name = "media";
-    mimes[index].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[index].data.s = media_json_str;
-    ++index;
+    mimes[count].name = "media";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = media_json_str;
+    count++;
 
     // disable_notification
-    mimes[index].name = "disable_notification";
-    mimes[index].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[index].data.s = disable_notification ? "true" : "false";
-    ++index;
+    mimes[count].name = "disable_notification";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = disable_notification ? "true" : "false";
+    count++;
 
     // reply_to_message_id (optional)
     if (reply_to_message_id > 0)
     {
-        mimes[index].name = "reply_to_message_id";
-        mimes[index].type = TELEBOT_MIME_TYPE_INT;
-        mimes[index].data.d = reply_to_message_id;
-        ++index;
+        mimes[count].name = "reply_to_message_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = reply_to_message_id;
+        count++;
     }
 
     // Attach actual photo files using the correct names
-    for (int i = 0; i < count; ++i)
+    for (int i = 0; i < path_count; ++i)
     {
-        mimes[index].name = filenames[i]; // Use actual filename instead of generated name
-        mimes[index].type = TELEBOT_MIME_TYPE_FILE;
-        mimes[index].data.s = media_paths[i];
-        ++index;
+        mimes[count].name = filenames[i]; // Use actual filename instead of generated name
+        mimes[count].type = TELEBOT_MIME_TYPE_FILE;
+        mimes[count].data.s = media_paths[i];
+        count++;
     }
 
     // Perform request
-    telebot_core_response_t response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_MEDIA_GROUP, mimes, index);
+    telebot_core_response_t response = telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_MEDIA_GROUP, mimes, count);
 
     // Clean up allocated filenames
-    for (int i = 0; i < count; i++)
+    for (int i = 0; i < path_count; i++)
     {
         free(filenames[i]);
     }

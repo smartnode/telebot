@@ -478,17 +478,14 @@ telebot_core_response_t telebot_core_send_video_note(telebot_core_handler_t core
  * @param[in] count Number of photos in the array (2–10).
  * @param[in] disable_notification Sends the message silently. Users will receive a notification with no sound.
  * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[out] response Response data that contains the sent messages on success. It MUST be freed with #telebot_core_put_response().
- * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ * @return #telebot_core_response_t response that contains the sent message,
+ * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
+ * Response code should be checked with #teleobot_core_get_response_code(),
+ * before getting data with #telebot_core_get_response_data().
  */
-telebot_error_e telebot_core_send_media_group(
-    telebot_core_handler_t *core_h,
-    long long int chat_id,
-    char *media_paths[],
-    int count,
-    bool disable_notification,
-    int reply_to_message_id,
-    telebot_core_response_t *response);
+telebot_core_response_t telebot_core_send_media_group(telebot_core_handler_t core_h,
+    long long int chat_id, char *media_paths[], int count, bool disable_notification,
+    int reply_to_message_id);
 
 /**
  * @brief Send point on the map.
