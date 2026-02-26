@@ -16,18 +16,20 @@
  * limitations under the License.
  */
 
-#ifndef __TELEBOT_H__
-#define __TELEBOT_H__
+#include <json.h>
+#include <telebot-core.h>
+#include <telebot-methods.h>
+#include <telebot-parser.h>
+#include <telebot-private.h>
 
-#include "telebot-common.h"
-#include "telebot-types.h"
-#include "telebot-methods.h"
-#include "telebot-stickers.h"
-#include "telebot-inline.h"
-#include "telebot-payments.h"
-#include "telebot-passport.h"
-#include "telebot-games.h"
-#include "telebot-forums.h"
+telebot_error_e telebot_set_passport_data_errors(telebot_handler_t handle,
+                                                 long long int user_id, const char *errors)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
 
-#endif /* __TELEBOT_H__ */
-
+    telebot_core_response_t response = telebot_core_set_passport_data_errors(handle->core_h, user_id, errors);
+    int ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}

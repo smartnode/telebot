@@ -20,6 +20,9 @@
 #define __TELEBOT_METHODS_H__
 
 #include <stdbool.h>
+#include "telebot-common.h"
+#include "telebot-types.h"
+#include "telebot-core.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -199,6 +202,14 @@ telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t *me);
  * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
  */
 telebot_error_e telebot_put_me(telebot_user_t *me);
+
+/**
+ * @brief This function is used to release memory used for user object.
+ *
+ * @param[in] user Pointer to telegram user object.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ */
+telebot_error_e telebot_put_user(telebot_user_t *user);
 
 /**
  * @brief Send text messages.
@@ -669,6 +680,51 @@ telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle,
  * error value.
  */
 telebot_error_e telebot_put_user_profile_photos(telebot_user_profile_photos_t *photos);
+
+/**
+ * @brief Use this method to get user profile audios.
+ */
+telebot_error_e telebot_get_user_profile_audios(telebot_handler_t handle,
+    long long int user_id, int offset, int limit, telebot_user_profile_audios_t *audios);
+
+/**
+ * @brief Release user profile audios obtained with #telebot_get_user_profile_audios.
+ */
+telebot_error_e telebot_put_user_profile_audios(telebot_user_profile_audios_t *audios);
+
+/**
+ * @brief Use this method to set the bot's profile photo.
+ */
+telebot_error_e telebot_set_my_profile_photo(telebot_handler_t handle,
+    const char *photo);
+
+/**
+ * @brief Use this method to remove the bot's profile photo.
+ */
+telebot_error_e telebot_remove_my_profile_photo(telebot_handler_t handle,
+    const char *photo_id);
+
+/**
+ * @brief Use this method to get information about the business connection.
+ */
+telebot_error_e telebot_get_business_connection(telebot_handler_t handle,
+    const char *business_connection_id, telebot_business_connection_t *connection);
+
+/**
+ * @brief Release business connection obtained with #telebot_get_business_connection.
+ */
+telebot_error_e telebot_put_business_connection(telebot_business_connection_t *connection);
+
+/**
+ * @brief Use this method to get user chat boosts.
+ */
+telebot_error_e telebot_get_user_chat_boosts(telebot_handler_t handle,
+    long long int chat_id, long long int user_id, telebot_user_chat_boosts_t *boosts);
+
+/**
+ * @brief Release user chat boosts obtained with #telebot_get_user_chat_boosts.
+ */
+telebot_error_e telebot_put_user_chat_boosts(telebot_user_chat_boosts_t *boosts);
 
 /**
  * @brief This function is used to download file.
@@ -1198,6 +1254,354 @@ telebot_error_e telebot_stop_poll(telebot_handler_t handle, long long int chat_i
  */
 telebot_error_e telebot_delete_message(telebot_handler_t handle, long long int chat_id,
     int message_id);
+
+/**
+ * @brief Use this method to log out from the cloud Bot API server before
+ * launching the bot locally.
+ * @param[in] handle The telebot handler.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_log_out(telebot_handler_t handle);
+
+/**
+ * @brief Use this method to close the bot instance before moving it from one
+ * local server to another.
+ * @param[in] handle The telebot handler.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_close(telebot_handler_t handle);
+
+/**
+ * @brief Use this method to change the bot's name.
+ * @param[in] handle The telebot handler.
+ * @param[in] name New bot name; 0-64 characters.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_my_name(telebot_handler_t handle,
+    const char *name, const char *language_code);
+
+/**
+ * @brief Use this method to get the current bot name for the given user language.
+ * @param[in] handle The telebot handler.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @param[out] name Pointer to get bot name, MUST be freed after use.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_get_my_name(telebot_handler_t handle,
+    const char *language_code, char **name);
+
+/**
+ * @brief Use this method to change the bot's description.
+ * @param[in] handle The telebot handler.
+ * @param[in] description New bot description; 0-512 characters.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_my_description(telebot_handler_t handle,
+    const char *description, const char *language_code);
+
+/**
+ * @brief Use this method to get the current bot description for the given user language.
+ * @param[in] handle The telebot handler.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @param[out] description Pointer to get bot description, MUST be freed after use.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_get_my_description(telebot_handler_t handle,
+    const char *language_code, char **description);
+
+/**
+ * @brief Use this method to change the bot's short description.
+ * @param[in] handle The telebot handler.
+ * @param[in] short_description New short description; 0-120 characters.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_my_short_description(telebot_handler_t handle,
+    const char *short_description, const char *language_code);
+
+/**
+ * @brief Use this method to get the current bot short description for the given user language.
+ * @param[in] handle The telebot handler.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @param[out] short_description Pointer to get bot short description, MUST be freed after use.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_get_my_short_description(telebot_handler_t handle,
+    const char *language_code, char **short_description);
+
+/**
+ * @brief Use this method to change the bot's menu button in a private chat, or the default menu button.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target private chat.
+ * @param[in] menu_button A JSON-serialized object for the bot's new menu button.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_chat_menu_button(telebot_handler_t handle,
+    long long int chat_id, const char *menu_button);
+
+/**
+ * @brief Use this method to get the current value of the bot's menu button in a private chat, or the default menu button.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target private chat.
+ * @param[out] menu_button Pointer to get menu button, MUST be freed after use.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_get_chat_menu_button(telebot_handler_t handle,
+    long long int chat_id, char **menu_button);
+
+/**
+ * @brief Use this method to change the default administrator rights requested by the bot when it's added as an administrator to groups or channels.
+ * @param[in] handle The telebot handler.
+ * @param[in] rights A JSON-serialized object describing new default administrator rights.
+ * @param[in] for_channels Pass True to change the default administrator rights of the bot in channels.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_my_default_administrator_rights(telebot_handler_t handle,
+    const char *rights, bool for_channels);
+
+/**
+ * @brief Use this method to get the current default administrator rights of the bot.
+ * @param[in] handle The telebot handler.
+ * @param[in] for_channels Pass True to get default administrator rights of the bot in channels.
+ * @param[out] rights Pointer to get admin rights, MUST be freed after use.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_get_my_default_administrator_rights(telebot_handler_t handle,
+    bool for_channels, char **rights);
+
+/**
+ * @brief Use this method to delete the list of the bot's commands for the given scope and user language.
+ * @param[in] handle The telebot handler.
+ * @param[in] scope A JSON-serialized object, describing scope of users for which the commands are relevant.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_delete_my_commands(telebot_handler_t handle,
+    const char *scope, const char *language_code);
+
+/**
+ * @brief Use this method to copy messages of any kind.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] from_chat_id Unique identifier for the chat where the original message was sent.
+ * @param[in] message_id Message identifier in the chat specified by from_chat_id.
+ * @param[in] caption New caption for media, 0-1024 characters after entities parsing.
+ * @param[in] parse_mode Mode for parsing entities in the new caption.
+ * @param[in] caption_entities A JSON-serialized list of special entities that appear in the new caption.
+ * @param[in] disable_notification Sends the message silently.
+ * @param[in] protect_content Protects the contents of the sent message from forwarding and saving.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] allow_sending_without_reply Pass True if the message should be sent even if the specified replied-to message is not found.
+ * @param[in] reply_markup Additional interface options.
+ * @param[out] message_id_out Pointer to get the message identifier of the sent message.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_copy_message(telebot_handler_t handle,
+    long long int chat_id, long long int from_chat_id, int message_id,
+    const char *caption, const char *parse_mode, const char *caption_entities,
+    bool disable_notification, bool protect_content, int reply_to_message_id,
+    bool allow_sending_without_reply, const char *reply_markup, int *message_id_out);
+
+/**
+ * @brief Use this method to copy multiple messages of any kind.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] from_chat_id Unique identifier for the chat where the original messages were sent.
+ * @param[in] message_ids A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to copy.
+ * @param[in] disable_notification Sends the messages silently.
+ * @param[in] protect_content Protects the contents of the sent messages from forwarding and saving.
+ * @param[in] remove_caption Pass True to copy the messages without their captions.
+ * @param[out] message_ids_out Pointer to get the message identifiers of the sent messages, MUST be freed after use.
+ * @param[out] count Pointer to get the number of messages sent.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_copy_messages(telebot_handler_t handle,
+    long long int chat_id, long long int from_chat_id, const char *message_ids,
+    bool disable_notification, bool protect_content, bool remove_caption,
+    int **message_ids_out, int *count);
+
+/**
+ * @brief Use this method to forward multiple messages of any kind.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] from_chat_id Unique identifier for the chat where the original messages were sent.
+ * @param[in] message_ids A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to forward.
+ * @param[in] disable_notification Sends the messages silently.
+ * @param[in] protect_content Protects the contents of the sent messages from forwarding and saving.
+ * @param[out] message_ids_out Pointer to get the message identifiers of the sent messages, MUST be freed after use.
+ * @param[out] count Pointer to get the number of messages sent.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_forward_messages(telebot_handler_t handle,
+    long long int chat_id, long long int from_chat_id, const char *message_ids,
+    bool disable_notification, bool protect_content, int **message_ids_out, int *count);
+
+/**
+ * @brief Use this method to delete multiple messages in a chat.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_ids A JSON-serialized list of 1-100 identifiers of messages to delete.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_delete_messages(telebot_handler_t handle,
+    long long int chat_id, const char *message_ids);
+
+/**
+ * @brief Use this method to ban a user in a group, a supergroup or a channel.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] until_date Date when the user will be unbanned, unix time.
+ * @param[in] revoke_messages Pass True to delete all messages from the chat for the user that is being banned.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_ban_chat_member(telebot_handler_t handle,
+    long long int chat_id, int user_id, long until_date, bool revoke_messages);
+
+/**
+ * @brief Use this method to ban a channel chat in a supergroup or a channel.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] sender_chat_id Unique identifier of the target sender chat.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_ban_chat_sender_chat(telebot_handler_t handle,
+    long long int chat_id, long long int sender_chat_id);
+
+/**
+ * @brief Use this method to unban a previously banned channel chat in a supergroup or a channel.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] sender_chat_id Unique identifier of the target sender chat.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_unban_chat_sender_chat(telebot_handler_t handle,
+    long long int chat_id, long long int sender_chat_id);
+
+/**
+ * @brief Use this method to create an additional invite link for a chat.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] name Invite link name; 0-32 characters.
+ * @param[in] expire_date Point in time (Unix timestamp) when the link will expire.
+ * @param[in] member_limit The maximum number of users that can be members of the chat simultaneously after joining the chat via this invite link; 1-99999.
+ * @param[in] creates_join_request True, if users joining the chat via the link need to be approved by chat administrators.
+ * @param[out] invite_link Pointer to get ChatInviteLink, MUST be released with #telebot_put_chat_invite_link.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_create_chat_invite_link(telebot_handler_t handle,
+    long long int chat_id, const char *name, long expire_date, int member_limit,
+    bool creates_join_request, telebot_chat_invite_link_t *invite_link);
+
+/**
+ * @brief Use this method to edit a non-primary invite link created by the bot.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] invite_link_str The invite link to edit.
+ * @param[in] name Invite link name; 0-32 characters.
+ * @param[in] expire_date Point in time (Unix timestamp) when the link will expire.
+ * @param[in] member_limit The maximum number of users that can be members of the chat simultaneously after joining the chat via this invite link; 1-99999.
+ * @param[in] creates_join_request True, if users joining the chat via the link need to be approved by chat administrators.
+ * @param[out] invite_link Pointer to get ChatInviteLink, MUST be released with #telebot_put_chat_invite_link.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_edit_chat_invite_link(telebot_handler_t handle,
+    long long int chat_id, const char *invite_link_str, const char *name,
+    long expire_date, int member_limit, bool creates_join_request,
+    telebot_chat_invite_link_t *invite_link);
+
+/**
+ * @brief Use this method to revoke an invite link created by the bot.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] invite_link_str The invite link to revoke.
+ * @param[out] invite_link Pointer to get ChatInviteLink, MUST be released with #telebot_put_chat_invite_link.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_revoke_chat_invite_link(telebot_handler_t handle,
+    long long int chat_id, const char *invite_link_str, telebot_chat_invite_link_t *invite_link);
+
+/**
+ * @brief Release chat invite link obtained with #telebot_create_chat_invite_link etc.
+ * @param[in] invite_link Pointer to chat invite link to be released.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned.
+ */
+telebot_error_e telebot_put_chat_invite_link(telebot_chat_invite_link_t *invite_link);
+
+/**
+ * @brief Use this method to approve a chat join request.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] user_id Unique identifier of the target user.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_approve_chat_join_request(telebot_handler_t handle,
+    long long int chat_id, int user_id);
+
+/**
+ * @brief Use this method to decline a chat join request.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] user_id Unique identifier of the target user.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_decline_chat_join_request(telebot_handler_t handle,
+    long long int chat_id, int user_id);
+
+/**
+ * @brief Use this method to set a new message reaction.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_id Unique identifier of the target message.
+ * @param[in] reaction A JSON-serialized list of reaction types to set on the message.
+ * @param[in] is_big Pass True to set the reaction with a big animation.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_set_message_reaction(telebot_handler_t handle,
+    long long int chat_id, int message_id, const char *reaction, bool is_big);
+
+/**
+ * @brief Use this method to edit animation, audio, document, photo, or video messages.
+ * @param[in] handle The telebot handler.
+ * @param[in] chat_id Required if inline_message_id is not specified.
+ * @param[in] message_id Required if inline_message_id is not specified.
+ * @param[in] inline_message_id Required if chat_id and message_id are not specified.
+ * @param[in] media A JSON-serialized object for a new media content of the message.
+ * @param[in] reply_markup A JSON-serialized object for a new inline keyboard.
+ * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
+ * error value.
+ */
+telebot_error_e telebot_edit_message_media(telebot_handler_t handle,
+    long long int chat_id, int message_id, const char *inline_message_id,
+    const char *media, const char *reply_markup);
 
 /**
  * @} // end of APIs

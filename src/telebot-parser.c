@@ -21,18 +21,51 @@
 #include <string.h>
 #include <json.h>
 #include <json_object.h>
-#include <telebot-private.h>
+#include <telebot-methods.h>
 #include <telebot-parser.h>
+#include <telebot-private.h>
 
 static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
     "message", "edited_message", "channel_post",
-    "edited_channel_post", "inline_query",
+    "edited_channel_post", "business_connection",
+    "business_message", "edited_business_message",
+    "deleted_business_messages", "message_reaction",
+    "message_reaction_count", "inline_query",
     "chosen_inline_result", "callback_query",
     "shipping_query", "pre_checkout_query",
-    "poll", "poll_answer"};
+    "purchased_paid_media",
+    "poll", "poll_answer", "my_chat_member",
+    "chat_member", "chat_join_request",
+    "chat_boost", "removed_chat_boost"};
 
 static telebot_error_e telebot_parser_get_photos(struct json_object *obj, telebot_photo_t **photos, int *count);
 static telebot_error_e telebot_parser_get_users(struct json_object *obj, telebot_user_t **users, int *count);
+static telebot_error_e telebot_parser_get_business_messages_deleted(struct json_object *obj, telebot_business_messages_deleted_t *deleted);
+static telebot_error_e telebot_parser_get_message_origin(struct json_object *obj, telebot_message_origin_t *origin);
+static telebot_error_e telebot_parser_get_text_quote(struct json_object *obj, telebot_text_quote_t *quote);
+static telebot_error_e telebot_parser_get_story(struct json_object *obj, telebot_story_t *story);
+static telebot_error_e telebot_parser_get_external_reply_info(struct json_object *obj, telebot_external_reply_info_t *info);
+static telebot_error_e telebot_parser_get_link_preview_options(struct json_object *obj, telebot_link_preview_options_t *options);
+static telebot_error_e telebot_parser_get_paid_media_info(struct json_object *obj, telebot_paid_media_info_t *info);
+static telebot_error_e telebot_parser_get_refunded_payment(struct json_object *obj, telebot_refunded_payment_t *payment);
+static telebot_error_e telebot_parser_get_write_access_allowed(struct json_object *obj, telebot_write_access_allowed_t *allowed);
+static telebot_error_e telebot_parser_get_users_shared(struct json_object *obj, telebot_users_shared_t *shared);
+static telebot_error_e telebot_parser_get_chat_shared(struct json_object *obj, telebot_chat_shared_t *shared);
+static telebot_error_e telebot_parser_get_gift_info(struct json_object *obj, telebot_gift_info_t *gift);
+static telebot_error_e telebot_parser_get_unique_gift_info(struct json_object *obj, telebot_unique_gift_info_t *gift);
+static telebot_error_e telebot_parser_get_chat_boost_added(struct json_object *obj, telebot_chat_boost_added_t *boost);
+static telebot_error_e telebot_parser_get_chat_background(struct json_object *obj, telebot_chat_background_t *background);
+static telebot_error_e telebot_parser_get_giveaway_created(struct json_object *obj, telebot_giveaway_created_t *giveaway);
+static telebot_error_e telebot_parser_get_giveaway_completed(struct json_object *obj, telebot_giveaway_completed_t *giveaway);
+static telebot_error_e telebot_parser_get_birthdate(struct json_object *obj, telebot_birthdate_t *birthdate);
+static telebot_error_e telebot_parser_get_business_intro(struct json_object *obj, telebot_business_intro_t *intro);
+static telebot_error_e telebot_parser_get_business_location(struct json_object *obj, telebot_business_location_t *location);
+static telebot_error_e telebot_parser_get_business_opening_hours(struct json_object *obj, telebot_business_opening_hours_t *hours);
+static telebot_error_e telebot_parser_get_business_bot_rights(struct json_object *obj, telebot_business_bot_rights_t *rights);
+static telebot_error_e telebot_parser_get_paid_media(struct json_object *obj, telebot_paid_media_t *media);
+static telebot_error_e telebot_parser_get_gift(struct json_object *obj, telebot_gift_t *gift);
+static telebot_error_e telebot_parser_get_unique_gift(struct json_object *obj, telebot_unique_gift_t *gift);
+static telebot_error_e telebot_parser_get_shared_user(struct json_object *obj, telebot_shared_user_t *user);
 
 struct json_object *telebot_parser_str_to_obj(const char *data)
 {
@@ -105,6 +138,42 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
             continue;
         }
 
+        struct json_object *business_connection = NULL;
+        if (json_object_object_get_ex(item, "business_connection", &business_connection))
+        {
+            if (telebot_parser_get_business_connection(business_connection, &(result[index].business_connection)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse business_connection of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_BUSINESS_CONNECTION;
+            continue;
+        }
+
+        struct json_object *business_message = NULL;
+        if (json_object_object_get_ex(item, "business_message", &business_message))
+        {
+            if (telebot_parser_get_message(business_message, &(result[index].business_message)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse business_message of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_BUSINESS_MESSAGE;
+            continue;
+        }
+
+        struct json_object *edited_business_message = NULL;
+        if (json_object_object_get_ex(item, "edited_business_message", &edited_business_message))
+        {
+            if (telebot_parser_get_message(edited_business_message, &(result[index].edited_business_message)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse edited_business_message of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_EDITED_BUSINESS_MESSAGE;
+            continue;
+        }
+
+        struct json_object *deleted_business_messages = NULL;
+        if (json_object_object_get_ex(item, "deleted_business_messages", &deleted_business_messages))
+        {
+            if (telebot_parser_get_business_messages_deleted(deleted_business_messages, &(result[index].deleted_business_messages)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse deleted_business_messages of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_DELETED_BUSINESS_MESSAGES;
+            continue;
+        }
+
         struct json_object *callback_query = NULL;
         if (json_object_object_get_ex(item, "callback_query", &callback_query))
         {
@@ -129,6 +198,114 @@ telebot_error_e telebot_parser_get_updates(struct json_object *obj, telebot_upda
             if (telebot_parser_get_poll_answer(poll_answer, &(result[index].poll_answer)) != TELEBOT_ERROR_NONE)
                 ERR("Failed to parse poll answer of bot update");
             result[index].update_type = TELEBOT_UPDATE_TYPE_POLL_ANSWER;
+            continue;
+        }
+
+        struct json_object *my_chat_member = NULL;
+        if (json_object_object_get_ex(item, "my_chat_member", &my_chat_member))
+        {
+            if (telebot_parser_get_chat_member_updated(my_chat_member, &(result[index].my_chat_member)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse my_chat_member of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_MY_CHAT_MEMBER;
+            continue;
+        }
+
+        struct json_object *chat_member = NULL;
+        if (json_object_object_get_ex(item, "chat_member", &chat_member))
+        {
+            if (telebot_parser_get_chat_member_updated(chat_member, &(result[index].chat_member)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse chat_member of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_CHAT_MEMBER;
+            continue;
+        }
+
+        struct json_object *chat_join_request = NULL;
+        if (json_object_object_get_ex(item, "chat_join_request", &chat_join_request))
+        {
+            if (telebot_parser_get_chat_join_request(chat_join_request, &(result[index].chat_join_request)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse chat_join_request of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_CHAT_JOIN_REQUEST;
+            continue;
+        }
+
+        struct json_object *message_reaction = NULL;
+        if (json_object_object_get_ex(item, "message_reaction", &message_reaction))
+        {
+            if (telebot_parser_get_message_reaction_updated(message_reaction, &(result[index].message_reaction)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse message_reaction of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_MESSAGE_REACTION;
+            continue;
+        }
+
+        struct json_object *message_reaction_count = NULL;
+        if (json_object_object_get_ex(item, "message_reaction_count", &message_reaction_count))
+        {
+            if (telebot_parser_get_message_reaction_count_updated(message_reaction_count, &(result[index].message_reaction_count)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse message_reaction_count of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_MESSAGE_REACTION_COUNT;
+            continue;
+        }
+
+        struct json_object *chat_boost = NULL;
+        if (json_object_object_get_ex(item, "chat_boost", &chat_boost))
+        {
+            if (telebot_parser_get_chat_boost_updated(chat_boost, &(result[index].chat_boost)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse chat_boost of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_CHAT_BOOST;
+            continue;
+        }
+
+        struct json_object *chat_boost_removed = NULL;
+        if (json_object_object_get_ex(item, "removed_chat_boost", &chat_boost_removed))
+        {
+            if (telebot_parser_get_chat_boost_removed(chat_boost_removed, &(result[index].chat_boost_removed)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse chat_boost_removed of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_REMOVED_CHAT_BOOST;
+            continue;
+        }
+
+        struct json_object *inline_query = NULL;
+        if (json_object_object_get_ex(item, "inline_query", &inline_query))
+        {
+            if (telebot_parser_get_inline_query(inline_query, &(result[index].inline_query)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse inline_query of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_INLINE_QUERY;
+            continue;
+        }
+
+        struct json_object *chosen_inline_result = NULL;
+        if (json_object_object_get_ex(item, "chosen_inline_result", &chosen_inline_result))
+        {
+            if (telebot_parser_get_chosen_inline_result(chosen_inline_result, &(result[index].chosen_inline_result)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse chosen_inline_result of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_CHOSEN_INLINE_RESULT;
+            continue;
+        }
+
+        struct json_object *shipping_query = NULL;
+        if (json_object_object_get_ex(item, "shipping_query", &shipping_query))
+        {
+            if (telebot_parser_get_shipping_query(shipping_query, &(result[index].shipping_query)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse shipping_query of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_SHIPPING_QUERY;
+            continue;
+        }
+
+        struct json_object *pre_checkout_query = NULL;
+        if (json_object_object_get_ex(item, "pre_checkout_query", &pre_checkout_query))
+        {
+            if (telebot_parser_get_pre_checkout_query(pre_checkout_query, &(result[index].pre_checkout_query)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse pre_checkout_query of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY;
+            continue;
+        }
+
+        struct json_object *purchased_paid_media = NULL;
+        if (json_object_object_get_ex(item, "purchased_paid_media", &purchased_paid_media))
+        {
+            if (telebot_parser_get_paid_media_purchased(purchased_paid_media, &(result[index].purchased_paid_media)) != TELEBOT_ERROR_NONE)
+                ERR("Failed to parse purchased_paid_media of bot update");
+            result[index].update_type = TELEBOT_UPDATE_TYPE_PURCHASED_PAID_MEDIA;
             continue;
         }
 
@@ -268,6 +445,22 @@ telebot_error_e telebot_parser_get_user(struct json_object *obj, telebot_user_t 
     if (json_object_object_get_ex(obj, "supports_inline_queries", &supports_inline_queries))
         user->supports_inline_queries = json_object_get_boolean(supports_inline_queries);
 
+    struct json_object *can_connect_to_business = NULL;
+    if (json_object_object_get_ex(obj, "can_connect_to_business", &can_connect_to_business))
+        user->can_connect_to_business = json_object_get_boolean(can_connect_to_business);
+
+    struct json_object *has_main_web_app = NULL;
+    if (json_object_object_get_ex(obj, "has_main_web_app", &has_main_web_app))
+        user->has_main_web_app = json_object_get_boolean(has_main_web_app);
+
+    struct json_object *has_topics_enabled = NULL;
+    if (json_object_object_get_ex(obj, "has_topics_enabled", &has_topics_enabled))
+        user->has_topics_enabled = json_object_get_boolean(has_topics_enabled);
+
+    struct json_object *allows_users_to_create_topics = NULL;
+    if (json_object_object_get_ex(obj, "allows_users_to_create_topics", &allows_users_to_create_topics))
+        user->allows_users_to_create_topics = json_object_get_boolean(allows_users_to_create_topics);
+
     return TELEBOT_ERROR_NONE;
 }
 
@@ -339,6 +532,18 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj, telebot_chat_t 
     if (json_object_object_get_ex(obj, "is_forum", &is_forum))
         chat->is_forum = json_object_get_boolean(is_forum);
 
+    struct json_object *is_direct_messages = NULL;
+    if (json_object_object_get_ex(obj, "is_direct_messages", &is_direct_messages))
+        chat->is_direct_messages = json_object_get_boolean(is_direct_messages);
+
+    struct json_object *accent_color_id = NULL;
+    if (json_object_object_get_ex(obj, "accent_color_id", &accent_color_id))
+        chat->accent_color_id = json_object_get_int(accent_color_id);
+
+    struct json_object *max_reaction_count = NULL;
+    if (json_object_object_get_ex(obj, "max_reaction_count", &max_reaction_count))
+        chat->max_reaction_count = json_object_get_int(max_reaction_count);
+
     struct json_object *chat_photo = NULL;
     if (json_object_object_get_ex(obj, "photo", &chat_photo))
     {
@@ -366,9 +571,55 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj, telebot_chat_t 
         }
     }
 
+    struct json_object *birthdate = NULL;
+    if (json_object_object_get_ex(obj, "birthdate", &birthdate))
+    {
+        chat->birthdate = calloc(1, sizeof(telebot_birthdate_t));
+        telebot_parser_get_birthdate(birthdate, chat->birthdate);
+    }
+
+    struct json_object *business_intro = NULL;
+    if (json_object_object_get_ex(obj, "business_intro", &business_intro))
+    {
+        chat->business_intro = calloc(1, sizeof(telebot_business_intro_t));
+        telebot_parser_get_business_intro(business_intro, chat->business_intro);
+    }
+
+    struct json_object *business_location = NULL;
+    if (json_object_object_get_ex(obj, "business_location", &business_location))
+    {
+        chat->business_location = calloc(1, sizeof(telebot_business_location_t));
+        telebot_parser_get_business_location(business_location, chat->business_location);
+    }
+
+    struct json_object *business_opening_hours = NULL;
+    if (json_object_object_get_ex(obj, "business_opening_hours", &business_opening_hours))
+    {
+        chat->business_opening_hours = calloc(1, sizeof(telebot_business_opening_hours_t));
+        telebot_parser_get_business_opening_hours(business_opening_hours, chat->business_opening_hours);
+    }
+
+    struct json_object *personal_chat = NULL;
+    if (json_object_object_get_ex(obj, "personal_chat", &personal_chat))
+    {
+        chat->personal_chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(personal_chat, chat->personal_chat);
+    }
+
+    struct json_object *parent_chat = NULL;
+    if (json_object_object_get_ex(obj, "parent_chat", &parent_chat))
+    {
+        chat->parent_chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(parent_chat, chat->parent_chat);
+    }
+
     struct json_object *emoji_status_custom_emoji_id = NULL;
     if (json_object_object_get_ex(obj, "emoji_status_custom_emoji_id", &emoji_status_custom_emoji_id))
         chat->emoji_status_custom_emoji_id = TELEBOT_SAFE_STRDUP(json_object_get_string(emoji_status_custom_emoji_id));
+
+    struct json_object *emoji_status_expiration_date = NULL;
+    if (json_object_object_get_ex(obj, "emoji_status_expiration_date", &emoji_status_expiration_date))
+        chat->emoji_status_expiration_date = json_object_get_int(emoji_status_expiration_date);
 
     struct json_object *bio = NULL;
     if (json_object_object_get_ex(obj, "bio", &bio))
@@ -424,6 +675,18 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj, telebot_chat_t 
     if (json_object_object_get_ex(obj, "slow_mode_delay", &slow_mode_delay))
         chat->slow_mode_delay = json_object_get_int(slow_mode_delay);
 
+    struct json_object *unrestrict_boost_count = NULL;
+    if (json_object_object_get_ex(obj, "unrestrict_boost_count", &unrestrict_boost_count))
+        chat->unrestrict_boost_count = json_object_get_int(unrestrict_boost_count);
+
+    struct json_object *has_aggressive_anti_spam_enabled = NULL;
+    if (json_object_object_get_ex(obj, "has_aggressive_anti_spam_enabled", &has_aggressive_anti_spam_enabled))
+        chat->has_aggressive_anti_spam_enabled = json_object_get_boolean(has_aggressive_anti_spam_enabled);
+
+    struct json_object *has_hidden_members = NULL;
+    if (json_object_object_get_ex(obj, "has_hidden_members", &has_hidden_members))
+        chat->has_hidden_members = json_object_get_boolean(has_hidden_members);
+
     struct json_object *has_protected_content = NULL;
     if (json_object_object_get_ex(obj, "has_protected_content", &has_protected_content))
         chat->has_protected_content = json_object_get_boolean(has_protected_content);
@@ -439,6 +702,10 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj, telebot_chat_t 
     struct json_object *can_set_sticker_set = NULL;
     if (json_object_object_get_ex(obj, "can_set_sticker_set", &can_set_sticker_set))
         chat->can_set_sticker_set = json_object_get_boolean(can_set_sticker_set);
+
+    struct json_object *custom_emoji_sticker_set_name = NULL;
+    if (json_object_object_get_ex(obj, "custom_emoji_sticker_set_name", &custom_emoji_sticker_set_name))
+        chat->custom_emoji_sticker_set_name = TELEBOT_SAFE_STRDUP(json_object_get_string(custom_emoji_sticker_set_name));
 
     struct json_object *linked_chat_id = NULL;
     if (json_object_object_get_ex(obj, "linked_chat_id", &linked_chat_id))
@@ -531,6 +798,17 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
 
+    struct json_object *forward_origin = NULL;
+    if (json_object_object_get_ex(obj, "forward_origin", &forward_origin))
+    {
+        msg->forward_origin = calloc(1, sizeof(telebot_message_origin_t));
+        if (telebot_parser_get_message_origin(forward_origin, msg->forward_origin) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <forward_origin> from message object");
+            TELEBOT_SAFE_FREE(msg->forward_origin);
+        }
+    }
+
     /* Optional Fields */
     struct json_object *message_thread_id = NULL;
     if (json_object_object_get_ex(obj, "message_thread_id", &message_thread_id))
@@ -557,6 +835,25 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
             TELEBOT_SAFE_FREE(msg->sender_chat);
         }
     }
+
+    struct json_object *sender_boost_count = NULL;
+    if (json_object_object_get_ex(obj, "sender_boost_count", &sender_boost_count))
+        msg->sender_boost_count = json_object_get_int(sender_boost_count);
+
+    struct json_object *sender_business_bot = NULL;
+    if (json_object_object_get_ex(obj, "sender_business_bot", &sender_business_bot))
+    {
+        msg->sender_business_bot = calloc(1, sizeof(telebot_user_t));
+        if (telebot_parser_get_user(sender_business_bot, msg->sender_business_bot) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <sender_business_bot> from message object");
+            TELEBOT_SAFE_FREE(msg->sender_business_bot);
+        }
+    }
+
+    struct json_object *business_connection_id = NULL;
+    if (json_object_object_get_ex(obj, "business_connection_id", &business_connection_id))
+        msg->business_connection_id = TELEBOT_SAFE_STRDUP(json_object_get_string(business_connection_id));
 
     struct json_object *forward_from = NULL;
     if (json_object_object_get_ex(obj, "forward_from", &forward_from))
@@ -615,6 +912,39 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         }
     }
 
+    struct json_object *external_reply = NULL;
+    if (json_object_object_get_ex(obj, "external_reply", &external_reply))
+    {
+        msg->external_reply = calloc(1, sizeof(telebot_external_reply_info_t));
+        if (telebot_parser_get_external_reply_info(external_reply, msg->external_reply) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <external_reply> from message object");
+            TELEBOT_SAFE_FREE(msg->external_reply);
+        }
+    }
+
+    struct json_object *quote = NULL;
+    if (json_object_object_get_ex(obj, "quote", &quote))
+    {
+        msg->quote = calloc(1, sizeof(telebot_text_quote_t));
+        if (telebot_parser_get_text_quote(quote, msg->quote) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <quote> from message object");
+            TELEBOT_SAFE_FREE(msg->quote);
+        }
+    }
+
+    struct json_object *reply_to_story = NULL;
+    if (json_object_object_get_ex(obj, "reply_to_story", &reply_to_story))
+    {
+        msg->reply_to_story = calloc(1, sizeof(telebot_story_t));
+        if (telebot_parser_get_story(reply_to_story, msg->reply_to_story) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <reply_to_story> from message object");
+            TELEBOT_SAFE_FREE(msg->reply_to_story);
+        }
+    }
+
     struct json_object *via_bot = NULL;
     if (json_object_object_get_ex(obj, "via_bot", &via_bot))
     {
@@ -633,6 +963,10 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     struct json_object *has_protected_content = NULL;
     if (json_object_object_get_ex(obj, "has_protected_content", &has_protected_content))
         msg->has_protected_content = json_object_get_boolean(has_protected_content);
+
+    struct json_object *is_paid_post = NULL;
+    if (json_object_object_get_ex(obj, "is_paid_post", &is_paid_post))
+        msg->is_paid_post = json_object_get_boolean(is_paid_post);
 
     struct json_object *media_group_id = NULL;
     if (json_object_object_get_ex(obj, "media_group_id", &media_group_id))
@@ -653,6 +987,21 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
             TELEBOT_ERROR_NONE)
             ERR("Failed to get <entities> from message object");
     }
+
+    struct json_object *link_preview_options = NULL;
+    if (json_object_object_get_ex(obj, "link_preview_options", &link_preview_options))
+    {
+        msg->link_preview_options = calloc(1, sizeof(telebot_link_preview_options_t));
+        if (telebot_parser_get_link_preview_options(link_preview_options, msg->link_preview_options) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <link_preview_options> from message object");
+            TELEBOT_SAFE_FREE(msg->link_preview_options);
+        }
+    }
+
+    struct json_object *effect_id = NULL;
+    if (json_object_object_get_ex(obj, "effect_id", &effect_id))
+        msg->effect_id = TELEBOT_SAFE_STRDUP(json_object_get_string(effect_id));
 
     struct json_object *animation = NULL;
     if (json_object_object_get_ex(obj, "animation", &animation))
@@ -684,6 +1033,17 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
         {
             ERR("Failed to get <document> from message object");
             TELEBOT_SAFE_FREE(msg->document);
+        }
+    }
+
+    struct json_object *paid_media = NULL;
+    if (json_object_object_get_ex(obj, "paid_media", &paid_media))
+    {
+        msg->paid_media = calloc(1, sizeof(telebot_paid_media_info_t));
+        if (telebot_parser_get_paid_media_info(paid_media, msg->paid_media) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <paid_media> from message object");
+            TELEBOT_SAFE_FREE(msg->paid_media);
         }
     }
 
@@ -740,6 +1100,14 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
                                                 &(msg->count_caption_entities)) != TELEBOT_ERROR_NONE)
             ERR("Failed to get <caption_entities> from message object");
     }
+
+    struct json_object *show_caption_above_media = NULL;
+    if (json_object_object_get_ex(obj, "show_caption_above_media", &show_caption_above_media))
+        msg->show_caption_above_media = json_object_get_boolean(show_caption_above_media);
+
+    struct json_object *has_media_spoiler = NULL;
+    if (json_object_object_get_ex(obj, "has_media_spoiler", &has_media_spoiler))
+        msg->has_media_spoiler = json_object_get_boolean(has_media_spoiler);
 
     struct json_object *contact = NULL;
     if (json_object_object_get_ex(obj, "contact", &contact))
@@ -878,7 +1246,257 @@ telebot_error_e telebot_parser_get_message(struct json_object *obj, telebot_mess
     if (json_object_object_get_ex(obj, "connected_website", &connected_website))
         msg->connected_website = TELEBOT_SAFE_STRDUP(json_object_get_string(connected_website));
 
-    // TODO: implement invoce, successful_payment, passport_data, reply_markup
+    struct json_object *invoice = NULL;
+    if (json_object_object_get_ex(obj, "invoice", &invoice))
+    {
+        msg->invoice = calloc(1, sizeof(telebot_invoice_t));
+        if (telebot_parser_get_invoice(invoice, msg->invoice) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <invoice> from message object");
+            TELEBOT_SAFE_FREE(msg->invoice);
+        }
+    }
+
+    struct json_object *successful_payment = NULL;
+    if (json_object_object_get_ex(obj, "successful_payment", &successful_payment))
+    {
+        msg->successful_payment = calloc(1, sizeof(telebot_successful_payment_t));
+        if (telebot_parser_get_successful_payment(successful_payment, msg->successful_payment) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <successful_payment> from message object");
+            TELEBOT_SAFE_FREE(msg->successful_payment);
+        }
+    }
+
+    struct json_object *refunded_payment = NULL;
+    if (json_object_object_get_ex(obj, "refunded_payment", &refunded_payment))
+    {
+        msg->refunded_payment = calloc(1, sizeof(telebot_refunded_payment_t));
+        if (telebot_parser_get_refunded_payment(refunded_payment, msg->refunded_payment) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <refunded_payment> from message object");
+            TELEBOT_SAFE_FREE(msg->refunded_payment);
+        }
+    }
+
+    struct json_object *write_access_allowed = NULL;
+    if (json_object_object_get_ex(obj, "write_access_allowed", &write_access_allowed))
+    {
+        msg->write_access_allowed = calloc(1, sizeof(telebot_write_access_allowed_t));
+        if (telebot_parser_get_write_access_allowed(write_access_allowed, msg->write_access_allowed) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <write_access_allowed> from message object");
+            TELEBOT_SAFE_FREE(msg->write_access_allowed);
+        }
+    }
+
+    struct json_object *passport_data = NULL;
+    if (json_object_object_get_ex(obj, "passport_data", &passport_data))
+    {
+        msg->passport_data = calloc(1, sizeof(telebot_passport_data_t));
+        if (telebot_parser_get_passport_data(passport_data, msg->passport_data) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <passport_data> from message object");
+            TELEBOT_SAFE_FREE(msg->passport_data);
+        }
+    }
+
+    struct json_object *proximity_alert_triggered = NULL;
+    if (json_object_object_get_ex(obj, "proximity_alert_triggered", &proximity_alert_triggered))
+    {
+        msg->proximity_alert_triggered = calloc(1, sizeof(telebot_proximity_alert_triggered_t));
+        if (telebot_parser_get_proximity_alert_triggered(proximity_alert_triggered, msg->proximity_alert_triggered) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <proximity_alert_triggered> from message object");
+            TELEBOT_SAFE_FREE(msg->proximity_alert_triggered);
+        }
+    }
+
+    struct json_object *forum_topic_created = NULL;
+    if (json_object_object_get_ex(obj, "forum_topic_created", &forum_topic_created))
+    {
+        msg->forum_topic_created = calloc(1, sizeof(telebot_forum_topic_created_t));
+        if (telebot_parser_get_forum_topic_created(forum_topic_created, msg->forum_topic_created) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <forum_topic_created> from message object");
+            TELEBOT_SAFE_FREE(msg->forum_topic_created);
+        }
+    }
+
+    struct json_object *forum_topic_edited = NULL;
+    if (json_object_object_get_ex(obj, "forum_topic_edited", &forum_topic_edited))
+    {
+        msg->forum_topic_edited = calloc(1, sizeof(telebot_forum_topic_edited_t));
+        if (telebot_parser_get_forum_topic_edited(forum_topic_edited, msg->forum_topic_edited) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <forum_topic_edited> from message object");
+            TELEBOT_SAFE_FREE(msg->forum_topic_edited);
+        }
+    }
+
+    struct json_object *forum_topic_closed = NULL;
+    if (json_object_object_get_ex(obj, "forum_topic_closed", &forum_topic_closed))
+    {
+        msg->forum_topic_closed = calloc(1, sizeof(telebot_forum_topic_closed_t));
+        msg->forum_topic_closed->dummy = true;
+    }
+
+    struct json_object *forum_topic_reopened = NULL;
+    if (json_object_object_get_ex(obj, "forum_topic_reopened", &forum_topic_reopened))
+    {
+        msg->forum_topic_reopened = calloc(1, sizeof(telebot_forum_topic_reopened_t));
+        msg->forum_topic_reopened->dummy = true;
+    }
+
+    struct json_object *video_chat_scheduled = NULL;
+    if (json_object_object_get_ex(obj, "video_chat_scheduled", &video_chat_scheduled))
+    {
+        msg->video_chat_scheduled = calloc(1, sizeof(telebot_video_chat_scheduled_t));
+        if (telebot_parser_get_video_chat_scheduled(video_chat_scheduled, msg->video_chat_scheduled) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <video_chat_scheduled> from message object");
+            TELEBOT_SAFE_FREE(msg->video_chat_scheduled);
+        }
+    }
+
+    struct json_object *video_chat_started = NULL;
+    if (json_object_object_get_ex(obj, "video_chat_started", &video_chat_started))
+    {
+        msg->video_chat_started = calloc(1, sizeof(telebot_video_chat_started_t));
+        msg->video_chat_started->dummy = true;
+    }
+
+    struct json_object *video_chat_ended = NULL;
+    if (json_object_object_get_ex(obj, "video_chat_ended", &video_chat_ended))
+    {
+        msg->video_chat_ended = calloc(1, sizeof(telebot_video_chat_ended_t));
+        if (telebot_parser_get_video_chat_ended(video_chat_ended, msg->video_chat_ended) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <video_chat_ended> from message object");
+            TELEBOT_SAFE_FREE(msg->video_chat_ended);
+        }
+    }
+
+    struct json_object *video_chat_participants_invited = NULL;
+    if (json_object_object_get_ex(obj, "video_chat_participants_invited", &video_chat_participants_invited))
+    {
+        msg->video_chat_participants_invited = calloc(1, sizeof(telebot_video_chat_participants_invited_t));
+        if (telebot_parser_get_video_chat_participants_invited(video_chat_participants_invited, msg->video_chat_participants_invited) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <video_chat_participants_invited> from message object");
+            TELEBOT_SAFE_FREE(msg->video_chat_participants_invited);
+        }
+    }
+
+    struct json_object *web_app_data = NULL;
+    if (json_object_object_get_ex(obj, "web_app_data", &web_app_data))
+    {
+        msg->web_app_data = calloc(1, sizeof(telebot_web_app_data_t));
+        if (telebot_parser_get_web_app_data(web_app_data, msg->web_app_data) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <web_app_data> from message object");
+            TELEBOT_SAFE_FREE(msg->web_app_data);
+        }
+    }
+
+    struct json_object *users_shared = NULL;
+    if (json_object_object_get_ex(obj, "users_shared", &users_shared))
+    {
+        msg->users_shared = calloc(1, sizeof(telebot_users_shared_t));
+        if (telebot_parser_get_users_shared(users_shared, msg->users_shared) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <users_shared> from message object");
+            TELEBOT_SAFE_FREE(msg->users_shared);
+        }
+    }
+
+    struct json_object *chat_shared = NULL;
+    if (json_object_object_get_ex(obj, "chat_shared", &chat_shared))
+    {
+        msg->chat_shared = calloc(1, sizeof(telebot_chat_shared_t));
+        if (telebot_parser_get_chat_shared(chat_shared, msg->chat_shared) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <chat_shared> from message object");
+            TELEBOT_SAFE_FREE(msg->chat_shared);
+        }
+    }
+
+    struct json_object *gift = NULL;
+    if (json_object_object_get_ex(obj, "gift", &gift))
+    {
+        msg->gift = calloc(1, sizeof(telebot_gift_info_t));
+        if (telebot_parser_get_gift_info(gift, msg->gift) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <gift> from message object");
+            TELEBOT_SAFE_FREE(msg->gift);
+        }
+    }
+
+    struct json_object *unique_gift = NULL;
+    if (json_object_object_get_ex(obj, "unique_gift", &unique_gift))
+    {
+        msg->unique_gift = calloc(1, sizeof(telebot_unique_gift_info_t));
+        if (telebot_parser_get_unique_gift_info(unique_gift, msg->unique_gift) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <unique_gift> from message object");
+            TELEBOT_SAFE_FREE(msg->unique_gift);
+        }
+    }
+
+    struct json_object *boost_added = NULL;
+    if (json_object_object_get_ex(obj, "boost_added", &boost_added))
+    {
+        msg->boost_added = calloc(1, sizeof(telebot_chat_boost_added_t));
+        if (telebot_parser_get_chat_boost_added(boost_added, msg->boost_added) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <boost_added> from message object");
+            TELEBOT_SAFE_FREE(msg->boost_added);
+        }
+    }
+
+    struct json_object *chat_background_set = NULL;
+    if (json_object_object_get_ex(obj, "chat_background_set", &chat_background_set))
+    {
+        msg->chat_background_set = calloc(1, sizeof(telebot_chat_background_t));
+        if (telebot_parser_get_chat_background(chat_background_set, msg->chat_background_set) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <chat_background_set> from message object");
+            TELEBOT_SAFE_FREE(msg->chat_background_set);
+        }
+    }
+
+    struct json_object *giveaway_created = NULL;
+    if (json_object_object_get_ex(obj, "giveaway_created", &giveaway_created))
+    {
+        msg->giveaway_created = calloc(1, sizeof(telebot_giveaway_created_t));
+        if (telebot_parser_get_giveaway_created(giveaway_created, msg->giveaway_created) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <giveaway_created> from message object");
+            TELEBOT_SAFE_FREE(msg->giveaway_created);
+        }
+    }
+
+    struct json_object *giveaway_completed = NULL;
+    if (json_object_object_get_ex(obj, "giveaway_completed", &giveaway_completed))
+    {
+        msg->giveaway_completed = calloc(1, sizeof(telebot_giveaway_completed_t));
+        if (telebot_parser_get_giveaway_completed(giveaway_completed, msg->giveaway_completed) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <giveaway_completed> from message object");
+            TELEBOT_SAFE_FREE(msg->giveaway_completed);
+        }
+    }
+
+    struct json_object *reply_markup = NULL;
+    if (json_object_object_get_ex(obj, "reply_markup", &reply_markup))
+    {
+        msg->reply_markup = calloc(1, sizeof(telebot_inline_keyboard_markup_t));
+        if (telebot_parser_get_inline_keyboard_markup(reply_markup, msg->reply_markup) != TELEBOT_ERROR_NONE)
+        {
+            ERR("Failed to get <reply_markup> from message object");
+            TELEBOT_SAFE_FREE(msg->reply_markup);
+        }
+    }
 
     return TELEBOT_ERROR_NONE;
 }
@@ -2210,3 +2828,1926 @@ telebot_parser_get_message_auto_delete_timer_changed(struct json_object *obj,
 
     return TELEBOT_ERROR_NONE;
 }
+
+telebot_error_e telebot_parser_get_invoice(struct json_object *obj, telebot_invoice_t *invoice)
+{
+    if ((obj == NULL) || (invoice == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(invoice, 0, sizeof(telebot_invoice_t));
+    struct json_object *title = NULL;
+    if (json_object_object_get_ex(obj, "title", &title))
+        invoice->title = TELEBOT_SAFE_STRDUP(json_object_get_string(title));
+
+    struct json_object *description = NULL;
+    if (json_object_object_get_ex(obj, "description", &description))
+        invoice->description = TELEBOT_SAFE_STRDUP(json_object_get_string(description));
+
+    struct json_object *start_parameter = NULL;
+    if (json_object_object_get_ex(obj, "start_parameter", &start_parameter))
+        invoice->start_parameter = TELEBOT_SAFE_STRDUP(json_object_get_string(start_parameter));
+
+    struct json_object *currency = NULL;
+    if (json_object_object_get_ex(obj, "currency", &currency))
+        invoice->currency = TELEBOT_SAFE_STRDUP(json_object_get_string(currency));
+
+    struct json_object *total_amount = NULL;
+    if (json_object_object_get_ex(obj, "total_amount", &total_amount))
+        invoice->total_amount = json_object_get_int(total_amount);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_shipping_address(struct json_object *obj, telebot_shipping_address_t *address)
+{
+    if ((obj == NULL) || (address == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(address, 0, sizeof(telebot_shipping_address_t));
+    struct json_object *country_code = NULL;
+    if (json_object_object_get_ex(obj, "country_code", &country_code))
+        address->country_code = TELEBOT_SAFE_STRDUP(json_object_get_string(country_code));
+
+    struct json_object *state = NULL;
+    if (json_object_object_get_ex(obj, "state", &state))
+        address->state = TELEBOT_SAFE_STRDUP(json_object_get_string(state));
+
+    struct json_object *city = NULL;
+    if (json_object_object_get_ex(obj, "city", &city))
+        address->city = TELEBOT_SAFE_STRDUP(json_object_get_string(city));
+
+    struct json_object *street_line1 = NULL;
+    if (json_object_object_get_ex(obj, "street_line1", &street_line1))
+        address->street_line1 = TELEBOT_SAFE_STRDUP(json_object_get_string(street_line1));
+
+    struct json_object *street_line2 = NULL;
+    if (json_object_object_get_ex(obj, "street_line2", &street_line2))
+        address->street_line2 = TELEBOT_SAFE_STRDUP(json_object_get_string(street_line2));
+
+    struct json_object *post_code = NULL;
+    if (json_object_object_get_ex(obj, "post_code", &post_code))
+        address->post_code = TELEBOT_SAFE_STRDUP(json_object_get_string(post_code));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_order_info(struct json_object *obj, telebot_order_info_t *info)
+{
+    if ((obj == NULL) || (info == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(info, 0, sizeof(telebot_order_info_t));
+    struct json_object *name = NULL;
+    if (json_object_object_get_ex(obj, "name", &name))
+        info->name = TELEBOT_SAFE_STRDUP(json_object_get_string(name));
+
+    struct json_object *phone_number = NULL;
+    if (json_object_object_get_ex(obj, "phone_number", &phone_number))
+        info->phone_number = TELEBOT_SAFE_STRDUP(json_object_get_string(phone_number));
+
+    struct json_object *email = NULL;
+    if (json_object_object_get_ex(obj, "email", &email))
+        info->email = TELEBOT_SAFE_STRDUP(json_object_get_string(email));
+
+    struct json_object *shipping_address = NULL;
+    if (json_object_object_get_ex(obj, "shipping_address", &shipping_address))
+    {
+        info->shipping_address = calloc(1, sizeof(telebot_shipping_address_t));
+        telebot_parser_get_shipping_address(shipping_address, info->shipping_address);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_successful_payment(struct json_object *obj, telebot_successful_payment_t *payment)
+{
+    if ((obj == NULL) || (payment == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(payment, 0, sizeof(telebot_successful_payment_t));
+    struct json_object *currency = NULL;
+    if (json_object_object_get_ex(obj, "currency", &currency))
+        payment->currency = TELEBOT_SAFE_STRDUP(json_object_get_string(currency));
+
+    struct json_object *total_amount = NULL;
+    if (json_object_object_get_ex(obj, "total_amount", &total_amount))
+        payment->total_amount = json_object_get_int(total_amount);
+
+    struct json_object *invoice_payload = NULL;
+    if (json_object_object_get_ex(obj, "invoice_payload", &invoice_payload))
+        payment->invoice_payload = TELEBOT_SAFE_STRDUP(json_object_get_string(invoice_payload));
+
+    struct json_object *shipping_option_id = NULL;
+    if (json_object_object_get_ex(obj, "shipping_option_id", &shipping_option_id))
+        payment->shipping_option_id = TELEBOT_SAFE_STRDUP(json_object_get_string(shipping_option_id));
+
+    struct json_object *order_info = NULL;
+    if (json_object_object_get_ex(obj, "order_info", &order_info))
+    {
+        payment->order_info = calloc(1, sizeof(telebot_order_info_t));
+        telebot_parser_get_order_info(order_info, payment->order_info);
+    }
+
+    struct json_object *telegram_payment_charge_id = NULL;
+    if (json_object_object_get_ex(obj, "telegram_payment_charge_id", &telegram_payment_charge_id))
+        payment->telegram_payment_charge_id = TELEBOT_SAFE_STRDUP(json_object_get_string(telegram_payment_charge_id));
+
+    struct json_object *provider_payment_charge_id = NULL;
+    if (json_object_object_get_ex(obj, "provider_payment_charge_id", &provider_payment_charge_id))
+        payment->provider_payment_charge_id = TELEBOT_SAFE_STRDUP(json_object_get_string(provider_payment_charge_id));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_passport_file(struct json_object *obj, telebot_passport_file_t *file)
+{
+    if ((obj == NULL) || (file == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(file, 0, sizeof(telebot_passport_file_t));
+    struct json_object *file_id = NULL;
+    if (json_object_object_get_ex(obj, "file_id", &file_id))
+        file->file_id = TELEBOT_SAFE_STRDUP(json_object_get_string(file_id));
+
+    struct json_object *file_unique_id = NULL;
+    if (json_object_object_get_ex(obj, "file_unique_id", &file_unique_id))
+        file->file_unique_id = TELEBOT_SAFE_STRDUP(json_object_get_string(file_unique_id));
+
+    struct json_object *file_size = NULL;
+    if (json_object_object_get_ex(obj, "file_size", &file_size))
+        file->file_size = json_object_get_int(file_size);
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(obj, "date", &date))
+        file->date = json_object_get_int(date);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_encrypted_passport_element(struct json_object *obj, telebot_encrypted_passport_element_t *element)
+{
+    if ((obj == NULL) || (element == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(element, 0, sizeof(telebot_encrypted_passport_element_t));
+    struct json_object *type = NULL;
+    if (json_object_object_get_ex(obj, "type", &type))
+        element->type = TELEBOT_SAFE_STRDUP(json_object_get_string(type));
+
+    struct json_object *data = NULL;
+    if (json_object_object_get_ex(obj, "data", &data))
+        element->data = TELEBOT_SAFE_STRDUP(json_object_get_string(data));
+
+    struct json_object *phone_number = NULL;
+    if (json_object_object_get_ex(obj, "phone_number", &phone_number))
+        element->phone_number = TELEBOT_SAFE_STRDUP(json_object_get_string(phone_number));
+
+    struct json_object *email = NULL;
+    if (json_object_object_get_ex(obj, "email", &email))
+        element->email = TELEBOT_SAFE_STRDUP(json_object_get_string(email));
+
+    struct json_object *files = NULL;
+    if (json_object_object_get_ex(obj, "files", &files))
+    {
+        int array_len = json_object_array_length(files);
+        element->count_files = array_len;
+        element->files = calloc(array_len, sizeof(telebot_passport_file_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_passport_file(json_object_array_get_idx(files, i), &(element->files[i]));
+    }
+
+    struct json_object *front_side = NULL;
+    if (json_object_object_get_ex(obj, "front_side", &front_side))
+    {
+        element->front_side = calloc(1, sizeof(telebot_passport_file_t));
+        telebot_parser_get_passport_file(front_side, element->front_side);
+    }
+
+    struct json_object *reverse_side = NULL;
+    if (json_object_object_get_ex(obj, "reverse_side", &reverse_side))
+    {
+        element->reverse_side = calloc(1, sizeof(telebot_passport_file_t));
+        telebot_parser_get_passport_file(reverse_side, element->reverse_side);
+    }
+
+    struct json_object *selfie = NULL;
+    if (json_object_object_get_ex(obj, "selfie", &selfie))
+    {
+        element->selfie = calloc(1, sizeof(telebot_passport_file_t));
+        telebot_parser_get_passport_file(selfie, element->selfie);
+    }
+
+    struct json_object *translation = NULL;
+    if (json_object_object_get_ex(obj, "translation", &translation))
+    {
+        int array_len = json_object_array_length(translation);
+        element->count_translation = array_len;
+        element->translation = calloc(array_len, sizeof(telebot_passport_file_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_passport_file(json_object_array_get_idx(translation, i), &(element->translation[i]));
+    }
+
+    struct json_object *hash = NULL;
+    if (json_object_object_get_ex(obj, "hash", &hash))
+        element->hash = TELEBOT_SAFE_STRDUP(json_object_get_string(hash));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_encrypted_credentials(struct json_object *obj, telebot_encrypted_credentials_t *credentials)
+{
+    if ((obj == NULL) || (credentials == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(credentials, 0, sizeof(telebot_encrypted_credentials_t));
+    struct json_object *data = NULL;
+    if (json_object_object_get_ex(obj, "data", &data))
+        credentials->data = TELEBOT_SAFE_STRDUP(json_object_get_string(data));
+
+    struct json_object *hash = NULL;
+    if (json_object_object_get_ex(obj, "hash", &hash))
+        credentials->hash = TELEBOT_SAFE_STRDUP(json_object_get_string(hash));
+
+    struct json_object *secret = NULL;
+    if (json_object_object_get_ex(obj, "secret", &secret))
+        credentials->secret = TELEBOT_SAFE_STRDUP(json_object_get_string(secret));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_passport_data(struct json_object *obj, telebot_passport_data_t *passport_data)
+{
+    if ((obj == NULL) || (passport_data == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(passport_data, 0, sizeof(telebot_passport_data_t));
+    struct json_object *data = NULL;
+    if (json_object_object_get_ex(obj, "data", &data))
+    {
+        int array_len = json_object_array_length(data);
+        passport_data->count_data = array_len;
+        passport_data->data = calloc(array_len, sizeof(telebot_encrypted_passport_element_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_encrypted_passport_element(json_object_array_get_idx(data, i), &(passport_data->data[i]));
+    }
+
+    struct json_object *credentials = NULL;
+    if (json_object_object_get_ex(obj, "credentials", &credentials))
+    {
+        passport_data->credentials = calloc(1, sizeof(telebot_encrypted_credentials_t));
+        telebot_parser_get_encrypted_credentials(credentials, passport_data->credentials);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_proximity_alert_triggered(struct json_object *obj, telebot_proximity_alert_triggered_t *alert)
+{
+    if ((obj == NULL) || (alert == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(alert, 0, sizeof(telebot_proximity_alert_triggered_t));
+    struct json_object *traveler = NULL;
+    if (json_object_object_get_ex(obj, "traveler", &traveler))
+    {
+        alert->traveler = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(traveler, alert->traveler);
+    }
+
+    struct json_object *watcher = NULL;
+    if (json_object_object_get_ex(obj, "watcher", &watcher))
+    {
+        alert->watcher = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(watcher, alert->watcher);
+    }
+
+    struct json_object *distance = NULL;
+    if (json_object_object_get_ex(obj, "distance", &distance))
+        alert->distance = json_object_get_int(distance);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_forum_topic_created(struct json_object *obj, telebot_forum_topic_created_t *topic)
+{
+    if ((obj == NULL) || (topic == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(topic, 0, sizeof(telebot_forum_topic_created_t));
+    struct json_object *name = NULL;
+    if (json_object_object_get_ex(obj, "name", &name))
+        topic->name = TELEBOT_SAFE_STRDUP(json_object_get_string(name));
+
+    struct json_object *icon_color = NULL;
+    if (json_object_object_get_ex(obj, "icon_color", &icon_color))
+        topic->icon_color = json_object_get_int(icon_color);
+
+    struct json_object *icon_custom_emoji_id = NULL;
+    if (json_object_object_get_ex(obj, "icon_custom_emoji_id", &icon_custom_emoji_id))
+        topic->icon_custom_emoji_id = TELEBOT_SAFE_STRDUP(json_object_get_string(icon_custom_emoji_id));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_forum_topic_edited(struct json_object *obj, telebot_forum_topic_edited_t *topic)
+{
+    if ((obj == NULL) || (topic == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(topic, 0, sizeof(telebot_forum_topic_edited_t));
+    struct json_object *name = NULL;
+    if (json_object_object_get_ex(obj, "name", &name))
+        topic->name = TELEBOT_SAFE_STRDUP(json_object_get_string(name));
+
+    struct json_object *icon_custom_emoji_id = NULL;
+    if (json_object_object_get_ex(obj, "icon_custom_emoji_id", &icon_custom_emoji_id))
+        topic->icon_custom_emoji_id = TELEBOT_SAFE_STRDUP(json_object_get_string(icon_custom_emoji_id));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_video_chat_scheduled(struct json_object *obj, telebot_video_chat_scheduled_t *scheduled)
+{
+    if ((obj == NULL) || (scheduled == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(scheduled, 0, sizeof(telebot_video_chat_scheduled_t));
+    struct json_object *start_date = NULL;
+    if (json_object_object_get_ex(obj, "start_date", &start_date))
+        scheduled->start_date = json_object_get_int(start_date);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_video_chat_ended(struct json_object *obj, telebot_video_chat_ended_t *ended)
+{
+    if ((obj == NULL) || (ended == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(ended, 0, sizeof(telebot_video_chat_ended_t));
+    struct json_object *duration = NULL;
+    if (json_object_object_get_ex(obj, "duration", &duration))
+        ended->duration = json_object_get_int(duration);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_video_chat_participants_invited(struct json_object *obj, telebot_video_chat_participants_invited_t *invited)
+{
+    if ((obj == NULL) || (invited == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(invited, 0, sizeof(telebot_video_chat_participants_invited_t));
+    struct json_object *users = NULL;
+    if (json_object_object_get_ex(obj, "users", &users))
+    {
+        int array_len = json_object_array_length(users);
+        invited->count_users = array_len;
+        invited->users = calloc(array_len, sizeof(telebot_user_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_user(json_object_array_get_idx(users, i), &(invited->users[i]));
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_web_app_data(struct json_object *obj, telebot_web_app_data_t *data)
+{
+    if ((obj == NULL) || (data == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(data, 0, sizeof(telebot_web_app_data_t));
+    struct json_object *data_obj = NULL;
+    if (json_object_object_get_ex(obj, "data", &data_obj))
+        data->data = TELEBOT_SAFE_STRDUP(json_object_get_string(data_obj));
+
+    struct json_object *button_text = NULL;
+    if (json_object_object_get_ex(obj, "button_text", &button_text))
+        data->button_text = TELEBOT_SAFE_STRDUP(json_object_get_string(button_text));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_inline_keyboard_button(struct json_object *obj, telebot_inline_keyboard_button_t *button)
+{
+    if ((obj == NULL) || (button == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(button, 0, sizeof(telebot_inline_keyboard_button_t));
+    struct json_object *text = NULL;
+    if (json_object_object_get_ex(obj, "text", &text))
+        button->text = TELEBOT_SAFE_STRDUP(json_object_get_string(text));
+
+    struct json_object *url = NULL;
+    if (json_object_object_get_ex(obj, "url", &url))
+        button->url = TELEBOT_SAFE_STRDUP(json_object_get_string(url));
+
+    struct json_object *callback_data = NULL;
+    if (json_object_object_get_ex(obj, "callback_data", &callback_data))
+        button->callback_data = TELEBOT_SAFE_STRDUP(json_object_get_string(callback_data));
+
+    struct json_object *switch_inline_query = NULL;
+    if (json_object_object_get_ex(obj, "switch_inline_query", &switch_inline_query))
+        button->switch_inline_query = TELEBOT_SAFE_STRDUP(json_object_get_string(switch_inline_query));
+
+    struct json_object *switch_inline_query_current_chat = NULL;
+    if (json_object_object_get_ex(obj, "switch_inline_query_current_chat", &switch_inline_query_current_chat))
+        button->switch_inline_query_current_chat = TELEBOT_SAFE_STRDUP(json_object_get_string(switch_inline_query_current_chat));
+
+    struct json_object *pay = NULL;
+    if (json_object_object_get_ex(obj, "pay", &pay))
+        button->pay = json_object_get_boolean(pay);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_inline_keyboard_markup(struct json_object *obj, telebot_inline_keyboard_markup_t *markup)
+{
+    if ((obj == NULL) || (markup == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(markup, 0, sizeof(telebot_inline_keyboard_markup_t));
+    struct json_object *inline_keyboard = NULL;
+    if (json_object_object_get_ex(obj, "inline_keyboard", &inline_keyboard))
+    {
+        int rows = json_object_array_length(inline_keyboard);
+        int cols = 0;
+        if (rows > 0)
+        {
+            struct json_object *row0 = json_object_array_get_idx(inline_keyboard, 0);
+            cols = json_object_array_length(row0);
+        }
+        markup->rows = rows;
+        markup->cols = cols;
+        markup->inline_keyboard = calloc(rows * cols, sizeof(telebot_inline_keyboard_button_t));
+        for (int i = 0; i < rows; i++)
+        {
+            struct json_object *row = json_object_array_get_idx(inline_keyboard, i);
+            int row_cols = json_object_array_length(row);
+            for (int j = 0; j < row_cols && j < cols; j++)
+            {
+                telebot_parser_get_inline_keyboard_button(json_object_array_get_idx(row, j), &(markup->inline_keyboard[i * cols + j]));
+            }
+        }
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_chat_invite_link(struct json_object *obj, telebot_chat_invite_link_t *invite_link)
+{
+    if ((obj == NULL) || (invite_link == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(invite_link, 0, sizeof(telebot_chat_invite_link_t));
+    struct json_object *invite_link_obj = NULL;
+    if (json_object_object_get_ex(obj, "invite_link", &invite_link_obj))
+        invite_link->invite_link = TELEBOT_SAFE_STRDUP(json_object_get_string(invite_link_obj));
+
+    struct json_object *creator = NULL;
+    if (json_object_object_get_ex(obj, "creator", &creator))
+    {
+        invite_link->creator = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(creator, invite_link->creator);
+    }
+
+    struct json_object *creates_join_request = NULL;
+    if (json_object_object_get_ex(obj, "creates_join_request", &creates_join_request))
+        invite_link->creates_join_request = json_object_get_boolean(creates_join_request);
+
+    struct json_object *is_primary = NULL;
+    if (json_object_object_get_ex(obj, "is_primary", &is_primary))
+        invite_link->is_primary = json_object_get_boolean(is_primary);
+
+    struct json_object *is_revoked = NULL;
+    if (json_object_object_get_ex(obj, "is_revoked", &is_revoked))
+        invite_link->is_revoked = json_object_get_boolean(is_revoked);
+
+    struct json_object *name = NULL;
+    if (json_object_object_get_ex(obj, "name", &name))
+        invite_link->name = TELEBOT_SAFE_STRDUP(json_object_get_string(name));
+
+    struct json_object *expire_date = NULL;
+    if (json_object_object_get_ex(obj, "expire_date", &expire_date))
+        invite_link->expire_date = json_object_get_int(expire_date);
+
+    struct json_object *member_limit = NULL;
+    if (json_object_object_get_ex(obj, "member_limit", &member_limit))
+        invite_link->member_limit = json_object_get_int(member_limit);
+
+    struct json_object *pending_join_request_count = NULL;
+    if (json_object_object_get_ex(obj, "pending_join_request_count", &pending_join_request_count))
+        invite_link->pending_join_request_count = json_object_get_int(pending_join_request_count);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_chat_member_updated(struct json_object *obj, telebot_chat_member_updated_t *updated)
+{
+    if ((obj == NULL) || (updated == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(updated, 0, sizeof(telebot_chat_member_updated_t));
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        updated->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, updated->chat);
+    }
+
+    struct json_object *from = NULL;
+    if (json_object_object_get_ex(obj, "from", &from))
+    {
+        updated->from = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(from, updated->from);
+    }
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(obj, "date", &date))
+        updated->date = json_object_get_int(date);
+
+    struct json_object *old_chat_member = NULL;
+    if (json_object_object_get_ex(obj, "old_chat_member", &old_chat_member))
+    {
+        updated->old_chat_member = calloc(1, sizeof(telebot_chat_member_t));
+        telebot_parser_get_chat_member(old_chat_member, updated->old_chat_member);
+    }
+
+    struct json_object *new_chat_member = NULL;
+    if (json_object_object_get_ex(obj, "new_chat_member", &new_chat_member))
+    {
+        updated->new_chat_member = calloc(1, sizeof(telebot_chat_member_t));
+        telebot_parser_get_chat_member(new_chat_member, updated->new_chat_member);
+    }
+
+    struct json_object *invite_link = NULL;
+    if (json_object_object_get_ex(obj, "invite_link", &invite_link))
+    {
+        updated->invite_link = calloc(1, sizeof(telebot_chat_invite_link_t));
+        telebot_parser_get_chat_invite_link(invite_link, updated->invite_link);
+    }
+
+    struct json_object *via_chat_folder_invite_link = NULL;
+    if (json_object_object_get_ex(obj, "via_chat_folder_invite_link", &via_chat_folder_invite_link))
+        updated->via_chat_folder_invite_link = json_object_get_boolean(via_chat_folder_invite_link);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_chat_join_request(struct json_object *obj, telebot_chat_join_request_t *request)
+{
+    if ((obj == NULL) || (request == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(request, 0, sizeof(telebot_chat_join_request_t));
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        request->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, request->chat);
+    }
+
+    struct json_object *from = NULL;
+    if (json_object_object_get_ex(obj, "from", &from))
+    {
+        request->from = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(from, request->from);
+    }
+
+    struct json_object *user_chat_id = NULL;
+    if (json_object_object_get_ex(obj, "user_chat_id", &user_chat_id))
+        request->user_chat_id = json_object_get_int64(user_chat_id);
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(obj, "date", &date))
+        request->date = json_object_get_int(date);
+
+    struct json_object *bio = NULL;
+    if (json_object_object_get_ex(obj, "bio", &bio))
+        request->bio = TELEBOT_SAFE_STRDUP(json_object_get_string(bio));
+
+    struct json_object *invite_link = NULL;
+    if (json_object_object_get_ex(obj, "invite_link", &invite_link))
+    {
+        request->invite_link = calloc(1, sizeof(telebot_chat_invite_link_t));
+        telebot_parser_get_chat_invite_link(invite_link, request->invite_link);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_reaction_type(struct json_object *obj, telebot_reaction_type_t *reaction)
+{
+    if ((obj == NULL) || (reaction == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(reaction, 0, sizeof(telebot_reaction_type_t));
+    struct json_object *type = NULL;
+    if (json_object_object_get_ex(obj, "type", &type))
+        reaction->type = TELEBOT_SAFE_STRDUP(json_object_get_string(type));
+
+    struct json_object *emoji = NULL;
+    if (json_object_object_get_ex(obj, "emoji", &emoji))
+        reaction->emoji = TELEBOT_SAFE_STRDUP(json_object_get_string(emoji));
+
+    struct json_object *custom_emoji_id = NULL;
+    if (json_object_object_get_ex(obj, "custom_emoji_id", &custom_emoji_id))
+        reaction->custom_emoji_id = TELEBOT_SAFE_STRDUP(json_object_get_string(custom_emoji_id));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_message_reaction_updated(struct json_object *obj, telebot_message_reaction_updated_t *updated)
+{
+    if ((obj == NULL) || (updated == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(updated, 0, sizeof(telebot_message_reaction_updated_t));
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        updated->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, updated->chat);
+    }
+
+    struct json_object *message_id = NULL;
+    if (json_object_object_get_ex(obj, "message_id", &message_id))
+        updated->message_id = json_object_get_int(message_id);
+
+    struct json_object *user = NULL;
+    if (json_object_object_get_ex(obj, "user", &user))
+    {
+        updated->user = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(user, updated->user);
+    }
+
+    struct json_object *actor_chat = NULL;
+    if (json_object_object_get_ex(obj, "actor_chat", &actor_chat))
+    {
+        updated->actor_chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(actor_chat, updated->actor_chat);
+    }
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(obj, "date", &date))
+        updated->date = json_object_get_int(date);
+
+    struct json_object *old_reaction = NULL;
+    if (json_object_object_get_ex(obj, "old_reaction", &old_reaction))
+    {
+        int array_len = json_object_array_length(old_reaction);
+        updated->count_old_reaction = array_len;
+        updated->old_reaction = calloc(array_len, sizeof(telebot_reaction_type_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_reaction_type(json_object_array_get_idx(old_reaction, i), &(updated->old_reaction[i]));
+    }
+
+    struct json_object *new_reaction = NULL;
+    if (json_object_object_get_ex(obj, "new_reaction", &new_reaction))
+    {
+        int array_len = json_object_array_length(new_reaction);
+        updated->count_new_reaction = array_len;
+        updated->new_reaction = calloc(array_len, sizeof(telebot_reaction_type_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_reaction_type(json_object_array_get_idx(new_reaction, i), &(updated->new_reaction[i]));
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_reaction_count(struct json_object *obj, telebot_reaction_count_t *count)
+{
+    if ((obj == NULL) || (count == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(count, 0, sizeof(telebot_reaction_count_t));
+    struct json_object *type = NULL;
+    if (json_object_object_get_ex(obj, "type", &type))
+        telebot_parser_get_reaction_type(type, &(count->type));
+
+    struct json_object *total_count = NULL;
+    if (json_object_object_get_ex(obj, "total_count", &total_count))
+        count->total_count = json_object_get_int(total_count);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_message_reaction_count_updated(struct json_object *obj, telebot_message_reaction_count_updated_t *updated)
+{
+    if ((obj == NULL) || (updated == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(updated, 0, sizeof(telebot_message_reaction_count_updated_t));
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        updated->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, updated->chat);
+    }
+
+    struct json_object *message_id = NULL;
+    if (json_object_object_get_ex(obj, "message_id", &message_id))
+        updated->message_id = json_object_get_int(message_id);
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(obj, "date", &date))
+        updated->date = json_object_get_int(date);
+
+    struct json_object *reactions = NULL;
+    if (json_object_object_get_ex(obj, "reactions", &reactions))
+    {
+        int array_len = json_object_array_length(reactions);
+        updated->count_reactions = array_len;
+        updated->reactions = calloc(array_len, sizeof(telebot_reaction_count_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_reaction_count(json_object_array_get_idx(reactions, i), &(updated->reactions[i]));
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_chat_boost_source(struct json_object *obj, telebot_chat_boost_source_t *source)
+{
+    if ((obj == NULL) || (source == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(source, 0, sizeof(telebot_chat_boost_source_t));
+    struct json_object *source_obj = NULL;
+    if (json_object_object_get_ex(obj, "source", &source_obj))
+        source->source = TELEBOT_SAFE_STRDUP(json_object_get_string(source_obj));
+
+    struct json_object *user = NULL;
+    if (json_object_object_get_ex(obj, "user", &user))
+    {
+        source->user = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(user, source->user);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_chat_boost(struct json_object *obj, telebot_chat_boost_t *boost)
+{
+    if ((obj == NULL) || (boost == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(boost, 0, sizeof(telebot_chat_boost_t));
+    struct json_object *boost_id = NULL;
+    if (json_object_object_get_ex(obj, "boost_id", &boost_id))
+        boost->boost_id = TELEBOT_SAFE_STRDUP(json_object_get_string(boost_id));
+
+    struct json_object *add_date = NULL;
+    if (json_object_object_get_ex(obj, "add_date", &add_date))
+        boost->add_date = json_object_get_int(add_date);
+
+    struct json_object *expiration_date = NULL;
+    if (json_object_object_get_ex(obj, "expiration_date", &expiration_date))
+        boost->expiration_date = json_object_get_int(expiration_date);
+
+    struct json_object *source = NULL;
+    if (json_object_object_get_ex(obj, "source", &source))
+    {
+        boost->source = calloc(1, sizeof(telebot_chat_boost_source_t));
+        telebot_parser_get_chat_boost_source(source, boost->source);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_chat_boost_updated(struct json_object *obj, telebot_chat_boost_updated_t *updated)
+{
+    if ((obj == NULL) || (updated == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(updated, 0, sizeof(telebot_chat_boost_updated_t));
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        updated->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, updated->chat);
+    }
+
+    struct json_object *boost = NULL;
+    if (json_object_object_get_ex(obj, "boost", &boost))
+    {
+        updated->boost = calloc(1, sizeof(telebot_chat_boost_t));
+        telebot_parser_get_chat_boost(boost, updated->boost);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_chat_boost_removed(struct json_object *obj, telebot_chat_boost_removed_t *removed)
+{
+    if ((obj == NULL) || (removed == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(removed, 0, sizeof(telebot_chat_boost_removed_t));
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        removed->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, removed->chat);
+    }
+
+    struct json_object *boost_id = NULL;
+    if (json_object_object_get_ex(obj, "boost_id", &boost_id))
+        removed->boost_id = TELEBOT_SAFE_STRDUP(json_object_get_string(boost_id));
+
+    struct json_object *remove_date = NULL;
+    if (json_object_object_get_ex(obj, "remove_date", &remove_date))
+        removed->remove_date = json_object_get_int(remove_date);
+
+    struct json_object *source = NULL;
+    if (json_object_object_get_ex(obj, "source", &source))
+    {
+        removed->source = calloc(1, sizeof(telebot_chat_boost_source_t));
+        telebot_parser_get_chat_boost_source(source, removed->source);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_forum_topic(struct json_object *obj, telebot_forum_topic_t *topic)
+{
+    if ((obj == NULL) || (topic == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(topic, 0, sizeof(telebot_forum_topic_t));
+    struct json_object *message_thread_id = NULL;
+    if (json_object_object_get_ex(obj, "message_thread_id", &message_thread_id))
+        topic->message_thread_id = json_object_get_int(message_thread_id);
+
+    struct json_object *name = NULL;
+    if (json_object_object_get_ex(obj, "name", &name))
+        topic->name = TELEBOT_SAFE_STRDUP(json_object_get_string(name));
+
+    struct json_object *icon_color = NULL;
+    if (json_object_object_get_ex(obj, "icon_color", &icon_color))
+        topic->icon_color = json_object_get_int(icon_color);
+
+    struct json_object *icon_custom_emoji_id = NULL;
+    if (json_object_object_get_ex(obj, "icon_custom_emoji_id", &icon_custom_emoji_id))
+        topic->icon_custom_emoji_id = TELEBOT_SAFE_STRDUP(json_object_get_string(icon_custom_emoji_id));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_inline_query(struct json_object *obj, telebot_inline_query_t *query)
+{
+    if ((obj == NULL) || (query == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(query, 0, sizeof(telebot_inline_query_t));
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(obj, "id", &id))
+        query->id = TELEBOT_SAFE_STRDUP(json_object_get_string(id));
+
+    struct json_object *from = NULL;
+    if (json_object_object_get_ex(obj, "from", &from))
+    {
+        query->from = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(from, query->from);
+    }
+
+    struct json_object *query_obj = NULL;
+    if (json_object_object_get_ex(obj, "query", &query_obj))
+        query->query = TELEBOT_SAFE_STRDUP(json_object_get_string(query_obj));
+
+    struct json_object *offset = NULL;
+    if (json_object_object_get_ex(obj, "offset", &offset))
+        query->offset = TELEBOT_SAFE_STRDUP(json_object_get_string(offset));
+
+    struct json_object *chat_type = NULL;
+    if (json_object_object_get_ex(obj, "chat_type", &chat_type))
+        query->chat_type = TELEBOT_SAFE_STRDUP(json_object_get_string(chat_type));
+
+    struct json_object *location = NULL;
+    if (json_object_object_get_ex(obj, "location", &location))
+    {
+        query->location = calloc(1, sizeof(telebot_location_t));
+        telebot_parser_get_location(location, query->location);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_chosen_inline_result(struct json_object *obj, telebot_chosen_inline_result_t *result)
+{
+    if ((obj == NULL) || (result == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(result, 0, sizeof(telebot_chosen_inline_result_t));
+    struct json_object *result_id = NULL;
+    if (json_object_object_get_ex(obj, "result_id", &result_id))
+        result->result_id = TELEBOT_SAFE_STRDUP(json_object_get_string(result_id));
+
+    struct json_object *from = NULL;
+    if (json_object_object_get_ex(obj, "from", &from))
+    {
+        result->from = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(from, result->from);
+    }
+
+    struct json_object *location = NULL;
+    if (json_object_object_get_ex(obj, "location", &location))
+    {
+        result->location = calloc(1, sizeof(telebot_location_t));
+        telebot_parser_get_location(location, result->location);
+    }
+
+    struct json_object *inline_message_id = NULL;
+    if (json_object_object_get_ex(obj, "inline_message_id", &inline_message_id))
+        result->inline_message_id = TELEBOT_SAFE_STRDUP(json_object_get_string(inline_message_id));
+
+    struct json_object *query = NULL;
+    if (json_object_object_get_ex(obj, "query", &query))
+        result->query = TELEBOT_SAFE_STRDUP(json_object_get_string(query));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_shipping_query(struct json_object *obj, telebot_shipping_query_t *query)
+{
+    if ((obj == NULL) || (query == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(query, 0, sizeof(telebot_shipping_query_t));
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(obj, "id", &id))
+        query->id = TELEBOT_SAFE_STRDUP(json_object_get_string(id));
+
+    struct json_object *from = NULL;
+    if (json_object_object_get_ex(obj, "from", &from))
+    {
+        query->from = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(from, query->from);
+    }
+
+    struct json_object *invoice_payload = NULL;
+    if (json_object_object_get_ex(obj, "invoice_payload", &invoice_payload))
+        query->invoice_payload = TELEBOT_SAFE_STRDUP(json_object_get_string(invoice_payload));
+
+    struct json_object *shipping_address = NULL;
+    if (json_object_object_get_ex(obj, "shipping_address", &shipping_address))
+    {
+        query->shipping_address = calloc(1, sizeof(telebot_shipping_address_t));
+        telebot_parser_get_shipping_address(shipping_address, query->shipping_address);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_pre_checkout_query(struct json_object *obj, telebot_pre_checkout_query_t *query)
+{
+    if ((obj == NULL) || (query == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(query, 0, sizeof(telebot_pre_checkout_query_t));
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(obj, "id", &id))
+        query->id = TELEBOT_SAFE_STRDUP(json_object_get_string(id));
+
+    struct json_object *from = NULL;
+    if (json_object_object_get_ex(obj, "from", &from))
+    {
+        query->from = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(from, query->from);
+    }
+
+    struct json_object *currency = NULL;
+    if (json_object_object_get_ex(obj, "currency", &currency))
+        query->currency = TELEBOT_SAFE_STRDUP(json_object_get_string(currency));
+
+    struct json_object *total_amount = NULL;
+    if (json_object_object_get_ex(obj, "total_amount", &total_amount))
+        query->total_amount = json_object_get_int(total_amount);
+
+    struct json_object *invoice_payload = NULL;
+    if (json_object_object_get_ex(obj, "invoice_payload", &invoice_payload))
+        query->invoice_payload = TELEBOT_SAFE_STRDUP(json_object_get_string(invoice_payload));
+
+    struct json_object *shipping_option_id = NULL;
+    if (json_object_object_get_ex(obj, "shipping_option_id", &shipping_option_id))
+        query->shipping_option_id = TELEBOT_SAFE_STRDUP(json_object_get_string(shipping_option_id));
+
+    struct json_object *order_info = NULL;
+    if (json_object_object_get_ex(obj, "order_info", &order_info))
+    {
+        query->order_info = calloc(1, sizeof(telebot_order_info_t));
+        telebot_parser_get_order_info(order_info, query->order_info);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_stickers(struct json_object *obj, telebot_sticker_t **stickers, int *count)
+{
+    // Stub: implement if needed, usually in telebot-stickers.c
+    return TELEBOT_ERROR_OPERATION_FAILED;
+}
+
+static telebot_error_e telebot_parser_get_business_bot_rights(struct json_object *obj, telebot_business_bot_rights_t *rights)
+{
+    if ((obj == NULL) || (rights == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(rights, 0, sizeof(telebot_business_bot_rights_t));
+    struct json_object *tmp = NULL;
+    if (json_object_object_get_ex(obj, "can_reply", &tmp))
+        rights->can_reply = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_read_messages", &tmp))
+        rights->can_read_messages = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_delete_sent_messages", &tmp))
+        rights->can_delete_sent_messages = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_delete_all_messages", &tmp))
+        rights->can_delete_all_messages = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_edit_name", &tmp))
+        rights->can_edit_name = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_edit_bio", &tmp))
+        rights->can_edit_bio = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_edit_profile_photo", &tmp))
+        rights->can_edit_profile_photo = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_edit_username", &tmp))
+        rights->can_edit_username = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_change_gift_settings", &tmp))
+        rights->can_change_gift_settings = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_view_gifts_and_stars", &tmp))
+        rights->can_view_gifts_and_stars = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_convert_gifts_to_stars", &tmp))
+        rights->can_convert_gifts_to_stars = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_transfer_and_upgrade_gifts", &tmp))
+        rights->can_transfer_and_upgrade_gifts = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_transfer_stars", &tmp))
+        rights->can_transfer_stars = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "can_manage_stories", &tmp))
+        rights->can_manage_stories = json_object_get_boolean(tmp);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_business_messages_deleted(struct json_object *obj, telebot_business_messages_deleted_t *deleted)
+{
+    if ((obj == NULL) || (deleted == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(deleted, 0, sizeof(telebot_business_messages_deleted_t));
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(obj, "business_connection_id", &id))
+        deleted->business_connection_id = TELEBOT_SAFE_STRDUP(json_object_get_string(id));
+
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        deleted->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, deleted->chat);
+    }
+
+    struct json_object *message_ids = NULL;
+    if (json_object_object_get_ex(obj, "message_ids", &message_ids))
+    {
+        int array_len = json_object_array_length(message_ids);
+        deleted->count_message_ids = array_len;
+        deleted->message_ids = calloc(array_len, sizeof(int));
+        for (int i = 0; i < array_len; i++)
+            deleted->message_ids[i] = json_object_get_int(json_object_array_get_idx(message_ids, i));
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_message_origin(struct json_object *obj, telebot_message_origin_t *origin)
+{
+    if ((obj == NULL) || (origin == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(origin, 0, sizeof(telebot_message_origin_t));
+    struct json_object *type = NULL;
+    if (json_object_object_get_ex(obj, "type", &type))
+        origin->type = TELEBOT_SAFE_STRDUP(json_object_get_string(type));
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(obj, "date", &date))
+        origin->date = json_object_get_int(date);
+
+    struct json_object *sender_user = NULL;
+    if (json_object_object_get_ex(obj, "sender_user", &sender_user))
+    {
+        origin->sender_user = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(sender_user, origin->sender_user);
+    }
+
+    struct json_object *sender_user_name = NULL;
+    if (json_object_object_get_ex(obj, "sender_user_name", &sender_user_name))
+        origin->sender_user_name = TELEBOT_SAFE_STRDUP(json_object_get_string(sender_user_name));
+
+    struct json_object *sender_chat = NULL;
+    if (json_object_object_get_ex(obj, "sender_chat", &sender_chat))
+    {
+        origin->sender_chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(sender_chat, origin->sender_chat);
+    }
+
+    struct json_object *author_signature = NULL;
+    if (json_object_object_get_ex(obj, "author_signature", &author_signature))
+        origin->author_signature = TELEBOT_SAFE_STRDUP(json_object_get_string(author_signature));
+
+    struct json_object *message_id = NULL;
+    if (json_object_object_get_ex(obj, "message_id", &message_id))
+        origin->message_id = json_object_get_int(message_id);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_text_quote(struct json_object *obj, telebot_text_quote_t *quote)
+{
+    if ((obj == NULL) || (quote == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(quote, 0, sizeof(telebot_text_quote_t));
+    struct json_object *text = NULL;
+    if (json_object_object_get_ex(obj, "text", &text))
+        quote->text = TELEBOT_SAFE_STRDUP(json_object_get_string(text));
+
+    struct json_object *entities = NULL;
+    if (json_object_object_get_ex(obj, "entities", &entities))
+        telebot_parser_get_message_entities(entities, &(quote->entities), &(quote->count_entities));
+
+    struct json_object *position = NULL;
+    if (json_object_object_get_ex(obj, "position", &position))
+        quote->position = json_object_get_int(position);
+
+    struct json_object *is_manual = NULL;
+    if (json_object_object_get_ex(obj, "is_manual", &is_manual))
+        quote->is_manual = json_object_get_boolean(is_manual);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_story(struct json_object *obj, telebot_story_t *story)
+{
+    if ((obj == NULL) || (story == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(story, 0, sizeof(telebot_story_t));
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        story->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, story->chat);
+    }
+
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(obj, "id", &id))
+        story->id = json_object_get_int(id);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_external_reply_info(struct json_object *obj, telebot_external_reply_info_t *info)
+{
+    if ((obj == NULL) || (info == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(info, 0, sizeof(telebot_external_reply_info_t));
+    struct json_object *origin = NULL;
+    if (json_object_object_get_ex(obj, "origin", &origin))
+        telebot_parser_get_message_origin(origin, &(info->origin));
+
+    struct json_object *chat = NULL;
+    if (json_object_object_get_ex(obj, "chat", &chat))
+    {
+        info->chat = calloc(1, sizeof(telebot_chat_t));
+        telebot_parser_get_chat(chat, info->chat);
+    }
+
+    struct json_object *message_id = NULL;
+    if (json_object_object_get_ex(obj, "message_id", &message_id))
+        info->message_id = json_object_get_int(message_id);
+
+    // ... other optional media fields can be added as needed ...
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_link_preview_options(struct json_object *obj, telebot_link_preview_options_t *options)
+{
+    if ((obj == NULL) || (options == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(options, 0, sizeof(telebot_link_preview_options_t));
+    struct json_object *tmp = NULL;
+    if (json_object_object_get_ex(obj, "is_disabled", &tmp))
+        options->is_disabled = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "url", &tmp))
+        options->url = TELEBOT_SAFE_STRDUP(json_object_get_string(tmp));
+    if (json_object_object_get_ex(obj, "prefer_small_media", &tmp))
+        options->prefer_small_media = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "prefer_large_media", &tmp))
+        options->prefer_large_media = json_object_get_boolean(tmp);
+    if (json_object_object_get_ex(obj, "show_above_text", &tmp))
+        options->show_above_text = json_object_get_boolean(tmp);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_paid_media(struct json_object *obj, telebot_paid_media_t *media)
+{
+    if ((obj == NULL) || (media == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(media, 0, sizeof(telebot_paid_media_t));
+    struct json_object *type = NULL;
+    if (json_object_object_get_ex(obj, "type", &type))
+        media->type = TELEBOT_SAFE_STRDUP(json_object_get_string(type));
+
+    struct json_object *width = NULL;
+    if (json_object_object_get_ex(obj, "width", &width))
+        media->width = json_object_get_int(width);
+
+    struct json_object *height = NULL;
+    if (json_object_object_get_ex(obj, "height", &height))
+        media->height = json_object_get_int(height);
+
+    struct json_object *duration = NULL;
+    if (json_object_object_get_ex(obj, "duration", &duration))
+        media->duration = json_object_get_int(duration);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_paid_media_info(struct json_object *obj, telebot_paid_media_info_t *info)
+{
+    if ((obj == NULL) || (info == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(info, 0, sizeof(telebot_paid_media_info_t));
+    struct json_object *star_count = NULL;
+    if (json_object_object_get_ex(obj, "star_count", &star_count))
+        info->star_count = json_object_get_int(star_count);
+
+    struct json_object *paid_media = NULL;
+    if (json_object_object_get_ex(obj, "paid_media", &paid_media))
+    {
+        int array_len = json_object_array_length(paid_media);
+        info->count_paid_media = array_len;
+        info->paid_media = calloc(array_len, sizeof(telebot_paid_media_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_paid_media(json_object_array_get_idx(paid_media, i), &(info->paid_media[i]));
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_refunded_payment(struct json_object *obj, telebot_refunded_payment_t *payment)
+{
+    if ((obj == NULL) || (payment == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(payment, 0, sizeof(telebot_refunded_payment_t));
+    struct json_object *currency = NULL;
+    if (json_object_object_get_ex(obj, "currency", &currency))
+        payment->currency = TELEBOT_SAFE_STRDUP(json_object_get_string(currency));
+
+    struct json_object *total_amount = NULL;
+    if (json_object_object_get_ex(obj, "total_amount", &total_amount))
+        payment->total_amount = json_object_get_int(total_amount);
+
+    struct json_object *invoice_payload = NULL;
+    if (json_object_object_get_ex(obj, "invoice_payload", &invoice_payload))
+        payment->invoice_payload = TELEBOT_SAFE_STRDUP(json_object_get_string(invoice_payload));
+
+    struct json_object *telegram_payment_charge_id = NULL;
+    if (json_object_object_get_ex(obj, "telegram_payment_charge_id", &telegram_payment_charge_id))
+        payment->telegram_payment_charge_id = TELEBOT_SAFE_STRDUP(json_object_get_string(telegram_payment_charge_id));
+
+    struct json_object *provider_payment_charge_id = NULL;
+    if (json_object_object_get_ex(obj, "provider_payment_charge_id", &provider_payment_charge_id))
+        payment->provider_payment_charge_id = TELEBOT_SAFE_STRDUP(json_object_get_string(provider_payment_charge_id));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_write_access_allowed(struct json_object *obj, telebot_write_access_allowed_t *allowed)
+{
+    if ((obj == NULL) || (allowed == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(allowed, 0, sizeof(telebot_write_access_allowed_t));
+    struct json_object *web_app_name = NULL;
+    if (json_object_object_get_ex(obj, "web_app_name", &web_app_name))
+        allowed->web_app_name = TELEBOT_SAFE_STRDUP(json_object_get_string(web_app_name));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_shared_user(struct json_object *obj, telebot_shared_user_t *user)
+{
+    if ((obj == NULL) || (user == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(user, 0, sizeof(telebot_shared_user_t));
+    struct json_object *user_id = NULL;
+    if (json_object_object_get_ex(obj, "user_id", &user_id))
+        user->user_id = json_object_get_int64(user_id);
+
+    struct json_object *first_name = NULL;
+    if (json_object_object_get_ex(obj, "first_name", &first_name))
+        user->first_name = TELEBOT_SAFE_STRDUP(json_object_get_string(first_name));
+
+    struct json_object *last_name = NULL;
+    if (json_object_object_get_ex(obj, "last_name", &last_name))
+        user->last_name = TELEBOT_SAFE_STRDUP(json_object_get_string(last_name));
+
+    struct json_object *username = NULL;
+    if (json_object_object_get_ex(obj, "username", &username))
+        user->username = TELEBOT_SAFE_STRDUP(json_object_get_string(username));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_users_shared(struct json_object *obj, telebot_users_shared_t *shared)
+{
+    if ((obj == NULL) || (shared == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(shared, 0, sizeof(telebot_users_shared_t));
+    struct json_object *request_id = NULL;
+    if (json_object_object_get_ex(obj, "request_id", &request_id))
+        shared->request_id = json_object_get_int(request_id);
+
+    struct json_object *users = NULL;
+    if (json_object_object_get_ex(obj, "users", &users))
+    {
+        int array_len = json_object_array_length(users);
+        shared->count_users = array_len;
+        shared->users = calloc(array_len, sizeof(telebot_shared_user_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_shared_user(json_object_array_get_idx(users, i), &(shared->users[i]));
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_chat_shared(struct json_object *obj, telebot_chat_shared_t *shared)
+{
+    if ((obj == NULL) || (shared == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(shared, 0, sizeof(telebot_chat_shared_t));
+    struct json_object *request_id = NULL;
+    if (json_object_object_get_ex(obj, "request_id", &request_id))
+        shared->request_id = json_object_get_int(request_id);
+
+    struct json_object *chat_id = NULL;
+    if (json_object_object_get_ex(obj, "chat_id", &chat_id))
+        shared->chat_id = json_object_get_int64(chat_id);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_gift(struct json_object *obj, telebot_gift_t *gift)
+{
+    if ((obj == NULL) || (gift == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(gift, 0, sizeof(telebot_gift_t));
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(obj, "id", &id))
+        gift->id = TELEBOT_SAFE_STRDUP(json_object_get_string(id));
+
+    struct json_object *star_count = NULL;
+    if (json_object_object_get_ex(obj, "star_count", &star_count))
+        gift->star_count = json_object_get_int(star_count);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_gift_info(struct json_object *obj, telebot_gift_info_t *gift_info)
+{
+    if ((obj == NULL) || (gift_info == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(gift_info, 0, sizeof(telebot_gift_info_t));
+    struct json_object *gift = NULL;
+    if (json_object_object_get_ex(obj, "gift", &gift))
+        telebot_parser_get_gift(gift, &(gift_info->gift));
+
+    struct json_object *text = NULL;
+    if (json_object_object_get_ex(obj, "text", &text))
+        gift_info->text = TELEBOT_SAFE_STRDUP(json_object_get_string(text));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_unique_gift(struct json_object *obj, telebot_unique_gift_t *gift)
+{
+    if ((obj == NULL) || (gift == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(gift, 0, sizeof(telebot_unique_gift_t));
+    struct json_object *gift_id = NULL;
+    if (json_object_object_get_ex(obj, "gift_id", &gift_id))
+        gift->gift_id = TELEBOT_SAFE_STRDUP(json_object_get_string(gift_id));
+
+    struct json_object *name = NULL;
+    if (json_object_object_get_ex(obj, "name", &name))
+        gift->name = TELEBOT_SAFE_STRDUP(json_object_get_string(name));
+
+    struct json_object *number = NULL;
+    if (json_object_object_get_ex(obj, "number", &number))
+        gift->number = json_object_get_int(number);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_unique_gift_info(struct json_object *obj, telebot_unique_gift_info_t *gift_info)
+{
+    if ((obj == NULL) || (gift_info == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(gift_info, 0, sizeof(telebot_unique_gift_info_t));
+    struct json_object *gift = NULL;
+    if (json_object_object_get_ex(obj, "gift", &gift))
+    {
+        gift_info->gift = calloc(1, sizeof(telebot_unique_gift_t));
+        telebot_parser_get_unique_gift(gift, gift_info->gift);
+    }
+
+    struct json_object *origin = NULL;
+    if (json_object_object_get_ex(obj, "origin", &origin))
+        gift_info->origin = TELEBOT_SAFE_STRDUP(json_object_get_string(origin));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_chat_boost_added(struct json_object *obj, telebot_chat_boost_added_t *boost)
+{
+    if ((obj == NULL) || (boost == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(boost, 0, sizeof(telebot_chat_boost_added_t));
+    struct json_object *boost_count = NULL;
+    if (json_object_object_get_ex(obj, "boost_count", &boost_count))
+        boost->boost_count = json_object_get_int(boost_count);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_chat_background(struct json_object *obj, telebot_chat_background_t *background)
+{
+    if ((obj == NULL) || (background == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(background, 0, sizeof(telebot_chat_background_t));
+    struct json_object *type = NULL;
+    if (json_object_object_get_ex(obj, "type", &type))
+    {
+        struct json_object *type_str = NULL;
+        if (json_object_object_get_ex(type, "type", &type_str))
+            background->type = TELEBOT_SAFE_STRDUP(json_object_get_string(type_str));
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_giveaway_created(struct json_object *obj, telebot_giveaway_created_t *giveaway)
+{
+    if ((obj == NULL) || (giveaway == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(giveaway, 0, sizeof(telebot_giveaway_created_t));
+    struct json_object *prize_star_count = NULL;
+    if (json_object_object_get_ex(obj, "prize_star_count", &prize_star_count))
+        giveaway->prize_star_count = json_object_get_int(prize_star_count);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_giveaway_completed(struct json_object *obj, telebot_giveaway_completed_t *giveaway)
+{
+    if ((obj == NULL) || (giveaway == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(giveaway, 0, sizeof(telebot_giveaway_completed_t));
+    struct json_object *winner_count = NULL;
+    if (json_object_object_get_ex(obj, "winner_count", &winner_count))
+        giveaway->winner_count = json_object_get_int(winner_count);
+
+    struct json_object *unclaimed_prize_count = NULL;
+    if (json_object_object_get_ex(obj, "unclaimed_prize_count", &unclaimed_prize_count))
+        giveaway->unclaimed_prize_count = json_object_get_int(unclaimed_prize_count);
+
+    struct json_object *giveaway_message = NULL;
+    if (json_object_object_get_ex(obj, "giveaway_message", &giveaway_message))
+    {
+        giveaway->giveaway_message = calloc(1, sizeof(telebot_message_t));
+        telebot_parser_get_message(giveaway_message, giveaway->giveaway_message);
+    }
+
+    struct json_object *is_star_giveaway = NULL;
+    if (json_object_object_get_ex(obj, "is_star_giveaway", &is_star_giveaway))
+        giveaway->is_star_giveaway = json_object_get_boolean(is_star_giveaway);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_birthdate(struct json_object *obj, telebot_birthdate_t *birthdate)
+{
+    if ((obj == NULL) || (birthdate == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(birthdate, 0, sizeof(telebot_birthdate_t));
+    struct json_object *tmp = NULL;
+    if (json_object_object_get_ex(obj, "day", &tmp))
+        birthdate->day = json_object_get_int(tmp);
+    if (json_object_object_get_ex(obj, "month", &tmp))
+        birthdate->month = json_object_get_int(tmp);
+    if (json_object_object_get_ex(obj, "year", &tmp))
+        birthdate->year = json_object_get_int(tmp);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_business_intro(struct json_object *obj, telebot_business_intro_t *intro)
+{
+    if ((obj == NULL) || (intro == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(intro, 0, sizeof(telebot_business_intro_t));
+    struct json_object *tmp = NULL;
+    if (json_object_object_get_ex(obj, "title", &tmp))
+        intro->title = TELEBOT_SAFE_STRDUP(json_object_get_string(tmp));
+    if (json_object_object_get_ex(obj, "message", &tmp))
+        intro->message = TELEBOT_SAFE_STRDUP(json_object_get_string(tmp));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_business_location(struct json_object *obj, telebot_business_location_t *location)
+{
+    if ((obj == NULL) || (location == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(location, 0, sizeof(telebot_business_location_t));
+    struct json_object *address = NULL;
+    if (json_object_object_get_ex(obj, "address", &address))
+        location->address = TELEBOT_SAFE_STRDUP(json_object_get_string(address));
+
+    struct json_object *loc = NULL;
+    if (json_object_object_get_ex(obj, "location", &loc))
+    {
+        location->location = calloc(1, sizeof(telebot_location_t));
+        telebot_parser_get_location(loc, location->location);
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_business_opening_hours(struct json_object *obj, telebot_business_opening_hours_t *hours)
+{
+    if ((obj == NULL) || (hours == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(hours, 0, sizeof(telebot_business_opening_hours_t));
+    struct json_object *time_zone_name = NULL;
+    if (json_object_object_get_ex(obj, "time_zone_name", &time_zone_name))
+        hours->time_zone_name = TELEBOT_SAFE_STRDUP(json_object_get_string(time_zone_name));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+static telebot_error_e telebot_parser_get_star_transaction(struct json_object *obj, telebot_star_transaction_t *transaction)
+{
+    if ((obj == NULL) || (transaction == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(transaction, 0, sizeof(telebot_star_transaction_t));
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(obj, "id", &id))
+        transaction->id = TELEBOT_SAFE_STRDUP(json_object_get_string(id));
+
+    struct json_object *amount = NULL;
+    if (json_object_object_get_ex(obj, "amount", &amount))
+        transaction->amount = json_object_get_int(amount);
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(obj, "date", &date))
+        transaction->date = json_object_get_int(date);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_star_transactions(struct json_object *obj, telebot_star_transactions_t *transactions)
+{
+    if ((obj == NULL) || (transactions == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(transactions, 0, sizeof(telebot_star_transactions_t));
+    struct json_object *array = NULL;
+    if (json_object_object_get_ex(obj, "transactions", &array))
+    {
+        int array_len = json_object_array_length(array);
+        transactions->count_transactions = array_len;
+        transactions->transactions = calloc(array_len, sizeof(telebot_star_transaction_t));
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_star_transaction(json_object_array_get_idx(array, i), &(transactions->transactions[i]));
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_prepared_inline_message(struct json_object *obj, telebot_prepared_inline_message_t *prepared_message)
+{
+    if ((obj == NULL) || (prepared_message == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(prepared_message, 0, sizeof(telebot_prepared_inline_message_t));
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(obj, "id", &id))
+        prepared_message->id = TELEBOT_SAFE_STRDUP(json_object_get_string(id));
+
+    struct json_object *expiration_date = NULL;
+    if (json_object_object_get_ex(obj, "expiration_date", &expiration_date))
+        prepared_message->expiration_date = json_object_get_int(expiration_date);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_game_high_score(struct json_object *obj, telebot_game_high_score_t *high_score)
+{
+    if ((obj == NULL) || (high_score == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(high_score, 0, sizeof(telebot_game_high_score_t));
+    struct json_object *position = NULL;
+    if (json_object_object_get_ex(obj, "position", &position))
+        high_score->position = json_object_get_int(position);
+
+    struct json_object *user = NULL;
+    if (json_object_object_get_ex(obj, "user", &user))
+    {
+        high_score->user = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(user, high_score->user);
+    }
+
+    struct json_object *score = NULL;
+    if (json_object_object_get_ex(obj, "score", &score))
+        high_score->score = json_object_get_int(score);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_paid_media_purchased(struct json_object *obj, telebot_paid_media_purchased_t *purchased)
+{
+    if ((obj == NULL) || (purchased == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(purchased, 0, sizeof(telebot_paid_media_purchased_t));
+    struct json_object *from = NULL;
+    if (json_object_object_get_ex(obj, "from", &from))
+    {
+        purchased->from = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(from, purchased->from);
+    }
+
+    struct json_object *paid_media_payload = NULL;
+    if (json_object_object_get_ex(obj, "paid_media_payload", &paid_media_payload))
+        purchased->paid_media_payload = TELEBOT_SAFE_STRDUP(json_object_get_string(paid_media_payload));
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_gifts(struct json_object *obj, telebot_gifts_t *gifts)
+{
+    if ((obj == NULL) || (gifts == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(gifts, 0, sizeof(telebot_gifts_t));
+
+    struct json_object *result = NULL;
+    if (!json_object_object_get_ex(obj, "result", &result))
+        result = obj;
+
+    if (json_object_get_type(result) != json_type_array)
+        return TELEBOT_ERROR_OPERATION_FAILED;
+
+    int array_len = json_object_array_length(result);
+    if (array_len > 0)
+    {
+        gifts->gifts = calloc(array_len, sizeof(telebot_gift_t));
+        if (gifts->gifts == NULL)
+            return TELEBOT_ERROR_OUT_OF_MEMORY;
+
+        gifts->count = array_len;
+        for (int i = 0; i < array_len; i++)
+        {
+            struct json_object *item = json_object_array_get_idx(result, i);
+            telebot_parser_get_gift(item, &(gifts->gifts[i]));
+        }
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_user_gift(struct json_object *obj, telebot_user_gift_t *gift)
+{
+    if ((obj == NULL) || (gift == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(gift, 0, sizeof(telebot_user_gift_t));
+
+    struct json_object *gift_id = NULL;
+    if (json_object_object_get_ex(obj, "gift_id", &gift_id))
+        gift->gift_id = TELEBOT_SAFE_STRDUP(json_object_get_string(gift_id));
+
+    struct json_object *sender_user = NULL;
+    if (json_object_object_get_ex(obj, "sender_user", &sender_user))
+    {
+        gift->sender_user = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(sender_user, gift->sender_user);
+    }
+
+    struct json_object *text = NULL;
+    if (json_object_object_get_ex(obj, "text", &text))
+        gift->text = TELEBOT_SAFE_STRDUP(json_object_get_string(text));
+
+    struct json_object *entities = NULL;
+    if (json_object_object_get_ex(obj, "entities", &entities))
+        telebot_parser_get_message_entities(entities, &(gift->entities), &(gift->count_entities));
+
+    struct json_object *gift_obj = NULL;
+    if (json_object_object_get_ex(obj, "gift", &gift_obj))
+    {
+        gift->gift = calloc(1, sizeof(telebot_gift_t));
+        telebot_parser_get_gift(gift_obj, gift->gift);
+    }
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(obj, "date", &date))
+        gift->date = json_object_get_int(date);
+
+    struct json_object *message_id = NULL;
+    if (json_object_object_get_ex(obj, "message_id", &message_id))
+        gift->message_id = json_object_get_int(message_id);
+
+    struct json_object *upgrade_star_count = NULL;
+    if (json_object_object_get_ex(obj, "upgrade_star_count", &upgrade_star_count))
+        gift->upgrade_star_count = json_object_get_int(upgrade_star_count);
+
+    struct json_object *is_upgraded = NULL;
+    if (json_object_object_get_ex(obj, "is_upgraded", &is_upgraded))
+        gift->is_upgraded = json_object_get_boolean(is_upgraded);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_user_gifts(struct json_object *obj, telebot_user_gifts_t *gifts)
+{
+    if ((obj == NULL) || (gifts == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(gifts, 0, sizeof(telebot_user_gifts_t));
+
+    struct json_object *result = NULL;
+    if (!json_object_object_get_ex(obj, "result", &result))
+        result = obj;
+
+    struct json_object *total_count = NULL;
+    if (json_object_object_get_ex(result, "total_count", &total_count))
+        gifts->total_count = json_object_get_int(total_count);
+
+    struct json_object *gifts_array = NULL;
+    if (json_object_object_get_ex(result, "gifts", &gifts_array))
+    {
+        int array_len = json_object_array_length(gifts_array);
+        if (array_len > 0)
+        {
+            gifts->gifts = calloc(array_len, sizeof(telebot_user_gift_t));
+            if (gifts->gifts == NULL)
+                return TELEBOT_ERROR_OUT_OF_MEMORY;
+
+            gifts->count = array_len;
+            for (int i = 0; i < array_len; i++)
+            {
+                struct json_object *item = json_object_array_get_idx(gifts_array, i);
+                telebot_parser_get_user_gift(item, &(gifts->gifts[i]));
+            }
+        }
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_user_profile_audios(struct json_object *obj, telebot_user_profile_audios_t *audios)
+{
+    if ((obj == NULL) || (audios == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(audios, 0, sizeof(telebot_user_profile_audios_t));
+
+    struct json_object *result = NULL;
+    if (!json_object_object_get_ex(obj, "result", &result))
+        result = obj;
+
+    struct json_object *total_count = NULL;
+    if (json_object_object_get_ex(result, "total_count", &total_count))
+        audios->total_count = json_object_get_int(total_count);
+
+    struct json_object *audios_array = NULL;
+    if (json_object_object_get_ex(result, "audios", &audios_array))
+    {
+        int array_len = json_object_array_length(audios_array);
+        if (array_len > 0)
+        {
+            audios->audios = calloc(array_len, sizeof(telebot_audio_t));
+            if (audios->audios == NULL)
+                return TELEBOT_ERROR_OUT_OF_MEMORY;
+
+            audios->count = array_len;
+            for (int i = 0; i < array_len; i++)
+            {
+                struct json_object *item = json_object_array_get_idx(audios_array, i);
+                telebot_parser_get_audio(item, &(audios->audios[i]));
+            }
+        }
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_business_connection(struct json_object *obj, telebot_business_connection_t *connection)
+{
+    if ((obj == NULL) || (connection == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(connection, 0, sizeof(telebot_business_connection_t));
+
+    struct json_object *result = NULL;
+    if (!json_object_object_get_ex(obj, "result", &result))
+        result = obj;
+
+    struct json_object *id = NULL;
+    if (json_object_object_get_ex(result, "id", &id))
+        connection->id = TELEBOT_SAFE_STRDUP(json_object_get_string(id));
+
+    struct json_object *user = NULL;
+    if (json_object_object_get_ex(result, "user", &user))
+    {
+        connection->user = calloc(1, sizeof(telebot_user_t));
+        telebot_parser_get_user(user, connection->user);
+    }
+
+    struct json_object *user_chat_id = NULL;
+    if (json_object_object_get_ex(result, "user_chat_id", &user_chat_id))
+        connection->user_chat_id = json_object_get_int64(user_chat_id);
+
+    struct json_object *date = NULL;
+    if (json_object_object_get_ex(result, "date", &date))
+        connection->date = json_object_get_int(date);
+
+    struct json_object *can_reply = NULL;
+    if (json_object_object_get_ex(result, "can_reply", &can_reply))
+        connection->can_reply = json_object_get_boolean(can_reply);
+
+    struct json_object *is_enabled = NULL;
+    if (json_object_object_get_ex(result, "is_enabled", &is_enabled))
+        connection->is_enabled = json_object_get_boolean(is_enabled);
+
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_user_chat_boosts(struct json_object *obj, telebot_user_chat_boosts_t *boosts)
+{
+    if ((obj == NULL) || (boosts == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    memset(boosts, 0, sizeof(telebot_user_chat_boosts_t));
+
+    struct json_object *result = NULL;
+    if (!json_object_object_get_ex(obj, "result", &result))
+        result = obj;
+
+    struct json_object *boosts_array = NULL;
+    if (json_object_object_get_ex(result, "boosts", &boosts_array))
+    {
+        int array_len = json_object_array_length(boosts_array);
+        if (array_len > 0)
+        {
+            boosts->boosts = calloc(array_len, sizeof(telebot_chat_boost_t));
+            if (boosts->boosts == NULL)
+                return TELEBOT_ERROR_OUT_OF_MEMORY;
+
+            boosts->count = array_len;
+            for (int i = 0; i < array_len; i++)
+            {
+                struct json_object *item = json_object_array_get_idx(boosts_array, i);
+                telebot_parser_get_chat_boost(item, &(boosts->boosts[i]));
+            }
+        }
+    }
+
+    return TELEBOT_ERROR_NONE;
+}
+
+

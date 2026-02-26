@@ -21,6 +21,7 @@
 
 #include <stdbool.h>
 #include <pthread.h>
+#include "telebot-common.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -51,7 +52,7 @@ extern "C"
 typedef struct telebot_core_handler *telebot_core_handler_t;
 
 /**
- * @brief Telebot core respone opaque type.
+ * @brief Telebot core response opaque type.
  */
 typedef struct telebot_core_response *telebot_core_response_t;
 
@@ -1218,6 +1219,22 @@ telebot_core_response_t telebot_core_edit_message_reply_markup(telebot_core_hand
         const char *reply_markup);
 
 /**
+ * @brief Use this method to edit animation, audio, document, photo, or video
+ * messages. If a message is part of a message album, then it can be edited
+ * only to an audio of the same type and with the same caption.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Required if inline_message_id is not specified.
+ * @param[in] message_id Required if inline_message_id is not specified.
+ * @param[in] inline_message_id Required if chat_id and message_id are not specified.
+ * @param[in] media A JSON-serialized object for a new media content of the message.
+ * @param[in] reply_markup A JSON-serialized object for a new inline keyboard.
+ * @return #telebot_core_response_t response that contains the edited message.
+ */
+telebot_core_response_t telebot_core_edit_message_media(telebot_core_handler_t core_h,
+        long long int chat_id, int message_id, const char *inline_message_id,
+        const char *media, const char *reply_markup);
+
+/**
  * @brief Stop a poll which was sent by the bot.
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
  * @param[in] chat_id Required if inline_message_id. Unique identifier for the target
@@ -1255,6 +1272,729 @@ telebot_core_response_t telebot_core_stop_poll(telebot_core_handler_t core_h,
         */
 telebot_core_response_t telebot_core_delete_message(telebot_core_handler_t core_h,
         long long int chat_id, int message_id);
+
+/**
+ * @brief Use this method to log out from the cloud Bot API server before
+ * launching the bot locally.
+ * @param[in] core_h The telebot core handler.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_log_out(telebot_core_handler_t core_h);
+
+/**
+ * @brief Use this method to close the bot instance before moving it from one
+ * local server to another.
+ * @param[in] core_h The telebot core handler.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_close(telebot_core_handler_t core_h);
+
+/**
+ * @brief Use this method to change the bot's name.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] name New bot name; 0-64 characters.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_set_my_name(telebot_core_handler_t core_h,
+        const char *name, const char *language_code);
+
+/**
+ * @brief Use this method to get the current bot name for the given user language.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return #telebot_core_response_t response that contains BotName.
+ */
+telebot_core_response_t telebot_core_get_my_name(telebot_core_handler_t core_h,
+        const char *language_code);
+
+/**
+ * @brief Use this method to change the bot's description.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] description New bot description; 0-512 characters.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_set_my_description(telebot_core_handler_t core_h,
+        const char *description, const char *language_code);
+
+/**
+ * @brief Use this method to get the current bot description for the given user language.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return #telebot_core_response_t response that contains BotDescription.
+ */
+telebot_core_response_t telebot_core_get_my_description(telebot_core_handler_t core_h,
+        const char *language_code);
+
+/**
+ * @brief Use this method to change the bot's short description.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] short_description New short description; 0-120 characters.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_set_my_short_description(telebot_core_handler_t core_h,
+        const char *short_description, const char *language_code);
+
+/**
+ * @brief Use this method to get the current bot short description for the given user language.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return #telebot_core_response_t response that contains BotShortDescription.
+ */
+telebot_core_response_t telebot_core_get_my_short_description(telebot_core_handler_t core_h,
+        const char *language_code);
+
+/**
+ * @brief Use this method to change the bot's menu button in a private chat, or the default menu button.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target private chat.
+ * @param[in] menu_button A JSON-serialized object for the bot's new menu button.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_set_chat_menu_button(telebot_core_handler_t core_h,
+        long long int chat_id, const char *menu_button);
+
+/**
+ * @brief Use this method to get the current value of the bot's menu button in a private chat, or the default menu button.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target private chat.
+ * @return #telebot_core_response_t response that contains MenuButton.
+ */
+telebot_core_response_t telebot_core_get_chat_menu_button(telebot_core_handler_t core_h,
+        long long int chat_id);
+
+/**
+ * @brief Use this method to change the default administrator rights requested by the bot when it's added as an administrator to groups or channels.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] rights A JSON-serialized object describing new default administrator rights.
+ * @param[in] for_channels Pass True to change the default administrator rights of the bot in channels.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_set_my_default_administrator_rights(telebot_core_handler_t core_h,
+        const char *rights, bool for_channels);
+
+/**
+ * @brief Use this method to get the current default administrator rights of the bot.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] for_channels Pass True to get default administrator rights of the bot in channels.
+ * @return #telebot_core_response_t response that contains ChatAdministratorRights.
+ */
+telebot_core_response_t telebot_core_get_my_default_administrator_rights(telebot_core_handler_t core_h,
+        bool for_channels);
+
+/**
+ * @brief Use this method to delete the list of the bot's commands for the given scope and user language.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] scope A JSON-serialized object, describing scope of users for which the commands are relevant.
+ * @param[in] language_code A two-letter ISO 639-1 language code.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_delete_my_commands(telebot_core_handler_t core_h,
+        const char *scope, const char *language_code);
+
+/**
+ * @brief Use this method to copy messages of any kind.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] from_chat_id Unique identifier for the chat where the original message was sent.
+ * @param[in] message_id Message identifier in the chat specified by from_chat_id.
+ * @param[in] caption New caption for media, 0-1024 characters after entities parsing.
+ * @param[in] parse_mode Mode for parsing entities in the new caption.
+ * @param[in] caption_entities A JSON-serialized list of special entities that appear in the new caption.
+ * @param[in] disable_notification Sends the message silently.
+ * @param[in] protect_content Protects the contents of the sent message from forwarding and saving.
+ * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
+ * @param[in] allow_sending_without_reply Pass True if the message should be sent even if the specified replied-to message is not found.
+ * @param[in] reply_markup Additional interface options.
+ * @return #telebot_core_response_t response that contains MessageId.
+ */
+telebot_core_response_t telebot_core_copy_message(telebot_core_handler_t core_h,
+        long long int chat_id, long long int from_chat_id, int message_id,
+        const char *caption, const char *parse_mode, const char *caption_entities,
+        bool disable_notification, bool protect_content, int reply_to_message_id,
+        bool allow_sending_without_reply, const char *reply_markup);
+
+/**
+ * @brief Use this method to copy messages of any kind. Service messages,
+ * giveaway messages, giveaway winners messages, and invoice messages can't
+ * be copied.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] from_chat_id Unique identifier for the chat where the original messages were sent.
+ * @param[in] message_ids A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to copy.
+ * @param[in] disable_notification Sends the messages silently.
+ * @param[in] protect_content Protects the contents of the sent messages from forwarding and saving.
+ * @param[in] remove_caption Pass True to copy the messages without their captions.
+ * @return #telebot_core_response_t response that contains an array of MessageId.
+ */
+telebot_core_response_t telebot_core_copy_messages(telebot_core_handler_t core_h,
+        long long int chat_id, long long int from_chat_id, const char *message_ids,
+        bool disable_notification, bool protect_content, bool remove_caption);
+
+/**
+ * @brief Use this method to forward multiple messages of any kind.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] from_chat_id Unique identifier for the chat where the original messages were sent.
+ * @param[in] message_ids A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to forward.
+ * @param[in] disable_notification Sends the messages silently.
+ * @param[in] protect_content Protects the contents of the sent messages from forwarding and saving.
+ * @return #telebot_core_response_t response that contains an array of MessageId.
+ */
+telebot_core_response_t telebot_core_forward_messages(telebot_core_handler_t core_h,
+        long long int chat_id, long long int from_chat_id, const char *message_ids,
+        bool disable_notification, bool protect_content);
+
+/**
+ * @brief Use this method to delete multiple messages in a chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_ids A JSON-serialized list of 1-100 identifiers of messages to delete.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_delete_messages(telebot_core_handler_t core_h,
+        long long int chat_id, const char *message_ids);
+
+/**
+ * @brief Use this method to ban a user in a group, a supergroup or a channel.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] until_date Date when the user will be unbanned, unix time.
+ * @param[in] revoke_messages Pass True to delete all messages from the chat for the user that is being banned.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_ban_chat_member(telebot_core_handler_t core_h,
+        long long int chat_id, int user_id, long until_date, bool revoke_messages);
+
+/**
+ * @brief Use this method to ban a channel chat in a supergroup or a channel.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] sender_chat_id Unique identifier of the target sender chat.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_ban_chat_sender_chat(telebot_core_handler_t core_h,
+        long long int chat_id, long long int sender_chat_id);
+
+/**
+ * @brief Use this method to unban a previously banned channel chat in a supergroup or a channel.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] sender_chat_id Unique identifier of the target sender chat.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_unban_chat_sender_chat(telebot_core_handler_t core_h,
+        long long int chat_id, long long int sender_chat_id);
+
+/**
+ * @brief Use this method to create an additional invite link for a chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] name Invite link name; 0-32 characters.
+ * @param[in] expire_date Point in time (Unix timestamp) when the link will expire.
+ * @param[in] member_limit The maximum number of users that can be members of the chat simultaneously after joining the chat via this invite link; 1-99999.
+ * @param[in] creates_join_request True, if users joining the chat via the link need to be approved by chat administrators.
+ * @return #telebot_core_response_t response that contains ChatInviteLink.
+ */
+telebot_core_response_t telebot_core_create_chat_invite_link(telebot_core_handler_t core_h,
+        long long int chat_id, const char *name, long expire_date, int member_limit,
+        bool creates_join_request);
+
+/**
+ * @brief Use this method to edit a non-primary invite link created by the bot.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] invite_link The invite link to edit.
+ * @param[in] name Invite link name; 0-32 characters.
+ * @param[in] expire_date Point in time (Unix timestamp) when the link will expire.
+ * @param[in] member_limit The maximum number of users that can be members of the chat simultaneously after joining the chat via this invite link; 1-99999.
+ * @param[in] creates_join_request True, if users joining the chat via the link need to be approved by chat administrators.
+ * @return #telebot_core_response_t response that contains ChatInviteLink.
+ */
+telebot_core_response_t telebot_core_edit_chat_invite_link(telebot_core_handler_t core_h,
+        long long int chat_id, const char *invite_link, const char *name,
+        long expire_date, int member_limit, bool creates_join_request);
+
+/**
+ * @brief Use this method to revoke an invite link created by the bot.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] invite_link The invite link to revoke.
+ * @return #telebot_core_response_t response that contains ChatInviteLink.
+ */
+telebot_core_response_t telebot_core_revoke_chat_invite_link(telebot_core_handler_t core_h,
+        long long int chat_id, const char *invite_link);
+
+/**
+ * @brief Use this method to approve a chat join request.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] user_id Unique identifier of the target user.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_approve_chat_join_request(telebot_core_handler_t core_h,
+        long long int chat_id, int user_id);
+
+/**
+ * @brief Use this method to decline a chat join request.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] user_id Unique identifier of the target user.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_decline_chat_join_request(telebot_core_handler_t core_h,
+        long long int chat_id, int user_id);
+
+/**
+ * @brief Use this method to set a new message reaction.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_id Unique identifier of the target message.
+ * @param[in] reaction A JSON-serialized list of reaction types to set on the message.
+ * @param[in] is_big Pass True to set the reaction with a big animation.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_set_message_reaction(telebot_core_handler_t core_h,
+        long long int chat_id, int message_id, const char *reaction, bool is_big);
+
+/**
+ * @brief Use this method to create a topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] name Topic name, 1-128 characters.
+ * @param[in] icon_color Color of the topic icon in RGB format.
+ * @param[in] icon_custom_emoji_id Unique identifier of the custom emoji used as the topic icon.
+ * @return #telebot_core_response_t response that contains ForumTopic.
+ */
+telebot_core_response_t telebot_core_create_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id, const char *name, int icon_color, const char *icon_custom_emoji_id);
+
+/**
+ * @brief Use this method to edit name and icon of a topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_thread_id Unique identifier for the target message thread of the forum topic.
+ * @param[in] name New topic name, 0-128 characters.
+ * @param[in] icon_custom_emoji_id New unique identifier of the custom emoji used as the topic icon.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_edit_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id, int message_thread_id, const char *name, const char *icon_custom_emoji_id);
+
+/**
+ * @brief Use this method to close an open topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_thread_id Unique identifier for the target message thread of the forum topic.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_close_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id, int message_thread_id);
+
+/**
+ * @brief Use this method to reopen a closed topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_thread_id Unique identifier for the target message thread of the forum topic.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_reopen_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id, int message_thread_id);
+
+/**
+ * @brief Use this method to delete a forum topic along with all its messages in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_thread_id Unique identifier for the target message thread of the forum topic.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_delete_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id, int message_thread_id);
+
+/**
+ * @brief Use this method to unpin all messages in a forum topic.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] message_thread_id Unique identifier for the target message thread of the forum topic.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_unpin_all_forum_topic_messages(telebot_core_handler_t core_h,
+        long long int chat_id, int message_thread_id);
+
+/**
+ * @brief Use this method to get custom emoji stickers, which can be used as a forum topic icon by any user.
+ * @param[in] core_h The telebot core handler.
+ * @return #telebot_core_response_t response that contains an array of Sticker objects.
+ */
+telebot_core_response_t telebot_core_get_forum_topic_icon_stickers(telebot_core_handler_t core_h);
+
+/**
+ * @brief Use this method to edit the name of the 'General' topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] name New topic name, 1-128 characters.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_edit_general_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id, const char *name);
+
+/**
+ * @brief Use this method to close an open 'General' topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_close_general_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id);
+
+/**
+ * @brief Use this method to reopen a closed 'General' topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_reopen_general_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id);
+
+/**
+ * @brief Use this method to hide the 'General' topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_hide_general_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id);
+
+/**
+ * @brief Use this method to unhide the 'General' topic in a forum supergroup chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_unhide_general_forum_topic(telebot_core_handler_t core_h,
+        long long int chat_id);
+
+/**
+ * @brief Use this method to unpin all messages in a General forum topic.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @return #telebot_core_response_t response that contains the result (true/false).
+ */
+telebot_core_response_t telebot_core_unpin_all_general_forum_topic_messages(telebot_core_handler_t core_h,
+        long long int chat_id);
+
+/**
+ * @brief Use this method to get information about custom emoji stickers by their identifiers.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] custom_emoji_ids List of custom emoji identifiers.
+ * @return #telebot_core_response_t response that contains an array of Sticker objects.
+ */
+telebot_core_response_t telebot_core_get_custom_emoji_stickers(telebot_core_handler_t core_h,
+        const char *custom_emoji_ids);
+
+/**
+ * @brief Use this method to send answers to an inline query to a user from a Web App.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] web_app_query_id Unique identifier for the query to be answered.
+ * @param[in] result A JSON-serialized object describing the message to be sent.
+ * @return #telebot_core_response_t response that contains SentWebAppMessage.
+ */
+telebot_core_response_t telebot_core_answer_web_app_query(telebot_core_handler_t core_h,
+        const char *web_app_query_id, const char *result);
+
+/**
+ * @brief Use this method to send paid media to a user.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] star_count The number of Telegram Stars that must be paid.
+ * @param[in] media A JSON-serialized array of InputPaidMedia objects.
+ * @param[in] caption Media caption.
+ * @param[in] parse_mode Mode for parsing entities in the caption.
+ * @param[in] caption_entities A JSON-serialized list of special entities.
+ * @param[in] show_caption_above_media Pass True, if the caption must be shown above the message media.
+ * @param[in] disable_notification Sends the message silently.
+ * @param[in] protect_content Protects the contents of the sent message.
+ * @param[in] reply_parameters Description of the message to reply to.
+ * @param[in] reply_markup Additional interface options.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_send_paid_media(telebot_core_handler_t core_h,
+        long long int chat_id, int star_count, const char *media, const char *caption,
+        const char *parse_mode, const char *caption_entities, bool show_caption_above_media,
+        bool disable_notification, bool protect_content, const char *reply_parameters,
+        const char *reply_markup);
+
+/**
+ * @brief Use this method to send answers to an inline query.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] inline_query_id Unique identifier for the answered query.
+ * @param[in] results A JSON-serialized array of results for the inline query.
+ * @param[in] cache_time The maximum amount of time in seconds that the result
+ * of the inline query may be cached on the server.
+ * @param[in] is_personal Pass True, if results may be cached only for the user
+ * that sent the query.
+ * @param[in] next_offset Pass the offset that a client should send in the next
+ * query with the same text to receive more results.
+ * @param[in] button A JSON-serialized object describing a button to be shown
+ * above inline query results.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_answer_inline_query(telebot_core_handler_t core_h,
+        const char *inline_query_id, const char *results, int cache_time,
+        bool is_personal, const char *next_offset, const char *button);
+
+/**
+ * @brief Use this method to save a prepared inline message.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] result A JSON-serialized object describing the message to be sent.
+ * @param[in] allow_user_chats Pass True, if the message can be sent to user chats.
+ * @param[in] allow_bot_chats Pass True, if the message can be sent to bot chats.
+ * @param[in] allow_group_chats Pass True, if the message can be sent to group chats.
+ * @param[in] allow_channel_chats Pass True, if the message can be sent to channel chats.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_save_prepared_inline_message(telebot_core_handler_t core_h,
+        long long int user_id, const char *result, bool allow_user_chats,
+        bool allow_bot_chats, bool allow_group_chats, bool allow_channel_chats);
+
+/**
+ * @brief Use this method to send a gift.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] gift_id Identifier of the gift.
+ * @param[in] pay_for_upgrade Pass True to pay for the gift upgrade.
+ * @param[in] text Text that will be shown along with the gift.
+ * @param[in] text_parse_mode Mode for parsing entities in the text.
+ * @param[in] text_entities A JSON-serialized list of special entities.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_send_gift(telebot_core_handler_t core_h,
+        long long int user_id, long long int chat_id, const char *gift_id,
+        bool pay_for_upgrade, const char *text, const char *text_parse_mode,
+        const char *text_entities);
+
+/**
+ * @brief Use this method to gift a Telegram Premium subscription to a user.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] month_count Number of months the Telegram Premium subscription will be active.
+ * @param[in] star_count Number of Telegram Stars to pay.
+ * @param[in] text Text that will be shown along with the service message.
+ * @param[in] text_parse_mode Mode for parsing entities in the text.
+ * @param[in] text_entities A JSON-serialized list of special entities.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_gift_premium_subscription(telebot_core_handler_t core_h,
+        long long int user_id, int month_count, int star_count, const char *text,
+        const char *text_parse_mode, const char *text_entities);
+
+/**
+ * @brief Use this method to get the current Telegram Stars balance of the bot.
+ * @param[in] core_h The telebot core handler.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_get_my_star_balance(telebot_core_handler_t core_h);
+
+/**
+ * @brief Use this method to get the bot's Telegram Star transactions.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] offset Number of transactions to skip.
+ * @param[in] limit Maximum number of transactions to be retrieved.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_get_star_transactions(telebot_core_handler_t core_h,
+        int offset, int limit);
+
+/**
+ * @brief Use this method to refund a successful payment in Telegram Stars.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] user_id Identifier of the user whose payment will be refunded.
+ * @param[in] telegram_payment_charge_id Telegram payment identifier.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_refund_star_payment(telebot_core_handler_t core_h,
+        long long int user_id, const char *telegram_payment_charge_id);
+
+/**
+ * @brief Use this method to get a list of gifts that can be sent by the bot to users.
+ * @param[in] core_h The telebot core handler.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_get_available_gifts(telebot_core_handler_t core_h);
+
+/**
+ * @brief Use this method to get a list of gifts received by a user.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] offset Number of gifts to skip.
+ * @param[in] limit Maximum number of gifts to be retrieved.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_get_user_gifts(telebot_core_handler_t core_h,
+        long long int user_id, int offset, int limit);
+
+/**
+ * @brief Use this method to get a list of gifts received by a chat.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier of the target chat.
+ * @param[in] offset Number of gifts to skip.
+ * @param[in] limit Maximum number of gifts to be retrieved.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_get_chat_gifts(telebot_core_handler_t core_h,
+        long long int chat_id, int offset, int limit);
+
+/**
+ * @brief Use this method to upgrade a gift.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] gift_id Identifier of the gift.
+ * @param[in] pay_for_upgrade Pass True to pay for the gift upgrade.
+ * @param[in] text Text that will be shown along with the gift.
+ * @param[in] text_parse_mode Mode for parsing entities in the text.
+ * @param[in] text_entities A JSON-serialized list of special entities.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_upgrade_gift(telebot_core_handler_t core_h,
+        const char *gift_id, bool pay_for_upgrade, const char *text,
+        const char *text_parse_mode, const char *text_entities);
+
+/**
+ * @brief Use this method to transfer a gift.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] gift_id Identifier of the gift.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_transfer_gift(telebot_core_handler_t core_h,
+        long long int user_id, long long int chat_id, const char *gift_id);
+
+/**
+ * @brief Use this method to convert a gift to Telegram Stars.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] gift_id Identifier of the gift.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_convert_gift_to_stars(telebot_core_handler_t core_h,
+        const char *gift_id);
+
+/**
+ * @brief Use this method to get user profile audios.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] offset Number of audios to skip.
+ * @param[in] limit Maximum number of audios to be retrieved.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_get_user_profile_audios(telebot_core_handler_t core_h,
+        long long int user_id, int offset, int limit);
+
+/**
+ * @brief Use this method to set the bot's profile photo.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] photo Path to the new profile photo.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_set_my_profile_photo(telebot_core_handler_t core_h,
+        const char *photo);
+
+/**
+ * @brief Use this method to remove the bot's profile photo.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] photo_id Identifier of the photo to remove.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_remove_my_profile_photo(telebot_core_handler_t core_h,
+        const char *photo_id);
+
+/**
+ * @brief Use this method to get information about the business connection.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] business_connection_id Unique identifier of the business connection.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_get_business_connection(telebot_core_handler_t core_h,
+        const char *business_connection_id);
+
+/**
+ * @brief Use this method to get user chat boosts.
+ * @param[in] core_h The telebot core handler.
+ * @param[in] chat_id Unique identifier for the target chat.
+ * @param[in] user_id Unique identifier of the target user.
+ * @return #telebot_core_response_t response.
+ */
+telebot_core_response_t telebot_core_get_user_chat_boosts(telebot_core_handler_t core_h,
+        long long int chat_id, long long int user_id);
+
+/**
+ * @brief Use this method to set the score of the specified user in a game.
+ */
+telebot_core_response_t telebot_core_set_game_score(telebot_core_handler_t core_h,
+        long long int user_id, int score, bool force, bool disable_edit_message,
+        long long int chat_id, int message_id, const char *inline_message_id);
+
+/**
+ * @brief Use this method to get data for high score tables.
+ */
+telebot_core_response_t telebot_core_get_game_high_scores(telebot_core_handler_t core_h,
+        long long int user_id, long long int chat_id, int message_id, const char *inline_message_id);
+
+/**
+ * @brief Use this method to send a game.
+ */
+telebot_core_response_t telebot_core_send_game(telebot_core_handler_t core_h,
+        long long int chat_id, int message_thread_id, const char *game_short_name,
+        bool disable_notification, bool protect_content, const char *reply_parameters,
+        const char *reply_markup);
+
+/**
+ * @brief Use this method to set passport data errors.
+ */
+telebot_core_response_t telebot_core_set_passport_data_errors(telebot_core_handler_t core_h,
+        long long int user_id, const char *errors);
+
+/**
+ * @brief Use this method to send an invoice.
+ */
+telebot_core_response_t telebot_core_send_invoice(telebot_core_handler_t core_h,
+        long long int chat_id, int message_thread_id, const char *title,
+        const char *description, const char *payload, const char *provider_token,
+        const char *currency, const char *prices, int max_tip_amount,
+        const char *suggested_tip_amounts, const char *start_parameter,
+        const char *provider_data, const char *photo_url, int photo_size,
+        int photo_width, int photo_height, bool need_name, bool need_phone_number,
+        bool need_email, bool need_shipping_address, bool send_phone_number_to_provider,
+        bool send_email_to_provider, bool is_flexible, bool disable_notification,
+        bool protect_content, const char *reply_parameters, const char *reply_markup);
+
+/**
+ * @brief Use this method to create a link for an invoice.
+ */
+telebot_core_response_t telebot_core_create_invoice_link(telebot_core_handler_t core_h,
+        const char *title, const char *description, const char *payload,
+        const char *provider_token, const char *currency, const char *prices,
+        int max_tip_amount, const char *suggested_tip_amounts, const char *provider_data,
+        const char *photo_url, int photo_size, int photo_width, int photo_height,
+        bool need_name, bool need_phone_number, bool need_email, bool need_shipping_address,
+        bool send_phone_number_to_provider, bool send_email_to_provider, bool is_flexible);
+
+/**
+ * @brief Use this method to reply to shipping queries.
+ */
+telebot_core_response_t telebot_core_answer_shipping_query(telebot_core_handler_t core_h,
+        const char *shipping_query_id, bool ok, const char *shipping_options,
+        const char *error_message);
+
+/**
+ * @brief Use this method to respond to pre-checkout queries.
+ */
+telebot_core_response_t telebot_core_answer_pre_checkout_query(telebot_core_handler_t core_h,
+        const char *pre_checkout_query_id, bool ok, const char *error_message);
 
 /**
  * @} // end of APIs

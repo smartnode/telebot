@@ -6,7 +6,7 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "${PREFIX}/bin")
 SET(INCLUDEDIR "${PREFIX}/include/${PROJECT_NAME}")
 SET(LIBDIR "${PREFIX}/lib")
-SET(VERSION 6.3.0)
+SET(VERSION 9.4.0)
 
 SET(CMAKE_MACOSX_RPATH 1)
 
@@ -14,6 +14,11 @@ SET(SRCS
     src/telebot-parser.c
     src/telebot-core.c
     src/telebot.c
+    src/telebot-inline.c
+    src/telebot-forums.c
+    src/telebot-payments.c
+    src/telebot-passport.c
+    src/telebot-games.c
 )
 
 ADD_DEFINITIONS("-DDEBUG=0")
@@ -50,5 +55,11 @@ INSTALL(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-methods.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-types.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-core.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-stickers.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-inline.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-forums.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-payments.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-passport.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-games.h
     DESTINATION include/telebot/)
 

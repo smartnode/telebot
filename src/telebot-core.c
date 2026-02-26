@@ -2658,3 +2658,1853 @@ telebot_core_delete_message(telebot_core_handler_t core_h, long long int chat_id
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGE, mimes, count);
 }
+
+telebot_core_response_t
+telebot_core_log_out(telebot_core_handler_t core_h)
+{
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_LOG_OUT, NULL, 0);
+}
+
+telebot_core_response_t
+telebot_core_close(telebot_core_handler_t core_h)
+{
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_CLOSE, NULL, 0);
+}
+
+telebot_core_response_t
+telebot_core_set_my_name(telebot_core_handler_t core_h, const char *name, const char *language_code)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    if (name)
+    {
+        mimes[count].name = "name";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)name;
+        count++;
+    }
+    if (language_code)
+    {
+        mimes[count].name = "language_code";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)language_code;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_NAME, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_my_name(telebot_core_handler_t core_h, const char *language_code)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    if (language_code)
+    {
+        mimes[count].name = "language_code";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)language_code;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_NAME, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_set_my_description(telebot_core_handler_t core_h, const char *description, const char *language_code)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    if (description)
+    {
+        mimes[count].name = "description";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)description;
+        count++;
+    }
+    if (language_code)
+    {
+        mimes[count].name = "language_code";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)language_code;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_DESCRIPTION, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_my_description(telebot_core_handler_t core_h, const char *language_code)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    if (language_code)
+    {
+        mimes[count].name = "language_code";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)language_code;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_DESCRIPTION, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_set_my_short_description(telebot_core_handler_t core_h, const char *short_description,
+                                      const char *language_code)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    if (short_description)
+    {
+        mimes[count].name = "short_description";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)short_description;
+        count++;
+    }
+    if (language_code)
+    {
+        mimes[count].name = "language_code";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)language_code;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_SHORT_DESCRIPTION, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_my_short_description(telebot_core_handler_t core_h, const char *language_code)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    if (language_code)
+    {
+        mimes[count].name = "language_code";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)language_code;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_SHORT_DESCRIPTION, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_set_chat_menu_button(telebot_core_handler_t core_h, long long int chat_id, const char *menu_button)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    if (chat_id != 0)
+    {
+        mimes[count].name = "chat_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+        mimes[count].data.lld = chat_id;
+        count++;
+    }
+    if (menu_button)
+    {
+        mimes[count].name = "menu_button";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)menu_button;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_CHAT_MENU_BUTTON, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_chat_menu_button(telebot_core_handler_t core_h, long long int chat_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    if (chat_id != 0)
+    {
+        mimes[count].name = "chat_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+        mimes[count].data.lld = chat_id;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MENU_BUTTON, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_set_my_default_administrator_rights(telebot_core_handler_t core_h, const char *rights, bool for_channels)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    if (rights)
+    {
+        mimes[count].name = "rights";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)rights;
+        count++;
+    }
+    mimes[count].name = "for_channels";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = for_channels ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_DEFAULT_ADMIN_RIGHTS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_my_default_administrator_rights(telebot_core_handler_t core_h, bool for_channels)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "for_channels";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = for_channels ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_DEFAULT_ADMIN_RIGHTS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_delete_my_commands(telebot_core_handler_t core_h, const char *scope, const char *language_code)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    if (scope)
+    {
+        mimes[count].name = "scope";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)scope;
+        count++;
+    }
+    if (language_code)
+    {
+        mimes[count].name = "language_code";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)language_code;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_MY_COMMANDS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_copy_message(telebot_core_handler_t core_h, long long int chat_id, long long int from_chat_id, int message_id,
+                          const char *caption, const char *parse_mode, const char *caption_entities,
+                          bool disable_notification, bool protect_content, int reply_to_message_id,
+                          bool allow_sending_without_reply, const char *reply_markup)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[12];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "from_chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = from_chat_id;
+    count++;
+    mimes[count].name = "message_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = message_id;
+    count++;
+    if (caption)
+    {
+        mimes[count].name = "caption";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)caption;
+        count++;
+    }
+    if (parse_mode)
+    {
+        mimes[count].name = "parse_mode";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)parse_mode;
+        count++;
+    }
+    if (caption_entities)
+    {
+        mimes[count].name = "caption_entities";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)caption_entities;
+        count++;
+    }
+    mimes[count].name = "disable_notification";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = disable_notification ? "true" : "false";
+    count++;
+    mimes[count].name = "protect_content";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = protect_content ? "true" : "false";
+    count++;
+    if (reply_to_message_id > 0)
+    {
+        mimes[count].name = "reply_to_message_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = reply_to_message_id;
+        count++;
+    }
+    mimes[count].name = "allow_sending_without_reply";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = allow_sending_without_reply ? "true" : "false";
+    count++;
+    if (reply_markup)
+    {
+        mimes[count].name = "reply_markup";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reply_markup;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_COPY_MESSAGE, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_ban_chat_member(telebot_core_handler_t core_h, long long int chat_id, int user_id,
+                             long until_date, bool revoke_messages)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[4];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = user_id;
+    count++;
+    if (until_date > 0)
+    {
+        mimes[count].name = "until_date";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_INT;
+        mimes[count].data.ld = until_date;
+        count++;
+    }
+    mimes[count].name = "revoke_messages";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = revoke_messages ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_BAN_CHAT_MEMBER, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_ban_chat_sender_chat(telebot_core_handler_t core_h, long long int chat_id, long long int sender_chat_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "sender_chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = sender_chat_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_BAN_CHAT_SENDER_CHAT, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_unban_chat_sender_chat(telebot_core_handler_t core_h, long long int chat_id, long long int sender_chat_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "sender_chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = sender_chat_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNBAN_CHAT_SENDER_CHAT, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_create_chat_invite_link(telebot_core_handler_t core_h, long long int chat_id, const char *name,
+                                     long expire_date, int member_limit, bool creates_join_request)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[6];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    if (name)
+    {
+        mimes[count].name = "name";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)name;
+        count++;
+    }
+    if (expire_date > 0)
+    {
+        mimes[count].name = "expire_date";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_INT;
+        mimes[count].data.ld = expire_date;
+        count++;
+    }
+    if (member_limit > 0)
+    {
+        mimes[count].name = "member_limit";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = member_limit;
+        count++;
+    }
+    mimes[count].name = "creates_join_request";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = creates_join_request ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_CREATE_CHAT_INVITE_LINK, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_edit_chat_invite_link(telebot_core_handler_t core_h, long long int chat_id, const char *invite_link,
+                                   const char *name, long expire_date, int member_limit, bool creates_join_request)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[7];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "invite_link";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)invite_link;
+    count++;
+    if (name)
+    {
+        mimes[count].name = "name";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)name;
+        count++;
+    }
+    if (expire_date > 0)
+    {
+        mimes[count].name = "expire_date";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_INT;
+        mimes[count].data.ld = expire_date;
+        count++;
+    }
+    if (member_limit > 0)
+    {
+        mimes[count].name = "member_limit";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = member_limit;
+        count++;
+    }
+    mimes[count].name = "creates_join_request";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = creates_join_request ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_CHAT_INVITE_LINK, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_revoke_chat_invite_link(telebot_core_handler_t core_h, long long int chat_id, const char *invite_link)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "invite_link";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)invite_link;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_REVOKE_CHAT_INVITE_LINK, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_approve_chat_join_request(telebot_core_handler_t core_h, long long int chat_id, int user_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = user_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_APPROVE_CHAT_JOIN_REQUEST, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_decline_chat_join_request(telebot_core_handler_t core_h, long long int chat_id, int user_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = user_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DECLINE_CHAT_JOIN_REQUEST, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_set_message_reaction(telebot_core_handler_t core_h, long long int chat_id, int message_id,
+                                  const char *reaction, bool is_big)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[4];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "message_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = message_id;
+    count++;
+    if (reaction)
+    {
+        mimes[count].name = "reaction";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reaction;
+        count++;
+    }
+    mimes[count].name = "is_big";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = is_big ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MESSAGE_REACTION, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_create_forum_topic(telebot_core_handler_t core_h, long long int chat_id, const char *name,
+                                int icon_color, const char *icon_custom_emoji_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[5];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "name";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)name;
+    count++;
+    if (icon_color > 0)
+    {
+        mimes[count].name = "icon_color";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = icon_color;
+        count++;
+    }
+    if (icon_custom_emoji_id)
+    {
+        mimes[count].name = "icon_custom_emoji_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)icon_custom_emoji_id;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_CREATE_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_edit_forum_topic(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id,
+                              const char *name, const char *icon_custom_emoji_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[4];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "message_thread_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = message_thread_id;
+    count++;
+    if (name)
+    {
+        mimes[count].name = "name";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)name;
+        count++;
+    }
+    if (icon_custom_emoji_id)
+    {
+        mimes[count].name = "icon_custom_emoji_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)icon_custom_emoji_id;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_close_forum_topic(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "message_thread_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = message_thread_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_CLOSE_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_reopen_forum_topic(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "message_thread_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = message_thread_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_REOPEN_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_delete_forum_topic(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "message_thread_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = message_thread_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_unpin_all_forum_topic_messages(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "message_thread_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = message_thread_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNPIN_ALL_FORUM_TOPIC_MESSAGES, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_forum_topic_icon_stickers(telebot_core_handler_t core_h)
+{
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_FORUM_TOPIC_ICON_STICKERS, NULL, 0);
+}
+
+telebot_core_response_t
+telebot_core_edit_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id, const char *name)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "name";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)name;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_GENERAL_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_close_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_CLOSE_GENERAL_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_reopen_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_REOPEN_GENERAL_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_hide_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_HIDE_GENERAL_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_unhide_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNHIDE_GENERAL_FORUM_TOPIC, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_unpin_all_general_forum_topic_messages(telebot_core_handler_t core_h, long long int chat_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNPIN_ALL_GENERAL_FORUM_TOPIC_MESSAGES, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_custom_emoji_stickers(telebot_core_handler_t core_h, const char *custom_emoji_ids)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "custom_emoji_ids";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)custom_emoji_ids;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CUSTOM_EMOJI_STICKERS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_answer_web_app_query(telebot_core_handler_t core_h, const char *web_app_query_id, const char *result)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "web_app_query_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)web_app_query_id;
+    count++;
+    mimes[count].name = "result";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)result;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_WEB_APP_QUERY, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_copy_messages(telebot_core_handler_t core_h, long long int chat_id, long long int from_chat_id,
+                           const char *message_ids, bool disable_notification, bool protect_content,
+                           bool remove_caption)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[6];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "from_chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = from_chat_id;
+    count++;
+    mimes[count].name = "message_ids";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)message_ids;
+    count++;
+    mimes[count].name = "disable_notification";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = disable_notification ? "true" : "false";
+    count++;
+    mimes[count].name = "protect_content";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = protect_content ? "true" : "false";
+    count++;
+    mimes[count].name = "remove_caption";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = remove_caption ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_COPY_MESSAGES, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_forward_messages(telebot_core_handler_t core_h, long long int chat_id, long long int from_chat_id,
+                              const char *message_ids, bool disable_notification, bool protect_content)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[5];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "from_chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = from_chat_id;
+    count++;
+    mimes[count].name = "message_ids";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)message_ids;
+    count++;
+    mimes[count].name = "disable_notification";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = disable_notification ? "true" : "false";
+    count++;
+    mimes[count].name = "protect_content";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = protect_content ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_FORWARD_MESSAGES, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_delete_messages(telebot_core_handler_t core_h, long long int chat_id, const char *message_ids)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "message_ids";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)message_ids;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGES, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_edit_message_media(telebot_core_handler_t core_h, long long int chat_id, int message_id,
+                                const char *inline_message_id, const char *media, const char *reply_markup)
+{
+    if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL))
+    {
+        ERR("Either valid chat_id & message_id or inline_message_id required");
+        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
+
+    int count = 0;
+    telebot_core_mime_t mimes[5];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+
+    if (message_id > 0)
+    {
+        mimes[count].name = "message_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = message_id;
+        count++;
+    }
+
+    if (inline_message_id != NULL)
+    {
+        mimes[count].name = "inline_message_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)inline_message_id;
+        count++;
+    }
+
+    mimes[count].name = "media";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)media;
+    count++;
+
+    if (reply_markup != NULL)
+    {
+        mimes[count].name = "reply_markup";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reply_markup;
+        count++;
+    }
+
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_MEDIA, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_send_paid_media(telebot_core_handler_t core_h, long long int chat_id, int star_count, const char *media,
+                             const char *caption, const char *parse_mode, const char *caption_entities,
+                             bool show_caption_above_media, bool disable_notification, bool protect_content,
+                             const char *reply_parameters, const char *reply_markup)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[12];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "star_count";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = star_count;
+    count++;
+    mimes[count].name = "media";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)media;
+    count++;
+    if (caption)
+    {
+        mimes[count].name = "caption";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)caption;
+        count++;
+    }
+    if (parse_mode)
+    {
+        mimes[count].name = "parse_mode";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)parse_mode;
+        count++;
+    }
+    if (caption_entities)
+    {
+        mimes[count].name = "caption_entities";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)caption_entities;
+        count++;
+    }
+    mimes[count].name = "show_caption_above_media";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = show_caption_above_media ? "true" : "false";
+    count++;
+    mimes[count].name = "disable_notification";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = disable_notification ? "true" : "false";
+    count++;
+    mimes[count].name = "protect_content";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = protect_content ? "true" : "false";
+    count++;
+    if (reply_parameters)
+    {
+        mimes[count].name = "reply_parameters";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reply_parameters;
+        count++;
+    }
+    if (reply_markup)
+    {
+        mimes[count].name = "reply_markup";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reply_markup;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_PAID_MEDIA, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_answer_inline_query(telebot_core_handler_t core_h, const char *inline_query_id, const char *results,
+                                 int cache_time, bool is_personal, const char *next_offset, const char *button)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[6];
+    mimes[count].name = "inline_query_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)inline_query_id;
+    count++;
+    mimes[count].name = "results";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)results;
+    count++;
+    if (cache_time > 0)
+    {
+        mimes[count].name = "cache_time";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = cache_time;
+        count++;
+    }
+    if (is_personal)
+    {
+        mimes[count].name = "is_personal";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = "true";
+        count++;
+    }
+    if (next_offset)
+    {
+        mimes[count].name = "next_offset";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)next_offset;
+        count++;
+    }
+    if (button)
+    {
+        mimes[count].name = "button";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)button;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_INLINE_QUERY, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_save_prepared_inline_message(telebot_core_handler_t core_h, long long int user_id, const char *result,
+                                          bool allow_user_chats, bool allow_bot_chats, bool allow_group_chats,
+                                          bool allow_channel_chats)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[6];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    mimes[count].name = "result";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)result;
+    count++;
+    if (allow_user_chats)
+    {
+        mimes[count].name = "allow_user_chats";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = "true";
+        count++;
+    }
+    if (allow_bot_chats)
+    {
+        mimes[count].name = "allow_bot_chats";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = "true";
+        count++;
+    }
+    if (allow_group_chats)
+    {
+        mimes[count].name = "allow_group_chats";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = "true";
+        count++;
+    }
+    if (allow_channel_chats)
+    {
+        mimes[count].name = "allow_channel_chats";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = "true";
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SAVE_PREPARED_INLINE_MESSAGE, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_send_gift(telebot_core_handler_t core_h, long long int user_id, long long int chat_id, const char *gift_id,
+                       bool pay_for_upgrade, const char *text, const char *text_parse_mode,
+                       const char *text_entities)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[7];
+    if (user_id > 0)
+    {
+        mimes[count].name = "user_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+        mimes[count].data.lld = user_id;
+        count++;
+    }
+    if (chat_id != 0)
+    {
+        mimes[count].name = "chat_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+        mimes[count].data.lld = chat_id;
+        count++;
+    }
+    mimes[count].name = "gift_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)gift_id;
+    count++;
+    mimes[count].name = "pay_for_upgrade";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = pay_for_upgrade ? "true" : "false";
+    count++;
+    if (text)
+    {
+        mimes[count].name = "text";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text;
+        count++;
+    }
+    if (text_parse_mode)
+    {
+        mimes[count].name = "text_parse_mode";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text_parse_mode;
+        count++;
+    }
+    if (text_entities)
+    {
+        mimes[count].name = "text_entities";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text_entities;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_GIFT, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_gift_premium_subscription(telebot_core_handler_t core_h, long long int user_id, int month_count,
+                                       int star_count, const char *text, const char *text_parse_mode,
+                                       const char *text_entities)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[7];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    mimes[count].name = "month_count";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = month_count;
+    count++;
+    mimes[count].name = "star_count";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = star_count;
+    count++;
+    if (text)
+    {
+        mimes[count].name = "text";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text;
+        count++;
+    }
+    if (text_parse_mode)
+    {
+        mimes[count].name = "text_parse_mode";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text_parse_mode;
+        count++;
+    }
+    if (text_entities)
+    {
+        mimes[count].name = "text_entities";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text_entities;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GIFT_PREMIUM_SUBSCRIPTION, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_my_star_balance(telebot_core_handler_t core_h)
+{
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_MY_STAR_BALANCE, NULL, 0);
+}
+
+telebot_core_response_t
+telebot_core_get_star_transactions(telebot_core_handler_t core_h, int offset, int limit)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    if (offset > 0)
+    {
+        mimes[count].name = "offset";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = offset;
+        count++;
+    }
+    if (limit > 0)
+    {
+        mimes[count].name = "limit";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = limit;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_STAR_TRANSACTIONS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_refund_star_payment(telebot_core_handler_t core_h, long long int user_id,
+                                 const char *telegram_payment_charge_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    mimes[count].name = "telegram_payment_charge_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)telegram_payment_charge_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_REFUND_STAR_PAYMENT, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_available_gifts(telebot_core_handler_t core_h)
+{
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_AVAILABLE_GIFTS, NULL, 0);
+}
+
+telebot_core_response_t
+telebot_core_get_user_gifts(telebot_core_handler_t core_h, long long int user_id, int offset, int limit)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[3];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    if (offset > 0)
+    {
+        mimes[count].name = "offset";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = offset;
+        count++;
+    }
+    if (limit > 0)
+    {
+        mimes[count].name = "limit";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = limit;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_USER_GIFTS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_chat_gifts(telebot_core_handler_t core_h, long long int chat_id, int offset, int limit)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[3];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    if (offset > 0)
+    {
+        mimes[count].name = "offset";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = offset;
+        count++;
+    }
+    if (limit > 0)
+    {
+        mimes[count].name = "limit";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = limit;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_GIFTS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_upgrade_gift(telebot_core_handler_t core_h, const char *gift_id, bool pay_for_upgrade, const char *text,
+                          const char *text_parse_mode, const char *text_entities)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[5];
+    mimes[count].name = "gift_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)gift_id;
+    count++;
+    mimes[count].name = "pay_for_upgrade";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = pay_for_upgrade ? "true" : "false";
+    count++;
+    if (text)
+    {
+        mimes[count].name = "text";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text;
+        count++;
+    }
+    if (text_parse_mode)
+    {
+        mimes[count].name = "text_parse_mode";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text_parse_mode;
+        count++;
+    }
+    if (text_entities)
+    {
+        mimes[count].name = "text_entities";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)text_entities;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UPGRADE_GIFT, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_transfer_gift(telebot_core_handler_t core_h, long long int user_id, long long int chat_id,
+                           const char *gift_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[3];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "gift_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)gift_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_TRANSFER_GIFT, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_convert_gift_to_stars(telebot_core_handler_t core_h, const char *gift_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "gift_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)gift_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_CONVERT_GIFT_TO_STARS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_user_profile_audios(telebot_core_handler_t core_h, long long int user_id, int offset, int limit)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[3];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    if (offset > 0)
+    {
+        mimes[count].name = "offset";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = offset;
+        count++;
+    }
+    if (limit > 0)
+    {
+        mimes[count].name = "limit";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = limit;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_USER_AUDIOS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_set_my_profile_photo(telebot_core_handler_t core_h, const char *photo)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "photo";
+    mimes[count].type = TELEBOT_MIME_TYPE_FILE;
+    mimes[count].data.s = (char *)photo;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_MY_PROFILE_PHOTO, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_remove_my_profile_photo(telebot_core_handler_t core_h, const char *photo_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "photo_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)photo_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_REMOVE_MY_PROFILE_PHOTO, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_business_connection(telebot_core_handler_t core_h, const char *business_connection_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[1];
+    mimes[count].name = "business_connection_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)business_connection_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_BUSINESS_CONNECTION, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_user_chat_boosts(telebot_core_handler_t core_h, long long int chat_id, long long int user_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_USER_CHAT_BOOSTS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_send_game(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id,
+                       const char *game_short_name, bool disable_notification, bool protect_content,
+                       const char *reply_parameters, const char *reply_markup)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[8];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    if (message_thread_id > 0)
+    {
+        mimes[count].name = "message_thread_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = message_thread_id;
+        count++;
+    }
+    mimes[count].name = "game_short_name";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)game_short_name;
+    count++;
+    mimes[count].name = "disable_notification";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = disable_notification ? "true" : "false";
+    count++;
+    mimes[count].name = "protect_content";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = protect_content ? "true" : "false";
+    count++;
+    if (reply_parameters)
+    {
+        mimes[count].name = "reply_parameters";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reply_parameters;
+        count++;
+    }
+    if (reply_markup)
+    {
+        mimes[count].name = "reply_markup";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reply_markup;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_GAME, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_set_game_score(telebot_core_handler_t core_h, long long int user_id, int score, bool force,
+                            bool disable_edit_message, long long int chat_id, int message_id,
+                            const char *inline_message_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[7];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    mimes[count].name = "score";
+    mimes[count].type = TELEBOT_MIME_TYPE_INT;
+    mimes[count].data.d = score;
+    count++;
+    mimes[count].name = "force";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = force ? "true" : "false";
+    count++;
+    mimes[count].name = "disable_edit_message";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = disable_edit_message ? "true" : "false";
+    count++;
+    if (chat_id != 0)
+    {
+        mimes[count].name = "chat_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+        mimes[count].data.lld = chat_id;
+        count++;
+    }
+    if (message_id > 0)
+    {
+        mimes[count].name = "message_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = message_id;
+        count++;
+    }
+    if (inline_message_id)
+    {
+        mimes[count].name = "inline_message_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)inline_message_id;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_GAME_SCORE, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_get_game_high_scores(telebot_core_handler_t core_h, long long int user_id, long long int chat_id,
+                                  int message_id, const char *inline_message_id)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[4];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    if (chat_id != 0)
+    {
+        mimes[count].name = "chat_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+        mimes[count].data.lld = chat_id;
+        count++;
+    }
+    if (message_id > 0)
+    {
+        mimes[count].name = "message_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = message_id;
+        count++;
+    }
+    if (inline_message_id)
+    {
+        mimes[count].name = "inline_message_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)inline_message_id;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_GAME_HIGH_SCORES, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_set_passport_data_errors(telebot_core_handler_t core_h, long long int user_id, const char *errors)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[2];
+    mimes[count].name = "user_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = user_id;
+    count++;
+    mimes[count].name = "errors";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)errors;
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SET_PASSPORT_DATA_ERRORS, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_send_invoice(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id,
+                          const char *title, const char *description, const char *payload, const char *provider_token,
+                          const char *currency, const char *prices, int max_tip_amount,
+                          const char *suggested_tip_amounts, const char *start_parameter,
+                          const char *provider_data, const char *photo_url, int photo_size,
+                          int photo_width, int photo_height, bool need_name, bool need_phone_number,
+                          bool need_email, bool need_shipping_address, bool send_phone_number_to_provider,
+                          bool send_email_to_provider, bool is_flexible, bool disable_notification,
+                          bool protect_content, const char *reply_parameters, const char *reply_markup)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[28];
+    mimes[count].name = "chat_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
+    mimes[count].data.lld = chat_id;
+    count++;
+    if (message_thread_id > 0)
+    {
+        mimes[count].name = "message_thread_id";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = message_thread_id;
+        count++;
+    }
+    mimes[count].name = "title";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)title;
+    count++;
+    mimes[count].name = "description";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)description;
+    count++;
+    mimes[count].name = "payload";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)payload;
+    count++;
+    if (provider_token)
+    {
+        mimes[count].name = "provider_token";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)provider_token;
+        count++;
+    }
+    mimes[count].name = "currency";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)currency;
+    count++;
+    mimes[count].name = "prices";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)prices;
+    count++;
+    if (max_tip_amount > 0)
+    {
+        mimes[count].name = "max_tip_amount";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = max_tip_amount;
+        count++;
+    }
+    if (suggested_tip_amounts)
+    {
+        mimes[count].name = "suggested_tip_amounts";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)suggested_tip_amounts;
+        count++;
+    }
+    if (start_parameter)
+    {
+        mimes[count].name = "start_parameter";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)start_parameter;
+        count++;
+    }
+    if (provider_data)
+    {
+        mimes[count].name = "provider_data";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)provider_data;
+        count++;
+    }
+    if (photo_url)
+    {
+        mimes[count].name = "photo_url";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)photo_url;
+        count++;
+    }
+    if (photo_size > 0)
+    {
+        mimes[count].name = "photo_size";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = photo_size;
+        count++;
+    }
+    if (photo_width > 0)
+    {
+        mimes[count].name = "photo_width";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = photo_width;
+        count++;
+    }
+    if (photo_height > 0)
+    {
+        mimes[count].name = "photo_height";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = photo_height;
+        count++;
+    }
+    mimes[count].name = "need_name";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = need_name ? "true" : "false";
+    count++;
+    mimes[count].name = "need_phone_number";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = need_phone_number ? "true" : "false";
+    count++;
+    mimes[count].name = "need_email";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = need_email ? "true" : "false";
+    count++;
+    mimes[count].name = "need_shipping_address";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = need_shipping_address ? "true" : "false";
+    count++;
+    mimes[count].name = "send_phone_number_to_provider";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = send_phone_number_to_provider ? "true" : "false";
+    count++;
+    mimes[count].name = "send_email_to_provider";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = send_email_to_provider ? "true" : "false";
+    count++;
+    mimes[count].name = "is_flexible";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = is_flexible ? "true" : "false";
+    count++;
+    mimes[count].name = "disable_notification";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = disable_notification ? "true" : "false";
+    count++;
+    mimes[count].name = "protect_content";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = protect_content ? "true" : "false";
+    count++;
+    if (reply_parameters)
+    {
+        mimes[count].name = "reply_parameters";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reply_parameters;
+        count++;
+    }
+    if (reply_markup)
+    {
+        mimes[count].name = "reply_markup";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)reply_markup;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_SEND_INVOICE, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_create_invoice_link(telebot_core_handler_t core_h, const char *title, const char *description,
+                                 const char *payload, const char *provider_token, const char *currency,
+                                 const char *prices, int max_tip_amount, const char *suggested_tip_amounts,
+                                 const char *provider_data, const char *photo_url, int photo_size, int photo_width,
+                                 int photo_height, bool need_name, bool need_phone_number, bool need_email,
+                                 bool need_shipping_address, bool send_phone_number_to_provider,
+                                 bool send_email_to_provider, bool is_flexible)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[21];
+    mimes[count].name = "title";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)title;
+    count++;
+    mimes[count].name = "description";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)description;
+    count++;
+    mimes[count].name = "payload";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)payload;
+    count++;
+    if (provider_token)
+    {
+        mimes[count].name = "provider_token";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)provider_token;
+        count++;
+    }
+    mimes[count].name = "currency";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)currency;
+    count++;
+    mimes[count].name = "prices";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)prices;
+    count++;
+    if (max_tip_amount > 0)
+    {
+        mimes[count].name = "max_tip_amount";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = max_tip_amount;
+        count++;
+    }
+    if (suggested_tip_amounts)
+    {
+        mimes[count].name = "suggested_tip_amounts";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)suggested_tip_amounts;
+        count++;
+    }
+    if (provider_data)
+    {
+        mimes[count].name = "provider_data";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)provider_data;
+        count++;
+    }
+    if (photo_url)
+    {
+        mimes[count].name = "photo_url";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)photo_url;
+        count++;
+    }
+    if (photo_size > 0)
+    {
+        mimes[count].name = "photo_size";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = photo_size;
+        count++;
+    }
+    if (photo_width > 0)
+    {
+        mimes[count].name = "photo_width";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = photo_width;
+        count++;
+    }
+    if (photo_height > 0)
+    {
+        mimes[count].name = "photo_height";
+        mimes[count].type = TELEBOT_MIME_TYPE_INT;
+        mimes[count].data.d = photo_height;
+        count++;
+    }
+    mimes[count].name = "need_name";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = need_name ? "true" : "false";
+    count++;
+    mimes[count].name = "need_phone_number";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = need_phone_number ? "true" : "false";
+    count++;
+    mimes[count].name = "need_email";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = need_email ? "true" : "false";
+    count++;
+    mimes[count].name = "need_shipping_address";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = need_shipping_address ? "true" : "false";
+    count++;
+    mimes[count].name = "send_phone_number_to_provider";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = send_phone_number_to_provider ? "true" : "false";
+    count++;
+    mimes[count].name = "send_email_to_provider";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = send_email_to_provider ? "true" : "false";
+    count++;
+    mimes[count].name = "is_flexible";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = is_flexible ? "true" : "false";
+    count++;
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_CREATE_INVOICE_LINK, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_answer_shipping_query(telebot_core_handler_t core_h, const char *shipping_query_id, bool ok,
+                                   const char *shipping_options, const char *error_message)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[4];
+    mimes[count].name = "shipping_query_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)shipping_query_id;
+    count++;
+    mimes[count].name = "ok";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = ok ? "true" : "false";
+    count++;
+    if (shipping_options)
+    {
+        mimes[count].name = "shipping_options";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)shipping_options;
+        count++;
+    }
+    if (error_message)
+    {
+        mimes[count].name = "error_message";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)error_message;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_SHIPPING_QUERY, mimes, count);
+}
+
+telebot_core_response_t
+telebot_core_answer_pre_checkout_query(telebot_core_handler_t core_h, const char *pre_checkout_query_id, bool ok,
+                                       const char *error_message)
+{
+    int count = 0;
+    telebot_core_mime_t mimes[3];
+    mimes[count].name = "pre_checkout_query_id";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = (char *)pre_checkout_query_id;
+    count++;
+    mimes[count].name = "ok";
+    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+    mimes[count].data.s = ok ? "true" : "false";
+    count++;
+    if (error_message)
+    {
+        mimes[count].name = "error_message";
+        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
+        mimes[count].data.s = (char *)error_message;
+        count++;
+    }
+    return telebot_core_curl_perform(core_h, TELEBOT_METHOD_ANSWER_PRE_CHECKOUT_QUERY, mimes, count);
+}
