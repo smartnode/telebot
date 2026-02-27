@@ -29,12 +29,11 @@ extern "C"
 #endif
 
 /**
- * @file        telebot-core-api.h
+ * @file        telebot-core.h
  * @ingroup     TELEBOT_CORE_API
  * @brief       This file contains core API for the telegram bot interface
  * @author      Elmurod Talipov
- * @date        2020-04-19
- * @version     4.7.0
+ * @date        2026-02-28
  */
 
 /**

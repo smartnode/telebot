@@ -1,11 +1,6 @@
 var searchData=
 [
-  ['remove_5fkeyboard',['remove_keyboard',['../structtelebot__reply__keyboard__remove.html#a34a3148cb913c333a92ddaf970ef6cb8',1,'telebot_reply_keyboard_remove']]],
-  ['reply_5fmarkup',['reply_markup',['../structtelebot__message.html#ac2dabb2dd5bb723c5f74fdb5bfddbb2f',1,'telebot_message']]],
-  ['reply_5fto_5fmessage',['reply_to_message',['../structtelebot__message.html#a10930758976ee70ca73e77de7cf5bf45',1,'telebot_message']]],
-  ['request_5fcontact',['request_contact',['../structtelebot__keyboard__button.html#a03149a979611ae311f34d031ebf73023',1,'telebot_keyboard_button']]],
-  ['request_5flocation',['request_location',['../structtelebot__keyboard__button.html#add3c8f6dd16c1003d977a186cc83d6ea',1,'telebot_keyboard_button']]],
-  ['request_5fpoll',['request_poll',['../structtelebot__keyboard__button.html#ad51a3b1c7ce35eef303724a6417bf88b',1,'telebot_keyboard_button']]],
-  ['resize_5fkeyboard',['resize_keyboard',['../structtelebot__reply__keyboard__markup.html#a378aa51fb1d8ecb5189b2a00fc71d6f5',1,'telebot_reply_keyboard_markup']]],
-  ['retry_5fafter',['retry_after',['../structtelebot__response__paramters.html#a0d8e62d6e077a136190345c434f8d70d',1,'telebot_response_paramters']]]
+  ['query_0',['query',['../structtelebot__switch__inline__query__chosen__chat.html#a63b9879253ca2fe8bed8cb9629a3e62e',1,'telebot_switch_inline_query_chosen_chat::query'],['../structtelebot__inline__query.html#a740a64057f25d700864472c6fbe89ed7',1,'telebot_inline_query::query'],['../structtelebot__chosen__inline__result.html#a95e357491da9089f778676cc067de276',1,'telebot_chosen_inline_result::query']]],
+  ['question_1',['question',['../structtelebot__poll.html#a864f1d97bab86724cebeca59073a7336',1,'telebot_poll']]],
+  ['quote_2',['quote',['../structtelebot__message.html#a4e262b5d81a606a4cbc5adf13cf94125',1,'telebot_message']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['y_5fshift',['y_shift',['../structtelebot__mask__position.html#a3a74a708b65ef6c629696736b62df6d4',1,'telebot_mask_position']]]
+  ['x_5fshift_0',['x_shift',['../structtelebot__mask__position.html#abb8e1a2514e70425e596e7bb8d5c5469',1,'telebot_mask_position']]]
 ];

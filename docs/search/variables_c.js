@@ -1,7 +1,21 @@
 var searchData=
 [
-  ['name',['name',['../structtelebot__sticker__set.html#a71c9e74eaa54a99e66cdfa2b7f4783e3',1,'telebot_sticker_set']]],
-  ['new_5fchat_5fmembers',['new_chat_members',['../structtelebot__message.html#a7dac0ae58457dc33ff86f13f0b571146',1,'telebot_message']]],
-  ['new_5fchat_5fphotos',['new_chat_photos',['../structtelebot__message.html#a9710bb5db6974fbb2a4abdf6e5fb84b4',1,'telebot_message']]],
-  ['new_5fchat_5ftitle',['new_chat_title',['../structtelebot__message.html#abe556ebbe94a857bb9e4a8dc4bd5c57a',1,'telebot_message']]]
+  ['mask_5fposition_0',['mask_position',['../structtelebot__sticker.html#a5028bc096975b5416694b0ed523bd4fb',1,'telebot_sticker']]],
+  ['max_5fconnections_1',['max_connections',['../structtelebot__webhook__info.html#a5f11ebc5661efbf2449a3a421abe7f57',1,'telebot_webhook_info']]],
+  ['max_5fquantity_2',['max_quantity',['../structtelebot__keyboard__button__request__users.html#aceb109635b0fcc8cb3e231b1ff319937',1,'telebot_keyboard_button_request_users']]],
+  ['max_5freaction_5fcount_3',['max_reaction_count',['../structtelebot__chat.html#a8a76d3feba028a0d8ccd4ed26a90092d',1,'telebot_chat']]],
+  ['media_5fgroup_5fid_4',['media_group_id',['../structtelebot__message.html#a7785733a7c389bb8a251f40b087773f0',1,'telebot_message']]],
+  ['member_5flimit_5',['member_limit',['../structtelebot__chat__invite__link.html#af6b27a850ffd56230f97e9c60253d1a7',1,'telebot_chat_invite_link']]],
+  ['message_6',['message',['../structtelebot__business__intro.html#ab0e4c8d8ea0c4292328a34b7f41696af',1,'telebot_business_intro::message'],['../structtelebot__passport__element__error.html#af4f63f989cc33be1048e1071e8eaabbf',1,'telebot_passport_element_error::message'],['../structtelebot__callback__query.html#ade2eb81f616ea531b3c360d7c5f0c305',1,'telebot_callback_query::message'],['../structtelebot__update.html#ad9fdf9986d210f3ca3d3dfce35ad0dc1',1,'telebot_update::message']]],
+  ['message_5fauto_5fdelete_5ftime_7',['message_auto_delete_time',['../structtelebot__chat.html#a7a7e424449dda25b55c2d0666611d8af',1,'telebot_chat::message_auto_delete_time'],['../structtelebot__message__auto__delete__timer__changed.html#a423194d8a380fecef588e7af668da999',1,'telebot_message_auto_delete_timer_changed::message_auto_delete_time']]],
+  ['message_5fauto_5fdelete_5ftimer_5fchanged_8',['message_auto_delete_timer_changed',['../structtelebot__message.html#a38cffc3de8f79cc801848e67b9e51f39',1,'telebot_message']]],
+  ['message_5fid_9',['message_id',['../structtelebot__external__reply__info.html#a41ac78c8dd401fe48a54e276491289a5',1,'telebot_external_reply_info::message_id'],['../structtelebot__user__gift.html#a9a0be2abe3d6dc3084b7b6171ca2e3cc',1,'telebot_user_gift::message_id'],['../structtelebot__message.html#ae1ade0ee3a98cc0a7b29ae5863c6b740',1,'telebot_message::message_id'],['../structtelebot__message__reaction__count__updated.html#a07dc485c9773b972f0276f6a29301418',1,'telebot_message_reaction_count_updated::message_id'],['../structtelebot__message__reaction__updated.html#a71578a891fd5dd4b2e80ca584947832f',1,'telebot_message_reaction_updated::message_id'],['../structtelebot__message__origin.html#a393672ff37b5c70f8e13af11a21cb307',1,'telebot_message_origin::message_id']]],
+  ['message_5freaction_10',['message_reaction',['../structtelebot__update.html#a272b14972d1208afabacd6f249d2a5f2',1,'telebot_update']]],
+  ['message_5freaction_5fcount_11',['message_reaction_count',['../structtelebot__update.html#a9214801b9f6f6a0aef4ab8ceebee1828',1,'telebot_update']]],
+  ['message_5fthread_5fid_12',['message_thread_id',['../structtelebot__message.html#a8d11bb5a7746b5fcbdffd47b22239d5c',1,'telebot_message::message_thread_id'],['../structtelebot__forum__topic.html#ac894040ce3cc0e88e069c718c44509be',1,'telebot_forum_topic::message_thread_id']]],
+  ['migrate_5ffrom_5fchat_5fid_13',['migrate_from_chat_id',['../structtelebot__message.html#a40945d07175b3d2a251652697c9b7df7',1,'telebot_message']]],
+  ['migrate_5fto_5fchat_5fid_14',['migrate_to_chat_id',['../structtelebot__message.html#ab5518f4d8b35d8c9e0e2d9c0ceb3222c',1,'telebot_message::migrate_to_chat_id'],['../structtelebot__response__paramters.html#a5574f88bb60506cfa87b5e927d80f323',1,'telebot_response_paramters::migrate_to_chat_id']]],
+  ['mime_5ftype_15',['mime_type',['../structtelebot__audio.html#a7d4838477636009215eb2fb463a9bc5a',1,'telebot_audio::mime_type'],['../structtelebot__document.html#ad1227b1e91865c057bf71dd4701c98d2',1,'telebot_document::mime_type'],['../structtelebot__video.html#a08975b2c98b4b5a2d6b5e910f8e9790f',1,'telebot_video::mime_type'],['../structtelebot__animation.html#a34325ac1fbc03e1832f118c9ba4f799f',1,'telebot_animation::mime_type'],['../structtelebot__voice.html#a6c1cdfca5c8998a92694370eedbcf00b',1,'telebot_voice::mime_type']]],
+  ['month_16',['month',['../structtelebot__birthdate.html#afefd80a07fbfd6c31cc01f9f531deeb4',1,'telebot_birthdate']]],
+  ['my_5fchat_5fmember_17',['my_chat_member',['../structtelebot__update.html#a6a6280818a5763eb4afcab551fb199a5',1,'telebot_update']]]
 ];

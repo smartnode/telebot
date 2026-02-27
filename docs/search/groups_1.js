@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['simple_20telegram_20bot_20api',['Simple Telegram Bot API',['../group__TELEBOT__API.html',1,'']]]
+  ['bot_20api_0',['bot api',['../group__TELEBOT__CORE__API.html',1,'Core Telegram Bot API'],['../group__TELEBOT__API.html',1,'Simple Telegram Bot API']]]
 ];

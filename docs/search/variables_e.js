@@ -1,15 +1,14 @@
 var searchData=
 [
-  ['passport_5fdata',['passport_data',['../structtelebot__message.html#a54df3f6062815f400872ab69bdaaaefe',1,'telebot_message']]],
-  ['pending_5fupdate_5fcount',['pending_update_count',['../structtelebot__webhook__info.html#af6c3d995a747ba328252c686bcfe1c24',1,'telebot_webhook_info']]],
-  ['performer',['performer',['../structtelebot__audio.html#a832268c70afe11e449530ac73bf60d49',1,'telebot_audio']]],
-  ['permissions',['permissions',['../structtelebot__chat.html#a68a794460080e439cf766ee5748ee6c6',1,'telebot_chat']]],
-  ['phone_5fnumber',['phone_number',['../structtelebot__contact.html#a7e4a17560ab68d8351290855a9f80802',1,'telebot_contact']]],
-  ['photo',['photo',['../structtelebot__chat.html#a0c76abf9401feba5696e3f5125b96cc5',1,'telebot_chat']]],
-  ['photos',['photos',['../structtelebot__message.html#a4b17614199f063ea1e63c40cc7a6ab22',1,'telebot_message::photos()'],['../structtelebot__user__profile__photos.html#a38759ac78f2c4bd0a2b85325e05f5666',1,'telebot_user_profile_photos::photos()']]],
-  ['pinned_5fmessage',['pinned_message',['../structtelebot__chat.html#adcaadc0069d303e1ef13ea51d131a132',1,'telebot_chat::pinned_message()'],['../structtelebot__message.html#aa189de80771641378e62da50462fb693',1,'telebot_message::pinned_message()']]],
-  ['point',['point',['../structtelebot__mask__position.html#a218d640531e907a99b03f0b11328acac',1,'telebot_mask_position']]],
-  ['poll',['poll',['../structtelebot__message.html#a2671d5bd21a1d3716d8cbaf68f60f494',1,'telebot_message::poll()'],['../structtelebot__update.html#ad637fcb3112bfa31d26270c6a887096b',1,'telebot_update::poll()']]],
-  ['poll_5fanser',['poll_anser',['../structtelebot__update.html#ae36d497ee1b04fdd9848148ea17c46de',1,'telebot_update']]],
-  ['poll_5fid',['poll_id',['../structtelebot__poll__answer.html#a26a917e855abbe51db4262f25c3cabac',1,'telebot_poll_answer']]]
+  ['offset_0',['offset',['../structtelebot__message__entity.html#abf22412011b085705af3b231aa45ff8b',1,'telebot_message_entity::offset'],['../structtelebot__inline__query.html#a9c94b089550e4e90db546109c20567f4',1,'telebot_inline_query::offset']]],
+  ['old_5fchat_5fmember_1',['old_chat_member',['../structtelebot__chat__member__updated.html#af503d315eda9a203558b10ccbf402ac0',1,'telebot_chat_member_updated']]],
+  ['old_5freaction_2',['old_reaction',['../structtelebot__message__reaction__updated.html#a85cd9bdc38aac8b140c3bfa52e311ce0',1,'telebot_message_reaction_updated']]],
+  ['one_5ftime_5fkeyboard_3',['one_time_keyboard',['../structtelebot__reply__keyboard__markup.html#a85d79d6912fd82dbd34be6e54be265f9',1,'telebot_reply_keyboard_markup']]],
+  ['only_5fnew_5fmembers_4',['only_new_members',['../structtelebot__giveaway.html#a0bf8ede2330f31e74ef63fab3f2ff46c',1,'telebot_giveaway::only_new_members'],['../structtelebot__giveaway__winners.html#a2a740107b76759970aacf6a77558a24c',1,'telebot_giveaway_winners::only_new_members']]],
+  ['opening_5fhours_5',['opening_hours',['../structtelebot__business__opening__hours.html#a86ee43351726103aceb98e065fb0ca0b',1,'telebot_business_opening_hours']]],
+  ['opening_5fminute_6',['opening_minute',['../structtelebot__business__opening__hours__interval.html#a0fbc4e0e83c560c0a3e5516066400384',1,'telebot_business_opening_hours_interval']]],
+  ['option_5fids_7',['option_ids',['../structtelebot__poll__answer.html#a152ca2a951635cc37a679849f7157978',1,'telebot_poll_answer']]],
+  ['options_8',['options',['../structtelebot__poll.html#a9b2107fba28453268012c594b9059f40',1,'telebot_poll']]],
+  ['order_5finfo_9',['order_info',['../structtelebot__successful__payment.html#a681cc6114e5f6e442b04ff67e2b1b62e',1,'telebot_successful_payment::order_info'],['../structtelebot__pre__checkout__query.html#afa9a3750068804f088f9f746fd87d822',1,'telebot_pre_checkout_query::order_info']]],
+  ['origin_10',['origin',['../structtelebot__external__reply__info.html#a82a15121b5df8b0c2679c3e56c45d4cc',1,'telebot_external_reply_info::origin'],['../structtelebot__unique__gift__info.html#afe6d941f159aff31c72d9fc00ed8a5af',1,'telebot_unique_gift_info::origin']]]
 ];

@@ -1,10 +1,20 @@
 var searchData=
 [
-  ['value',['value',['../structtelebot__dice.html#a18efa7b3bb5344f972993dfec5cc1ad1',1,'telebot_dice']]],
-  ['vcard',['vcard',['../structtelebot__contact.html#a0b4f94405ccf4f85cef13e07257c9430',1,'telebot_contact']]],
-  ['venue',['venue',['../structtelebot__message.html#abf7a1cf2d1eaeb7b65d775aa6565d732',1,'telebot_message']]],
-  ['video',['video',['../structtelebot__message.html#a15b41390b43bc9b5026a971b7bcb0395',1,'telebot_message']]],
-  ['video_5fnote',['video_note',['../structtelebot__message.html#a48f366ca5d4f8cbe958ec4a8cc259d20',1,'telebot_message']]],
-  ['voice',['voice',['../structtelebot__message.html#a07da2adedef6d7b5261171a3737f74c4',1,'telebot_message']]],
-  ['voter_5fcount',['voter_count',['../structtelebot__poll__option.html#a3f4d8cd10b5f8df5f532e7581e91a82b',1,'telebot_poll_option']]]
+  ['unclaimed_5fprize_5fcount_0',['unclaimed_prize_count',['../structtelebot__giveaway__completed.html#a23e4bcaab3e32ae7c5ce8be1294c62f9',1,'telebot_giveaway_completed::unclaimed_prize_count'],['../structtelebot__giveaway__winners.html#abe70c2e3828e12faa98f8d860c19452d',1,'telebot_giveaway_winners::unclaimed_prize_count']]],
+  ['unique_5fgift_1',['unique_gift',['../structtelebot__message.html#aa69986aeb6494aa8e61230d755f45ab9',1,'telebot_message']]],
+  ['unrestrict_5fboost_5fcount_2',['unrestrict_boost_count',['../structtelebot__chat.html#a6a03451e6de79bd0eb5eef0a1846a307',1,'telebot_chat']]],
+  ['until_5fdate_3',['until_date',['../structtelebot__chat__member.html#aa21a1880df41283e5d99135195ab6755',1,'telebot_chat_member']]],
+  ['update_5fid_4',['update_id',['../structtelebot__update.html#ad69604433d48aeb428ee296c173082cc',1,'telebot_update']]],
+  ['update_5ftype_5',['update_type',['../structtelebot__update.html#a55f6f3fbb226fb8e7e39687156b26413',1,'telebot_update']]],
+  ['upgrade_5fstar_5fcount_6',['upgrade_star_count',['../structtelebot__gift.html#a08e4bb493f1070a4e2d8a26244fe1853',1,'telebot_gift::upgrade_star_count'],['../structtelebot__user__gift.html#a7176fca6037f64242ea4b13a92f7fe41',1,'telebot_user_gift::upgrade_star_count']]],
+  ['url_7',['url',['../structtelebot__inline__keyboard__button.html#a862b6f161474f4506bc4423ea110d01d',1,'telebot_inline_keyboard_button::url'],['../structtelebot__webhook__info.html#a646689743814a0ded9f862c9e21e836a',1,'telebot_webhook_info::url'],['../structtelebot__web__app__info.html#a76dfb71e917f4f51bd013a12a0226e9b',1,'telebot_web_app_info::url'],['../structtelebot__message__entity.html#aca51a615a48a9e981e0ac00f91662beb',1,'telebot_message_entity::url'],['../structtelebot__revenue__withdrawal__state.html#a9ea75a7b0afb83400941972aee7fbf6a',1,'telebot_revenue_withdrawal_state::url'],['../structtelebot__link__preview__options.html#ab1e599413f12c26e58d238c4cb34572e',1,'telebot_link_preview_options::url'],['../structtelebot__login__url.html#ac597e06c0afb44d5d5522b70b9cbdd0a',1,'telebot_login_url::url']]],
+  ['user_8',['user',['../structtelebot__transaction__partner.html#af79b800fcfdffea40f97709b92ef0fd8',1,'telebot_transaction_partner::user'],['../structtelebot__chat__member.html#a28d15781f7396efbd7142d390440e91e',1,'telebot_chat_member::user'],['../structtelebot__poll__answer.html#a01be0210c9e94880fe5beae18f422af2',1,'telebot_poll_answer::user'],['../structtelebot__message__entity.html#a4cf7434117931b9f355024ab8a7cb951',1,'telebot_message_entity::user'],['../structtelebot__game__high__score.html#a36b718ac590ce28c4aef1b6955d4a867',1,'telebot_game_high_score::user'],['../structtelebot__chat__boost__source.html#a01f2789d3e74269421f26c3dded61d83',1,'telebot_chat_boost_source::user'],['../structtelebot__message__reaction__updated.html#a49b5ee4f79290e0c3a6072a1baf37095',1,'telebot_message_reaction_updated::user']]],
+  ['user_5fadministrator_5frights_9',['user_administrator_rights',['../structtelebot__keyboard__button__request__chat.html#a905d27084387748fee4ec927d12eee39',1,'telebot_keyboard_button_request_chat']]],
+  ['user_5fchat_5fid_10',['user_chat_id',['../structtelebot__chat__join__request.html#a49f34ddba2697ff5826c2292b49ee318',1,'telebot_chat_join_request']]],
+  ['user_5fid_11',['user_id',['../structtelebot__user__shared.html#a557655b411f435b78258bd8632594003',1,'telebot_user_shared::user_id'],['../structtelebot__shared__user.html#aed579fd541916cf034b9d2fa292afd7f',1,'telebot_shared_user::user_id'],['../structtelebot__contact.html#a7d2e7dae9e6fbc6f3d1d4107861255e5',1,'telebot_contact::user_id']]],
+  ['user_5fis_5fbot_12',['user_is_bot',['../structtelebot__keyboard__button__request__users.html#ae527814d49c88b18f131a19d9c8315a6',1,'telebot_keyboard_button_request_users']]],
+  ['user_5fis_5fpremium_13',['user_is_premium',['../structtelebot__keyboard__button__request__users.html#a08cd8c7325307aeb4e6f46d0241ce345',1,'telebot_keyboard_button_request_users']]],
+  ['username_14',['username',['../structtelebot__user.html#a970692ed362ccf6c464caf2d48093203',1,'telebot_user::username'],['../structtelebot__chat.html#abfad47357b903de5be467d5598f24ac3',1,'telebot_chat::username'],['../structtelebot__shared__user.html#a5101235e66ecd071ed41030b48782e1f',1,'telebot_shared_user::username']]],
+  ['users_15',['users',['../structtelebot__video__chat__participants__invited.html#a63438875d923b4069cc84baa715e1d66',1,'telebot_video_chat_participants_invited::users'],['../structtelebot__users__shared.html#a73ba1a7a58c3810f44d266c823f9a890',1,'telebot_users_shared::users']]],
+  ['users_5fshared_16',['users_shared',['../structtelebot__message.html#a2dad77b7383f8324eb14a243afbf7a99',1,'telebot_message']]]
 ];

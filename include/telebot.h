@@ -19,6 +19,14 @@
 #ifndef __TELEBOT_H__
 #define __TELEBOT_H__
 
+/**
+ * @file        telebot.h
+ * @ingroup     TELEBOT_API
+ * @brief       This file includes all the header files of the telegram bot library
+ * @author      Elmurod Talipov
+ * @date        2026-02-28
+ */
+
 #include "telebot-common.h"
 #include "telebot-types.h"
 #include "telebot-methods.h"

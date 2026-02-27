@@ -42,7 +42,7 @@ make
 
 ## Testing
 
-Place Telegam Bot API Token in .toke file in the root folder of the repository, and run as below
+Place Telegam Bot API Token in `.token` file in the root folder of the repository, and run as below
 ```sh
 ./build/test/testbot
 ```
