@@ -41,7 +41,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})
 # package configuration
 CONFIGURE_FILE(telebot.pc.in telebot.pc @ONLY)
 
-# echobot (test)
+# testbot (test)
 ADD_SUBDIRECTORY(test)
 
 # CMake Policy (CMP0002)

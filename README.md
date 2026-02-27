@@ -37,8 +37,9 @@ make
 <summary>Sample</summary>
 
 Following sample creates a simple dummy bot which echoes back the messages sent to it.
-The [same example](test/echobot.c) is built as `echobot` executable under `Build/test` folder. The
-executable expects and reads bot token from `.token` file on the same location.
+A more comprehensive [test bot](test/testbot.c) is built as `testbot` executable under `Build/test` folder.
+It supports various commands to test APIs, polls, custom keyboards, and multimedia sending.
+The executable expects and reads bot token from `.token` file on the same location.
 
 ```c
 #include <stdio.h>
