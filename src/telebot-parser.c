@@ -649,16 +649,6 @@ telebot_error_e telebot_parser_get_chat(struct json_object *obj, telebot_chat_t 
     if (json_object_object_get_ex(obj, "invite_link", &invite_link))
         chat->invite_link = TELEBOT_SAFE_STRDUP(json_object_get_string(invite_link));
 
-    struct json_object *pinned_message = NULL;
-    if (json_object_object_get_ex(obj, "pinned_message", &pinned_message))
-    {
-        chat->pinned_message = calloc(1, sizeof(telebot_message_t));
-        if (telebot_parser_get_message(pinned_message, chat->pinned_message) != TELEBOT_ERROR_NONE)
-        {
-            ERR("Failed to get <pinned_message> from chat object");
-            TELEBOT_SAFE_FREE(chat->pinned_message);
-        }
-    }
 
     struct json_object *permissions = NULL;
     if (json_object_object_get_ex(obj, "permissions", &permissions))

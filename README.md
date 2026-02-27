@@ -28,9 +28,23 @@ To build the library run following commands:
 
 ```sh
 cd [your repository]
-mkdir -p Build && cd Build
-cmake ../
+mkdir -p build && cd build
+cmake ..
 make
+```
+
+For debug build
+```sh
+mkdir -p build && cd build
+cmake .. -DDEBUG=1
+make
+```
+
+## Testing
+
+Place Telegam Bot API Token in .toke file in the root folder of the repository, and run as below
+```sh
+./build/test/testbot
 ```
 
 <details>

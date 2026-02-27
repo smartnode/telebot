@@ -21,7 +21,6 @@ SET(SRCS
     src/telebot-games.c
 )
 
-ADD_DEFINITIONS("-DDEBUG=0")
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 SET(DEPENDENTS "libcurl json-c")
 INCLUDE(FindPkgConfig)
@@ -30,7 +29,16 @@ pkg_check_modules(PKGS REQUIRED ${DEPENDENTS})
 FOREACH(flag ${PKGS_CFLAGS})
     SET(EXTRA_LIB_CFLAGS "${EXTRA_LIB_CFLAGS} ${flag}")
 ENDFOREACH(flag)
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_LIB_CFLAGS} -Werror -Wall -Wno-unused-function -O2" )
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_LIB_CFLAGS} -Werror -Wall -Wno-unused-function" )
+
+#Debug option
+IF(DEBUG)
+    MESSAGE("Build debug version")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+    ADD_DEFINITIONS("-DDEBUG")
+ELSE(DEBUG)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+ENDIF(DEBUG)
 
 # libtelebot
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${SRCS})

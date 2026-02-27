@@ -664,7 +664,7 @@ telebot_core_send_audio(telebot_core_handler_t core_h, long long int chat_id, co
         count++;
     }
 
-    if (thumb != NULL)
+    if (thumb != NULL && thumb[0] != '\0')
     {
         mimes[count].name = "thumb";
         mimes[count].type = TELEBOT_MIME_TYPE_FILE;
@@ -715,7 +715,7 @@ telebot_core_send_document(telebot_core_handler_t core_h, long long int chat_id,
     mimes[count].data.s = document;
     count++;
 
-    if (thumb != NULL)
+    if (thumb != NULL && thumb[0] != '\0')
     {
         mimes[count].name = "thumb";
         mimes[count].type = TELEBOT_MIME_TYPE_FILE;
@@ -806,7 +806,7 @@ telebot_core_send_video(telebot_core_handler_t core_h, long long int chat_id, co
         count++;
     }
 
-    if (thumb != NULL)
+    if (thumb != NULL && thumb[0] != '\0')
     {
         mimes[count].name = "thumb";
         mimes[count].type = TELEBOT_MIME_TYPE_FILE;
@@ -902,7 +902,7 @@ telebot_core_send_animation(telebot_core_handler_t core_h, long long int chat_id
         count++;
     }
 
-    if (thumb != NULL)
+    if (thumb != NULL && thumb[0] != '0')
     {
         mimes[count].name = "thumb";
         mimes[count].type = TELEBOT_MIME_TYPE_FILE;
@@ -1051,7 +1051,7 @@ telebot_core_send_video_note(telebot_core_handler_t core_h, long long int chat_i
         count++;
     }
 
-    if (thumb != NULL)
+    if (thumb != NULL && thumb[0] != '\0')
     {
         mimes[count].name = "thumb";
         mimes[count].type = TELEBOT_MIME_TYPE_FILE;

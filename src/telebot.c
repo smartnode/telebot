@@ -37,18 +37,23 @@ static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
     "edited_message",
     "channel_post",
     "edited_channel_post",
+    "business_connection",
+    "business_message",
+    "edited_business_message",
+    "deleted_business_messages",
+    "message_reaction",
+    "message_reaction_count",
     "inline_query",
     "chosen_inline_result",
     "callback_query",
     "shipping_query",
     "pre_checkout_query",
+    "purchased_paid_media",
     "poll",
     "poll_answer",
     "my_chat_member",
     "chat_member",
     "chat_join_request",
-    "message_reaction",
-    "message_reaction_count",
     "chat_boost",
     "removed_chat_boost"};
 
@@ -1945,6 +1950,9 @@ static void telebot_put_chat_permissions(telebot_chat_permissions_t *permissions
 
 static void telebot_put_chat_location(telebot_chat_location_t *chat_location)
 {
+    if (chat_location == NULL)
+        return;
+
     TELEBOT_SAFE_FREE(chat_location->address);
     telebot_put_location(chat_location->location);
 }

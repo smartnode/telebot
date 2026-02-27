@@ -9,12 +9,12 @@
 #define SIZE_OF_ARRAY(array) (sizeof(array) / sizeof(array[0]))
 
 /* Local sample media paths */
-#define SAMPLE_PHOTO      "samples/logo.png"
-#define SAMPLE_AUDIO      "samples/audio.mp3"
-#define SAMPLE_VIDEO      "samples/video.mp4"
-#define SAMPLE_DOC        "samples/document.md"
-#define SAMPLE_ANIMATION  "samples/animation.gif"
-#define SAMPLE_VOICE      "samples/voice.wav"
+#define SAMPLE_PHOTO     "test/samples/logo.png"
+#define SAMPLE_AUDIO     "test/samples/audio.mp3"
+#define SAMPLE_VIDEO     "test/samples/video.mp4"
+#define SAMPLE_DOC       "test/samples/document.md"
+#define SAMPLE_ANIMATION "test/samples/animation.gif"
+#define SAMPLE_VOICE     "test/samples/voice.wav"
 
 void setup_commands(telebot_handler_t handle)
 {
@@ -70,7 +70,7 @@ void handle_message(telebot_handler_t handle, telebot_message_t *message)
                                "{\"text\":\"Document\",\"callback_data\":\"media_doc\"}],"
                                "[{\"text\":\"Animation\",\"callback_data\":\"media_animation\"},"
                                "{\"text\":\"Voice\",\"callback_data\":\"media_voice\"}]]}";
-        ret = telebot_send_message(handle, message->chat->id, "Select media to send (from local files):", "", false, false, 0, keyboard);
+        ret = telebot_send_message(handle, message->chat->id, "Select media to send:", "", false, false, 0, keyboard);
     }
     else if (strstr(message->text, "/keyboard"))
     {
@@ -149,29 +149,39 @@ void handle_callback_query(telebot_handler_t handle, telebot_callback_query_t *q
     telebot_error_e ret = TELEBOT_ERROR_NONE;
     long long int chat_id = query->message->chat->id;
 
+    int duration = 0;
+    int width = 0;
+    int height = 0;
+    const char *thumb = NULL;
+    bool disable_notification = false;
+    int reply_to_message_id = 0;
+    const char *reply_markup = NULL;
+    const char *parse_mode = "";
+    bool is_file = true;
+
     if (strcmp(query->data, "media_photo") == 0)
     {
-        ret = telebot_send_photo(handle, chat_id, SAMPLE_PHOTO, true, "Test Photo from local file", "", false, 0, "");
+        ret = telebot_send_photo(handle, chat_id, SAMPLE_PHOTO, is_file, "Test Photo", parse_mode, disable_notification, reply_to_message_id, reply_markup);
     }
     else if (strcmp(query->data, "media_audio") == 0)
     {
-        ret = telebot_send_audio(handle, chat_id, SAMPLE_AUDIO, true, "Test Audio from local file", "", 0, "Artist", "Title", "", false, 0, "");
+        ret = telebot_send_audio(handle, chat_id, SAMPLE_AUDIO, is_file, "Test Audio", parse_mode, duration, "Artist", "Title", parse_mode, disable_notification, reply_to_message_id, reply_markup);
     }
     else if (strcmp(query->data, "media_video") == 0)
     {
-        ret = telebot_send_video(handle, chat_id, SAMPLE_VIDEO, true, 0, 0, 0, "", "Test Video from local file", "", false, false, 0, "");
+        ret = telebot_send_video(handle, chat_id, SAMPLE_VIDEO, is_file, duration, width, height, thumb, "Test Video", parse_mode, disable_notification, false, reply_to_message_id, reply_markup);
     }
     else if (strcmp(query->data, "media_doc") == 0)
     {
-        ret = telebot_send_document(handle, chat_id, SAMPLE_DOC, true, "", "Test Document from local file", "", false, 0, "");
+        ret = telebot_send_document(handle, chat_id, SAMPLE_DOC, is_file, thumb, "Test Document", parse_mode, disable_notification, reply_to_message_id, reply_markup);
     }
     else if (strcmp(query->data, "media_animation") == 0)
     {
-        ret = telebot_send_animation(handle, chat_id, SAMPLE_ANIMATION, true, 0, 0, 0, "", "Test Animation from local file", "", false, 0, "");
+        ret = telebot_send_animation(handle, chat_id, SAMPLE_ANIMATION, is_file, duration, width, height, thumb, "Test Animation", parse_mode, disable_notification, reply_to_message_id, reply_markup);
     }
     else if (strcmp(query->data, "media_voice") == 0)
     {
-        ret = telebot_send_voice(handle, chat_id, SAMPLE_VOICE, true, "Test Voice from local file", "", 0, false, 0, "");
+        ret = telebot_send_voice(handle, chat_id, SAMPLE_VOICE, is_file, "Test Voice", parse_mode, duration, disable_notification, reply_to_message_id, reply_markup);
     }
 
     /* Acknowledge callback query */
