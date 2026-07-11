@@ -295,6 +295,7 @@ telebot_core_curl_perform(telebot_core_handler_t core_h, const char *method, tel
     curl_easy_setopt(curl_h, CURLOPT_URL, URL);
     curl_easy_setopt(curl_h, CURLOPT_WRITEFUNCTION, write_data_cb);
     curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, resp);
+    curl_easy_setopt(curl_h, CURLOPT_TIMEOUT, 10);
 
     if (core_h->proxy_addr != NULL)
     {
