@@ -1,6 +1,6 @@
 # Changelog
 
-## 10.4.0 (unreleased)
+## 10.4.0 (2026-11-21)
 
 Follows Telegram Bot API 10.4. This is a breaking release; see
 [MIGRATION.md](MIGRATION.md) for the signature changes.

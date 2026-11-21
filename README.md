@@ -297,5 +297,5 @@ JSON responses).
 To build it locally with [Doxygen](https://www.doxygen.nl) 1.18:
 
 ```sh
-doxygen Doxyconf     # output in build/doxygen/html/index.html
+doxygen Doxyconf     # output in apidocs/html/index.html
 ```

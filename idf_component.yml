@@ -7,6 +7,7 @@ dependencies:
 files:
   exclude:
     - "doxygen/**/*"
+    - "apidocs/**/*"
     - "test/**/*"
     - "examples/host_demo_bot/**/*"
     - "build/**/*"

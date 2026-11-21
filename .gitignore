@@ -59,3 +59,6 @@ examples/*/sdkconfig.old
 
 # Local roadmap, not part of the repository
 TODO.md
+
+# Doxygen output
+apidocs/
