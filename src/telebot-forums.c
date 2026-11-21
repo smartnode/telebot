@@ -62,7 +62,13 @@ telebot_error_e telebot_create_forum_topic(telebot_handler_t handle, long long i
         goto finish;
     }
 
-    ret = telebot_parser_get_forum_topic(result, topic);
+    telebot_arena_t *arena = telebot_arena_begin();
+    ret = arena ? telebot_parser_get_forum_topic(result, topic) : TELEBOT_ERROR_OUT_OF_MEMORY;
+    if (ret == TELEBOT_ERROR_NONE)
+        ret = telebot_owner_attach(topic, arena); /* topic now owns the arena */
+    telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+    if (ret != TELEBOT_ERROR_NONE)
+        memset(topic, 0, sizeof(*topic));
 
 finish:
     if (obj)
@@ -73,13 +79,8 @@ finish:
 
 telebot_error_e telebot_put_forum_topic(telebot_forum_topic_t *topic)
 {
-    if (topic == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    TELEBOT_SAFE_FREE(topic->name);
-    TELEBOT_SAFE_FREE(topic->icon_custom_emoji_id);
-
-    return TELEBOT_ERROR_NONE;
+    /* releases everything the result points to; a copy of it is rejected */
+    return telebot_owner_release(topic, sizeof(*topic));
 }
 
 telebot_error_e telebot_edit_forum_topic(telebot_handler_t handle, long long int chat_id, int message_thread_id,
@@ -145,6 +146,9 @@ telebot_error_e telebot_get_forum_topic_icon_stickers(telebot_handler_t handle, 
     if ((stickers == NULL) || (count == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
+    *stickers = NULL;
+    *count = 0;
+
     struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_forum_topic_icon_stickers(handle->core_h);
     int ret = telebot_core_get_response_code(response);
@@ -173,7 +177,15 @@ telebot_error_e telebot_get_forum_topic_icon_stickers(telebot_handler_t handle, 
         goto finish;
     }
 
-    ret = telebot_parser_get_stickers(result, stickers, count);
+    telebot_arena_t *arena = telebot_arena_begin();
+    ret = arena ? telebot_parser_get_stickers(result, stickers, count) : TELEBOT_ERROR_OUT_OF_MEMORY;
+    bool owned = (ret == TELEBOT_ERROR_NONE) && (*count > 0); /* the array header owns the arena */
+    telebot_arena_finish(arena, owned);
+    if (!owned)
+    {
+        *stickers = NULL;
+        *count = 0;
+    }
 
 finish:
     if (obj)

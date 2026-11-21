@@ -37,9 +37,27 @@ menu "Telebot (Telegram Bot API)"
         default 2048
         range 256 65536
         help
-            Each batch of updates is parsed into blocks of this size, released
-            together by telebot_put_updates(). Larger blocks mean fewer
-            allocations; smaller blocks waste less memory for small updates.
+            Each parsed result (a batch of updates, a chat, a member, ...) lives in
+            blocks of this size and is released in one go by its telebot_put_
+            function. Larger blocks mean fewer allocations; smaller blocks waste
+            less memory for small results.
+
+    config TELEBOT_ARENA_CACHE_BLOCKS
+        int "Cached arena blocks"
+        default 2
+        range 0 32
+        help
+            Released blocks kept for reuse. With enough cached blocks a steady
+            polling loop makes no heap allocations at all.
+
+    config TELEBOT_MAX_LIVE_RESULTS
+        int "Results in caller structs alive at the same time"
+        default 8
+        range 1 128
+        help
+            How many results filled into your own structs (telebot_get_me(),
+            telebot_get_chat(), ...) can exist before their telebot_put_ call.
+            Further calls fail with TELEBOT_ERROR_OUT_OF_MEMORY.
 
     config TELEBOT_URL_SIZE
         int "Request URL buffer size (bytes)"

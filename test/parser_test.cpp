@@ -56,7 +56,9 @@ protected:
         ASSERT_NE(root_, nullptr);
         cJSON *result = nullptr;
         ASSERT_TRUE(telebot_json_get_ex(root_, "result", &result));
+        ParseScope scope;
         ASSERT_EQ(telebot_parser_get_updates(result, &updates_, &count_), TELEBOT_ERROR_NONE);
+        scope.keep();
         ASSERT_EQ(count_, 4);
     }
 
@@ -187,7 +189,9 @@ TEST(ParserFeatures, GatedUpdatesFollowBuildConfiguration)
 
     telebot_update_t *updates = nullptr;
     int count = 0;
+    ParseScope scope;
     ASSERT_EQ(telebot_parser_get_updates(root, &updates, &count), TELEBOT_ERROR_NONE);
+    scope.keep();
     ASSERT_EQ(count, 2);
 
     EXPECT_EQ(updates[0].update_type,
@@ -212,14 +216,13 @@ TEST(ParserStickers, StickerSet)
         "thumbnail":{"file_id":"T","file_unique_id":"t","width":100,"height":100}})");
     ASSERT_NE(root, nullptr);
     telebot_sticker_set_t set;
+    ParseScope scope; // releases the set at the end of the test
     ASSERT_EQ(telebot_parser_get_sticker_set(root, &set), TELEBOT_ERROR_NONE);
     EXPECT_STREQ(set.name, "pack_by_bot");
     EXPECT_STREQ(set.sticker_type, "regular");
     ASSERT_EQ(set.count_stickers, 2);
     EXPECT_TRUE(set.stickers[1].is_animated);
     ASSERT_NE(set.thumbnail, nullptr);
-    telebot_put_sticker_set(&set);
-    EXPECT_EQ(set.stickers, nullptr);
     telebot_json_put(root);
 }
 
@@ -264,7 +267,9 @@ TEST(ParserOwnership, RichMessageIsFullyReleased)
 
     telebot_update_t *updates = nullptr;
     int count = 0;
+    ParseScope scope;
     ASSERT_EQ(telebot_parser_get_updates(root, &updates, &count), TELEBOT_ERROR_NONE);
+    scope.keep();
     ASSERT_EQ(count, 1);
     const telebot_message_t &m = updates[0].message;
     ASSERT_NE(m.forward_origin, nullptr);

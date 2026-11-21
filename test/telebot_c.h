@@ -27,4 +27,23 @@ extern "C" {
 #include "telebot-json.h"
 #include "telebot-transport.h"
 #include "telebot-config.h"
+#include "telebot-arena.h"
 }
+
+// Parses inside an arena like the library does: keep() hands the arena to the
+// result (e.g. an update array's hidden header); otherwise it is destroyed.
+struct ParseScope
+{
+    ParseScope() : arena(telebot_arena_begin()) {}
+    ~ParseScope()
+    {
+        if (arena)
+            telebot_arena_finish(arena, false);
+    }
+    void keep()
+    {
+        telebot_arena_finish(arena, true);
+        arena = nullptr;
+    }
+    telebot_arena_t *arena;
+};

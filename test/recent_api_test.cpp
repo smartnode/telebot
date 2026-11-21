@@ -192,7 +192,9 @@ TEST(RecentApiParser, GuestMessageAndStoppedDraft)
         {"update_id":2,"stopped_message_generation":{"chat":{"id":5,"type":"private"},"draft_id":77}}])");
     telebot_update_t *updates = nullptr;
     int count = 0;
+    ParseScope scope;
     ASSERT_EQ(telebot_parser_get_updates(root, &updates, &count), TELEBOT_ERROR_NONE);
+    scope.keep();
     ASSERT_EQ(count, 2);
     EXPECT_EQ(updates[0].update_type, TELEBOT_UPDATE_TYPE_GUEST_MESSAGE);
     EXPECT_STREQ(updates[0].guest_message.text, "hey");
@@ -234,7 +236,9 @@ TEST(RecentApiParser, ManagedBotSubscriptionAndWidgets)
             "type":{"type":"data"},"data":"d","widget_id":"wid"}}])");
     telebot_update_t *updates = nullptr;
     int count = 0;
+    ParseScope scope;
     ASSERT_EQ(telebot_parser_get_updates(root, &updates, &count), TELEBOT_ERROR_NONE);
+    scope.keep();
     ASSERT_EQ(count, 4);
 
     EXPECT_EQ(updates[0].update_type, TELEBOT_UPDATE_TYPE_MANAGED_BOT);

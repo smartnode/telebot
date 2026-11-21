@@ -133,10 +133,22 @@ telebot_send_photo(bot, chat_id, TELEBOT_FILE_MEMORY(fb->buf, fb->len, "door.jpg
 esp_camera_fb_return(fb);
 ```
 
-**Memory.** Each batch from `telebot_get_updates()` is parsed into one arena of
-`CONFIG_TELEBOT_ARENA_BLOCK_SIZE` blocks and released with a single `telebot_put_updates()`, so a
-poll costs a handful of allocations instead of hundreds. On boards with PSRAM, the temporary JSON
-tree can be moved out of internal RAM:
+**Memory.** Every parsed result (a batch of updates, a chat, a member, ...) lives in one
+arena and is released in one go by its `telebot_put_*` function. Released blocks are cached
+(`CONFIG_TELEBOT_ARENA_CACHE_BLOCKS`), so a steady polling loop makes no heap allocations.
+Ownership is tracked inside the library, never in your structs:
+
+```c
+telebot_user_t me;
+telebot_get_me(bot, &me);
+telebot_user_t copy = me;   /* plain data: valid until telebot_put_me(&me) */
+telebot_put_me(&copy);      /* rejected with TELEBOT_ERROR_INVALID_PARAMETER, nothing freed */
+telebot_put_me(&me);        /* releases everything and zeroes `me` */
+```
+
+Release a result through the struct you passed in. Filling the same struct again releases its
+previous contents automatically. At most `CONFIG_TELEBOT_MAX_LIVE_RESULTS` such results can be
+alive at once. On boards with PSRAM, the temporary JSON tree can be moved out of internal RAM:
 
 ```c
 static void *psram_malloc(size_t size) { return heap_caps_malloc(size, MALLOC_CAP_SPIRAM); }
@@ -149,13 +161,13 @@ Under *Telebot → Parsed features* in menuconfig you can switch off groups a de
 as `TELEBOT_UPDATE_TYPE_UNKNOWN`. On Linux/macOS everything is enabled; pass for example
 `-DTELEBOT_FEATURE_PAYMENTS=0` in `CMAKE_C_FLAGS` to switch a group off there.
 
-Flash used by telebot in the ESP32 echo example (ESP-IDF v6.1.1, cJSON included, 20 bytes of static RAM):
+Flash used by telebot in the ESP32 echo example (ESP-IDF v6.1.1, cJSON included, 100 bytes of static RAM):
 
 | Parsed features | Flash |
 |---|---|
-| everything | 40.5 KB |
-| ESP default (chat events only) | 35.8 KB |
-| minimal (all groups off) | 32.1 KB |
+| everything | 35.5 KB |
+| ESP default (chat events only) | 30.8 KB |
+| minimal (all groups off) | 27.2 KB |
 
 ## Testing
 

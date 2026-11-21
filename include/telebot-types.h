@@ -3539,12 +3539,6 @@ typedef struct telebot_update {
         /** Query from a forwarded shared widget */
         telebot_widget_query_t shared_widget_query;
     };
-
-    /**
-     * Internal: memory that owns this batch of updates. Set only on the first
-     * update returned by #telebot_get_updates(); released by #telebot_put_updates().
-     */
-    void *arena;
 } telebot_update_t;
 
 /**

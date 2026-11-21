@@ -14,6 +14,9 @@ jobs:
             flags: >-
               -DTELEBOT_FEATURE_PAYMENTS=0 -DTELEBOT_FEATURE_PASSPORT=0 -DTELEBOT_FEATURE_BUSINESS=0
               -DTELEBOT_FEATURE_GIFTS=0 -DTELEBOT_FEATURE_CHAT_EXTRAS=0 -DTELEBOT_FEATURE_WIDGETS=0
+          - name: sanitizers, no block cache
+            flags: >-
+              -fsanitize=address,undefined -fno-omit-frame-pointer -DTELEBOT_ARENA_CACHE_BLOCKS=0
     name: ${{ matrix.name }}
 
     steps:
@@ -25,6 +28,7 @@ jobs:
         cmake -S . -B build
         -DCMAKE_C_FLAGS="${{ matrix.flags }}"
         -DCMAKE_CXX_FLAGS="${{ matrix.flags }}"
+        -DCMAKE_EXE_LINKER_FLAGS="${{ contains(matrix.flags, 'sanitize') && '-fsanitize=address,undefined' || '' }}"
     - name: make
       run: cmake --build build -j
     - name: unit tests

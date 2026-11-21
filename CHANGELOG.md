@@ -19,14 +19,16 @@ Follows Telegram Bot API 10.4. This is a breaking release; see "Migrating from 9
   size, configurable through `menuconfig` on ESP-IDF.
 - `TELEBOT_FEATURE_*` switches compile out parsing of payments, business, gifts, passport, chat
   events and widgets.
-- Each batch of updates is parsed into one arena and released with a single
-  `telebot_put_updates()` call.
+- Every parsed result lives in one arena released by its `telebot_put_*` function; released
+  blocks are cached, so steady polling makes no heap allocations. Ownership is tracked inside
+  the library: a copy of a result is rejected instead of being freed twice, and filling a struct
+  again releases its previous contents.
 - Scalar fields are parsed from tables instead of per-field code.
 - Request JSON is written by a streaming writer straight into the request (no JSON tree,
   at most one allocation for large values); cJSON is used only to read replies.
 - Response buffers grow geometrically instead of reallocating per network chunk.
 - `telebot_set_json_allocator()` lets the JSON tree live in PSRAM.
-- Telebot takes about 35.8 KB of flash on ESP32 with the default features.
+- Telebot takes about 30.8 KB of flash on ESP32 with the default features.
 
 ### API
 
