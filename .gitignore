@@ -56,3 +56,6 @@ examples/*/managed_components/
 examples/*/dependencies.lock
 examples/*/sdkconfig
 examples/*/sdkconfig.old
+
+# Local roadmap, not part of the repository
+TODO.md

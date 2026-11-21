@@ -23,12 +23,12 @@ Follows Telegram Bot API 10.4. This is a breaking release; see "Migrating from 9
   blocks are cached, so steady polling makes no heap allocations. Ownership is tracked inside
   the library: a copy of a result is rejected instead of being freed twice, and filling a struct
   again releases its previous contents.
-- Scalar fields are parsed from tables instead of per-field code.
+- Scalar fields and nested objects are parsed from tables instead of per-field code.
 - Request JSON is written by a streaming writer straight into the request (no JSON tree,
   at most one allocation for large values); cJSON is used only to read replies.
 - Response buffers grow geometrically instead of reallocating per network chunk.
 - `telebot_set_json_allocator()` lets the JSON tree live in PSRAM.
-- Telebot takes about 30.8 KB of flash on ESP32 with the default features.
+- Telebot takes about 29.2 KB of flash on ESP32 with the default features.
 
 ### API
 
