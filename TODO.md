@@ -5,13 +5,9 @@ within each section.
 
 ## Library internals
 
-- [ ] Parse every other result into an arena too (`telebot_get_me()`, `telebot_get_chat()`,
-      `telebot_get_chat_member()`, `telebot_get_sticker_set()`, ...). Update batches already
-      use one; the other results are still released field by field by the `telebot_put_*`
-      functions.
 - [ ] Extend the parse tables (`include_private/telebot-fields.h`) to nested objects, arrays
       and required fields. Scalar fields are table-driven; the remaining hand-written blocks are most of
-      the parser's 21 KB on ESP32.
+      the parser's code on ESP32.
 
 ## Bot API coverage (reachable today through `telebot_core_call()`)
 

@@ -60,7 +60,13 @@ telebot_error_e telebot_send_invoice(telebot_handler_t handle, long long int cha
         goto finish;
     }
 
-    ret = telebot_parser_get_message(result, message);
+    telebot_arena_t *arena = telebot_arena_begin();
+    ret = arena ? telebot_parser_get_message(result, message) : TELEBOT_ERROR_OUT_OF_MEMORY;
+    if (ret == TELEBOT_ERROR_NONE)
+        ret = telebot_owner_attach(message, arena); /* message now owns the arena */
+    telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+    if (ret != TELEBOT_ERROR_NONE)
+        memset(message, 0, sizeof(*message));
 
 finish:
     if (obj)
@@ -221,7 +227,13 @@ telebot_error_e telebot_get_star_transactions(telebot_handler_t handle,
         goto finish;
     }
 
-    ret = telebot_parser_get_star_transactions(result, transactions);
+    telebot_arena_t *arena = telebot_arena_begin();
+    ret = arena ? telebot_parser_get_star_transactions(result, transactions) : TELEBOT_ERROR_OUT_OF_MEMORY;
+    if (ret == TELEBOT_ERROR_NONE)
+        ret = telebot_owner_attach(transactions, arena); /* transactions now owns the arena */
+    telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+    if (ret != TELEBOT_ERROR_NONE)
+        memset(transactions, 0, sizeof(*transactions));
 
 finish:
     if (obj)
@@ -232,20 +244,8 @@ finish:
 
 telebot_error_e telebot_put_star_transactions(telebot_star_transactions_t *transactions)
 {
-    if (transactions == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    if (transactions->transactions)
-    {
-        for (int i = 0; i < transactions->count_transactions; i++)
-        {
-            TELEBOT_SAFE_FREE(transactions->transactions[i].id);
-            // ... free transaction partners etc if needed ...
-        }
-        free(transactions->transactions);
-    }
-
-    return TELEBOT_ERROR_NONE;
+    /* releases everything the result points to; a copy of it is rejected */
+    return telebot_owner_release(transactions, sizeof(*transactions));
 }
 
 telebot_error_e telebot_refund_star_payment(telebot_handler_t handle,
@@ -277,7 +277,13 @@ telebot_error_e telebot_get_available_gifts(telebot_handler_t handle,
         }
         else
         {
-            ret = telebot_parser_get_gifts(obj, gifts);
+            telebot_arena_t *arena = telebot_arena_begin();
+            ret = arena ? telebot_parser_get_gifts(obj, gifts) : TELEBOT_ERROR_OUT_OF_MEMORY;
+            if (ret == TELEBOT_ERROR_NONE)
+                ret = telebot_owner_attach(gifts, arena); /* gifts now owns the arena */
+            telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+            if (ret != TELEBOT_ERROR_NONE)
+                memset(gifts, 0, sizeof(*gifts));
             telebot_json_put(obj);
         }
     }
@@ -287,17 +293,8 @@ telebot_error_e telebot_get_available_gifts(telebot_handler_t handle,
 
 telebot_error_e telebot_put_available_gifts(telebot_gifts_t *gifts)
 {
-    if (gifts == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    for (int i = 0; i < gifts->count; i++)
-    {
-        telebot_put_gift(&(gifts->gifts[i]));
-    }
-    TELEBOT_SAFE_FREE(gifts->gifts);
-    gifts->count = 0;
-
-    return TELEBOT_ERROR_NONE;
+    /* releases everything the result points to; a copy of it is rejected */
+    return telebot_owner_release(gifts, sizeof(*gifts));
 }
 
 telebot_error_e telebot_get_user_gifts(telebot_handler_t handle,
@@ -317,7 +314,13 @@ telebot_error_e telebot_get_user_gifts(telebot_handler_t handle,
         }
         else
         {
-            ret = telebot_parser_get_user_gifts(obj, gifts);
+            telebot_arena_t *arena = telebot_arena_begin();
+            ret = arena ? telebot_parser_get_user_gifts(obj, gifts) : TELEBOT_ERROR_OUT_OF_MEMORY;
+            if (ret == TELEBOT_ERROR_NONE)
+                ret = telebot_owner_attach(gifts, arena); /* gifts now owns the arena */
+            telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+            if (ret != TELEBOT_ERROR_NONE)
+                memset(gifts, 0, sizeof(*gifts));
             telebot_json_put(obj);
         }
     }
@@ -327,18 +330,8 @@ telebot_error_e telebot_get_user_gifts(telebot_handler_t handle,
 
 telebot_error_e telebot_put_user_gifts(telebot_user_gifts_t *gifts)
 {
-    if (gifts == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    for (int i = 0; i < gifts->count; i++)
-    {
-        telebot_put_user_gift(&(gifts->gifts[i]));
-    }
-    TELEBOT_SAFE_FREE(gifts->gifts);
-    gifts->count = 0;
-    gifts->total_count = 0;
-
-    return TELEBOT_ERROR_NONE;
+    /* releases everything the result points to; a copy of it is rejected */
+    return telebot_owner_release(gifts, sizeof(*gifts));
 }
 
 telebot_error_e telebot_get_chat_gifts(telebot_handler_t handle,
@@ -358,7 +351,13 @@ telebot_error_e telebot_get_chat_gifts(telebot_handler_t handle,
         }
         else
         {
-            ret = telebot_parser_get_user_gifts(obj, gifts);
+            telebot_arena_t *arena = telebot_arena_begin();
+            ret = arena ? telebot_parser_get_user_gifts(obj, gifts) : TELEBOT_ERROR_OUT_OF_MEMORY;
+            if (ret == TELEBOT_ERROR_NONE)
+                ret = telebot_owner_attach(gifts, arena); /* gifts now owns the arena */
+            telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+            if (ret != TELEBOT_ERROR_NONE)
+                memset(gifts, 0, sizeof(*gifts));
             telebot_json_put(obj);
         }
     }
@@ -368,7 +367,8 @@ telebot_error_e telebot_get_chat_gifts(telebot_handler_t handle,
 
 telebot_error_e telebot_put_chat_gifts(telebot_user_gifts_t *gifts)
 {
-    return telebot_put_user_gifts(gifts);
+    /* releases everything the result points to; a copy of it is rejected */
+    return telebot_owner_release(gifts, sizeof(*gifts));
 }
 
 telebot_error_e telebot_upgrade_gift(telebot_handler_t handle,

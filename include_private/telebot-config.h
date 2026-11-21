@@ -65,6 +65,33 @@
 #endif
 #endif
 
+/* Block size of the arenas parsed results live in */
+#ifndef TELEBOT_ARENA_BLOCK_SIZE
+#ifdef CONFIG_TELEBOT_ARENA_BLOCK_SIZE
+#define TELEBOT_ARENA_BLOCK_SIZE CONFIG_TELEBOT_ARENA_BLOCK_SIZE
+#else
+#define TELEBOT_ARENA_BLOCK_SIZE 4096
+#endif
+#endif
+
+/* Released arena blocks kept for reuse, so steady polling needs no malloc() */
+#ifndef TELEBOT_ARENA_CACHE_BLOCKS
+#ifdef CONFIG_TELEBOT_ARENA_CACHE_BLOCKS
+#define TELEBOT_ARENA_CACHE_BLOCKS CONFIG_TELEBOT_ARENA_CACHE_BLOCKS
+#else
+#define TELEBOT_ARENA_CACHE_BLOCKS 4
+#endif
+#endif
+
+/* Results written into caller structs that may be alive at the same time */
+#ifndef TELEBOT_MAX_LIVE_RESULTS
+#ifdef CONFIG_TELEBOT_MAX_LIVE_RESULTS
+#define TELEBOT_MAX_LIVE_RESULTS CONFIG_TELEBOT_MAX_LIVE_RESULTS
+#else
+#define TELEBOT_MAX_LIVE_RESULTS 16
+#endif
+#endif
+
 /*
  * Parser feature groups. A disabled group is not parsed: the matching message
  * fields stay NULL and the matching updates arrive as TELEBOT_UPDATE_TYPE_UNKNOWN.
@@ -150,6 +177,8 @@
 #define TELEBOT_STATIC_ASSERT _Static_assert
 #endif
 
+TELEBOT_STATIC_ASSERT(TELEBOT_MAX_LIVE_RESULTS >= 1, "TELEBOT_MAX_LIVE_RESULTS must be at least 1");
+TELEBOT_STATIC_ASSERT(TELEBOT_ARENA_BLOCK_SIZE >= 256, "TELEBOT_ARENA_BLOCK_SIZE is too small");
 TELEBOT_STATIC_ASSERT(TELEBOT_IO_CHUNK_SIZE >= 128, "TELEBOT_IO_CHUNK_SIZE is too small");
 TELEBOT_STATIC_ASSERT(TELEBOT_DEFAULT_UPDATE_LIMIT >= 1 && TELEBOT_DEFAULT_UPDATE_LIMIT <= 100,
                "TELEBOT_DEFAULT_UPDATE_LIMIT must be within 1..100");

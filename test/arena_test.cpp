@@ -136,8 +136,6 @@ TEST_F(ArenaUpdates, BatchFromGetUpdatesIsOneArena)
     int count = 0;
     ASSERT_EQ(telebot_get_updates(handle_, 0, 0, 0, nullptr, 0, &updates, &count), TELEBOT_ERROR_NONE);
     ASSERT_EQ(count, 3);
-    EXPECT_NE(updates[0].arena, nullptr);
-    EXPECT_EQ(updates[1].arena, nullptr);
     EXPECT_STREQ(updates[0].message.text, "hello");
     ASSERT_NE(updates[0].message.sticker, nullptr);
     EXPECT_STREQ(updates[0].message.sticker->thumbnail->file_id, "T");
@@ -164,4 +162,91 @@ TEST_F(ArenaUpdates, EmptyOrFailedPollsLeaveNothingBehind)
     EXPECT_EQ(updates, nullptr);
 }
 
+// ---- Ownership of results written into the caller's struct ----
+
+const char *kMeReply = R"({"ok":true,"result":{"id":8123456789,"is_bot":true,"first_name":"Probe","username":"probe_bot"}})";
+
+TEST_F(ArenaUpdates, CopyOfAResultIsRejectedNotFreedTwice)
+{
+    fake_->reply(200, kMeReply);
+    telebot_user_t me;
+    ASSERT_EQ(telebot_get_me(handle_, &me), TELEBOT_ERROR_NONE);
+
+    telebot_user_t copy = me; // plain data copy: no ownership inside it
+    EXPECT_STREQ(copy.username, "probe_bot");
+    EXPECT_EQ(telebot_put_me(&copy), TELEBOT_ERROR_INVALID_PARAMETER);
+
+    EXPECT_EQ(telebot_put_me(&me), TELEBOT_ERROR_NONE);
+    EXPECT_EQ(me.username, nullptr); // zeroed: no dangling pointers
+    EXPECT_EQ(telebot_put_me(&me), TELEBOT_ERROR_INVALID_PARAMETER); // second put is harmless
+}
+
+TEST_F(ArenaUpdates, RefillingAStructReleasesItsPreviousContents)
+{
+    telebot_user_t me;
+    for (int i = 0; i < 5; i++)
+    {
+        fake_->reply(200, kMeReply);
+        ASSERT_EQ(telebot_get_me(handle_, &me), TELEBOT_ERROR_NONE); // no put in between
+    }
+    EXPECT_EQ(telebot_put_me(&me), TELEBOT_ERROR_NONE); // checked by the leak run
+}
+
+TEST_F(ArenaUpdates, FailedCallLeavesAnEmptyStruct)
+{
+    fake_->reply(200, R"({"ok":false,"description":"nope"})");
+    telebot_user_t me;
+    memset(&me, 0xA5, sizeof(me)); // garbage, as on an uninitialised stack
+    EXPECT_NE(telebot_get_me(handle_, &me), TELEBOT_ERROR_NONE);
+    EXPECT_EQ(me.username, nullptr);
+    EXPECT_EQ(telebot_put_me(&me), TELEBOT_ERROR_INVALID_PARAMETER);
+}
+
+TEST_F(ArenaUpdates, TooManyLiveResultsIsReportedNotCorrupted)
+{
+    static telebot_user_t users[TELEBOT_MAX_LIVE_RESULTS + 1];
+    for (int i = 0; i < TELEBOT_MAX_LIVE_RESULTS; i++)
+    {
+        fake_->reply(200, kMeReply);
+        ASSERT_EQ(telebot_get_me(handle_, &users[i]), TELEBOT_ERROR_NONE);
+    }
+    fake_->reply(200, kMeReply);
+    telebot_user_t &extra = users[TELEBOT_MAX_LIVE_RESULTS];
+    EXPECT_EQ(telebot_get_me(handle_, &extra), TELEBOT_ERROR_OUT_OF_MEMORY);
+    EXPECT_EQ(extra.username, nullptr);
+
+    for (int i = 0; i < TELEBOT_MAX_LIVE_RESULTS; i++)
+        EXPECT_EQ(telebot_put_me(&users[i]), TELEBOT_ERROR_NONE);
+}
+
+TEST_F(ArenaUpdates, ArrayResultsAreReleasedThroughTheirHeader)
+{
+    fake_->reply(200, R"({"ok":true,"result":[{"command":"start","description":"Start"},{"command":"help","description":"Help"}]})");
+    telebot_bot_command_t *commands = nullptr;
+    int count = 0;
+    ASSERT_EQ(telebot_get_my_commands(handle_, &commands, &count), TELEBOT_ERROR_NONE);
+    ASSERT_EQ(count, 2);
+    EXPECT_STREQ(commands[1].command, "help");
+    EXPECT_EQ(telebot_put_my_commands(commands, count), TELEBOT_ERROR_NONE);
+
+    EXPECT_EQ(telebot_put_my_commands(nullptr, 2), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_put_updates(nullptr, 0), TELEBOT_ERROR_INVALID_PARAMETER);
+}
+
+TEST(ArenaCache, ReleasedBlocksAreReused)
+{
+    if (TELEBOT_ARENA_CACHE_BLOCKS == 0)
+        GTEST_SKIP() << "block cache disabled in this build";
+    telebot_arena_trim_cache();
+    telebot_arena_t *a = telebot_arena_create();
+    const void *first = a;
+    telebot_arena_destroy(a);
+
+    telebot_arena_t *b = telebot_arena_create(); // served from the cache
+    EXPECT_EQ(static_cast<const void *>(b), first);
+    telebot_arena_destroy(b);
+    telebot_arena_trim_cache();
+}
+
 } // namespace
+

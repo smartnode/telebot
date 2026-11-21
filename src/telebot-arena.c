@@ -16,21 +16,19 @@
  * limitations under the License.
  */
 
+#include <pthread.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "telebot-arena.h"
 #include "telebot-config.h"
 
-#ifndef TELEBOT_ARENA_BLOCK_SIZE
-#ifdef CONFIG_TELEBOT_ARENA_BLOCK_SIZE
-#define TELEBOT_ARENA_BLOCK_SIZE CONFIG_TELEBOT_ARENA_BLOCK_SIZE
-#else
-#define TELEBOT_ARENA_BLOCK_SIZE 4096
-#endif
-#endif
-
 #define ARENA_ALIGN (sizeof(max_align_t))
+#define ALIGN_UP(n) (((n) + ARENA_ALIGN - 1) & ~(ARENA_ALIGN - 1))
+
+/* ---------------------------------------------------------------------------- */
+/* Blocks and the block cache                                                    */
+/* ---------------------------------------------------------------------------- */
 
 typedef struct arena_block
 {
@@ -40,37 +38,97 @@ typedef struct arena_block
     max_align_t data[]; /* aligned start of the usable area */
 } arena_block_t;
 
-struct telebot_arena
-{
-    arena_block_t *head; /* block currently being carved */
-    size_t total_used;
-};
+static pthread_mutex_t cache_lock = PTHREAD_MUTEX_INITIALIZER;
+static arena_block_t *cache_head = NULL;
+static size_t cache_count = 0;
 
-static _Thread_local telebot_arena_t *current_arena = NULL;
-
-static arena_block_t *block_new(size_t min_size)
+/* A block with at least `min_size` usable bytes; standard blocks come from the cache */
+static arena_block_t *block_get(size_t min_size)
 {
-    size_t size = (min_size > TELEBOT_ARENA_BLOCK_SIZE) ? min_size : TELEBOT_ARENA_BLOCK_SIZE;
-    arena_block_t *block = malloc(sizeof(arena_block_t) + size);
+    arena_block_t *block = NULL;
+    if (min_size <= TELEBOT_ARENA_BLOCK_SIZE)
+    {
+        pthread_mutex_lock(&cache_lock);
+        block = cache_head;
+        if (block != NULL)
+        {
+            cache_head = block->next;
+            cache_count--;
+        }
+        pthread_mutex_unlock(&cache_lock);
+        min_size = TELEBOT_ARENA_BLOCK_SIZE;
+    }
     if (block == NULL)
-        return NULL;
+    {
+        block = malloc(sizeof(arena_block_t) + min_size);
+        if (block == NULL)
+            return NULL;
+        block->size = min_size;
+    }
     block->next = NULL;
-    block->size = size;
     block->used = 0;
     return block;
 }
 
+/* Standard blocks go back to the cache while it has room; others are freed */
+static void block_put(arena_block_t *block)
+{
+    if (block->size == TELEBOT_ARENA_BLOCK_SIZE)
+    {
+        pthread_mutex_lock(&cache_lock);
+        if (cache_count < TELEBOT_ARENA_CACHE_BLOCKS)
+        {
+            block->next = cache_head;
+            cache_head = block;
+            cache_count++;
+            block = NULL;
+        }
+        pthread_mutex_unlock(&cache_lock);
+    }
+    free(block);
+}
+
+void telebot_arena_trim_cache(void)
+{
+    pthread_mutex_lock(&cache_lock);
+    arena_block_t *block = cache_head;
+    cache_head = NULL;
+    cache_count = 0;
+    pthread_mutex_unlock(&cache_lock);
+
+    while (block != NULL)
+    {
+        arena_block_t *next = block->next;
+        free(block);
+        block = next;
+    }
+}
+
+/* ---------------------------------------------------------------------------- */
+/* Arena                                                                         */
+/* ---------------------------------------------------------------------------- */
+
+struct telebot_arena
+{
+    arena_block_t *head;       /* block currently being carved; the arena itself lives in the last one */
+    size_t total_used;
+    telebot_arena_t *previous; /* arena that was current before telebot_arena_begin() */
+};
+
+static _Thread_local telebot_arena_t *current_arena = NULL;
+
 telebot_arena_t *telebot_arena_create(void)
 {
-    telebot_arena_t *arena = calloc(1, sizeof(*arena));
-    if (arena == NULL)
+    arena_block_t *block = block_get(0);
+    if (block == NULL)
         return NULL;
-    arena->head = block_new(0);
-    if (arena->head == NULL)
-    {
-        free(arena);
-        return NULL;
-    }
+
+    /* The arena's own bookkeeping is the first carve of its first block */
+    telebot_arena_t *arena = (telebot_arena_t *)block->data;
+    block->used = ALIGN_UP(sizeof(telebot_arena_t));
+    arena->head = block;
+    arena->total_used = 0;
+    arena->previous = NULL;
     return arena;
 }
 
@@ -78,13 +136,14 @@ void telebot_arena_destroy(telebot_arena_t *arena)
 {
     if (arena == NULL)
         return;
-    for (arena_block_t *block = arena->head; block != NULL;)
+    /* `arena` lives in the last block of the list: read nothing after releasing it */
+    arena_block_t *block = arena->head;
+    while (block != NULL)
     {
         arena_block_t *next = block->next;
-        free(block);
+        block_put(block);
         block = next;
     }
-    free(arena);
 }
 
 size_t telebot_arena_used(const telebot_arena_t *arena)
@@ -96,15 +155,15 @@ static void *arena_alloc(telebot_arena_t *arena, size_t size)
 {
     if (size == 0)
         size = 1;
-    size_t aligned = (size + ARENA_ALIGN - 1) & ~(ARENA_ALIGN - 1);
+    size_t aligned = ALIGN_UP(size);
     if (aligned < size) /* overflow */
         return NULL;
 
     arena_block_t *block = arena->head;
     if (block->size - block->used < aligned)
     {
-        /* New block in front; the remainder of the old one is simply left unused */
-        arena_block_t *fresh = block_new(aligned);
+        /* New block in front; the rest of the old one stays unused */
+        arena_block_t *fresh = block_get(aligned);
         if (fresh == NULL)
             return NULL;
         fresh->next = block;
@@ -129,6 +188,28 @@ void telebot_arena_leave(telebot_arena_t *previous)
 {
     current_arena = previous;
 }
+
+telebot_arena_t *telebot_arena_begin(void)
+{
+    telebot_arena_t *arena = telebot_arena_create();
+    if (arena != NULL)
+        arena->previous = telebot_arena_enter(arena);
+    return arena;
+}
+
+void telebot_arena_finish(telebot_arena_t *arena, bool keep)
+{
+    if (arena == NULL)
+        return;
+    telebot_arena_leave(arena->previous);
+    arena->previous = NULL;
+    if (!keep)
+        telebot_arena_destroy(arena);
+}
+
+/* ---------------------------------------------------------------------------- */
+/* Allocation entry points                                                       */
+/* ---------------------------------------------------------------------------- */
 
 void *telebot_mem_calloc(size_t count, size_t size)
 {
@@ -162,4 +243,122 @@ void telebot_mem_free(void *ptr)
     if (current_arena == NULL)
         free(ptr);
     /* otherwise ptr belongs to the current arena and is released with it */
+}
+
+/* ---------------------------------------------------------------------------- */
+/* Library-allocated results: hidden header                                      */
+/* ---------------------------------------------------------------------------- */
+
+#define OWNED_MAGIC 0x54424f57u /* "TBOW" */
+
+typedef union owned_header
+{
+    struct
+    {
+        uint32_t magic;
+        telebot_arena_t *arena; /* NULL when the array came from the heap */
+    } h;
+    max_align_t align; /* keeps the array that follows aligned */
+} owned_header_t;
+
+void *telebot_owned_calloc(size_t count, size_t size)
+{
+    if ((size != 0) && (count > (SIZE_MAX - sizeof(owned_header_t)) / size))
+        return NULL;
+    owned_header_t *header = telebot_mem_calloc(1, sizeof(owned_header_t) + count * size);
+    if (header == NULL)
+        return NULL;
+    header->h.magic = OWNED_MAGIC;
+    header->h.arena = current_arena;
+    return header + 1;
+}
+
+telebot_error_e telebot_owned_release(void *array)
+{
+    if (array == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    owned_header_t *header = (owned_header_t *)array - 1;
+    if (header->h.magic != OWNED_MAGIC)
+        return TELEBOT_ERROR_INVALID_PARAMETER; /* not returned by the library, or already released */
+    header->h.magic = 0;
+
+    telebot_arena_t *arena = header->h.arena;
+    if (arena != NULL)
+        telebot_arena_destroy(arena); /* the header and the array live inside it */
+    else
+        free(header);
+    return TELEBOT_ERROR_NONE;
+}
+
+/* ---------------------------------------------------------------------------- */
+/* Caller-provided results: ownership registry                                   */
+/* ---------------------------------------------------------------------------- */
+
+typedef struct owner_entry
+{
+    const void *object;     /* address of the caller's struct */
+    telebot_arena_t *arena; /* memory holding what the struct points to */
+} owner_entry_t;
+
+static pthread_mutex_t owners_lock = PTHREAD_MUTEX_INITIALIZER;
+static owner_entry_t owners[TELEBOT_MAX_LIVE_RESULTS];
+
+telebot_error_e telebot_owner_attach(const void *object, telebot_arena_t *arena)
+{
+    if ((object == NULL) || (arena == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_arena_t *stale = NULL;
+    owner_entry_t *slot = NULL;
+
+    pthread_mutex_lock(&owners_lock);
+    for (size_t i = 0; i < TELEBOT_MAX_LIVE_RESULTS; i++)
+    {
+        if (owners[i].object == object)
+        {
+            /* The struct is being filled again without a put: drop its old contents */
+            stale = owners[i].arena;
+            slot = &owners[i];
+            break;
+        }
+        if ((slot == NULL) && (owners[i].object == NULL))
+            slot = &owners[i];
+    }
+    if (slot != NULL)
+    {
+        slot->object = object;
+        slot->arena = arena;
+    }
+    pthread_mutex_unlock(&owners_lock);
+
+    telebot_arena_destroy(stale);
+    return (slot != NULL) ? TELEBOT_ERROR_NONE : TELEBOT_ERROR_OUT_OF_MEMORY;
+}
+
+telebot_error_e telebot_owner_release(void *object, size_t size)
+{
+    if (object == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_arena_t *arena = NULL;
+    pthread_mutex_lock(&owners_lock);
+    for (size_t i = 0; i < TELEBOT_MAX_LIVE_RESULTS; i++)
+    {
+        if (owners[i].object == object)
+        {
+            arena = owners[i].arena;
+            owners[i].object = NULL;
+            owners[i].arena = NULL;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&owners_lock);
+
+    if (arena == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER; /* a copy, or never filled */
+
+    telebot_arena_destroy(arena);
+    memset(object, 0, size); /* leave no dangling pointers behind */
+    return TELEBOT_ERROR_NONE;
 }

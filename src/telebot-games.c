@@ -58,7 +58,13 @@ telebot_error_e telebot_send_game(telebot_handler_t handle, long long int chat_i
         goto finish;
     }
 
-    ret = telebot_parser_get_message(result, message);
+    telebot_arena_t *arena = telebot_arena_begin();
+    ret = arena ? telebot_parser_get_message(result, message) : TELEBOT_ERROR_OUT_OF_MEMORY;
+    if (ret == TELEBOT_ERROR_NONE)
+        ret = telebot_owner_attach(message, arena); /* message now owns the arena */
+    telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+    if (ret != TELEBOT_ERROR_NONE)
+        memset(message, 0, sizeof(*message));
 
 finish:
     if (obj)
@@ -102,8 +108,17 @@ telebot_error_e telebot_set_game_score(telebot_handler_t handle,
         struct cJSON *result = NULL;
         if (telebot_json_get_ex(obj, "result", &result))
         {
+            /* An inline game message returns `true` instead of a message */
             if (cJSON_IsObject(result))
-                ret = telebot_parser_get_message(result, message);
+            {
+                telebot_arena_t *arena = telebot_arena_begin();
+                ret = arena ? telebot_parser_get_message(result, message) : TELEBOT_ERROR_OUT_OF_MEMORY;
+                if (ret == TELEBOT_ERROR_NONE)
+                    ret = telebot_owner_attach(message, arena); /* message now owns the arena */
+                telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+                if (ret != TELEBOT_ERROR_NONE)
+                    memset(message, 0, sizeof(*message));
+            }
         }
     }
 
@@ -159,17 +174,20 @@ telebot_error_e telebot_get_game_high_scores(telebot_handler_t handle,
         goto finish;
     }
 
-    *high_scores = calloc(array_len, sizeof(telebot_game_high_score_t));
+    /* The array and everything in it live in one arena owned by the array's hidden header */
+    telebot_arena_t *arena = telebot_arena_begin();
+    *high_scores = arena ? telebot_owned_calloc(array_len, sizeof(telebot_game_high_score_t)) : NULL;
+    if (*high_scores != NULL)
+    {
+        *count = array_len;
+        for (int i = 0; i < array_len; i++)
+            telebot_parser_get_game_high_score(telebot_json_array_get_idx(result, i), &((*high_scores)[i]));
+    }
+    telebot_arena_finish(arena, *high_scores != NULL);
     if (*high_scores == NULL)
     {
         ret = TELEBOT_ERROR_OUT_OF_MEMORY;
         goto finish;
-    }
-    *count = array_len;
-
-    for (int i = 0; i < array_len; i++)
-    {
-        telebot_parser_get_game_high_score(telebot_json_array_get_idx(result, i), &((*high_scores)[i]));
     }
 
 finish:
@@ -181,15 +199,8 @@ finish:
 
 telebot_error_e telebot_put_game_high_scores(telebot_game_high_score_t *high_scores, int count)
 {
-    if (high_scores == NULL)
+    if ((high_scores == NULL) || (count <= 0))
         return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    for (int i = 0; i < count; i++)
-    {
-        telebot_put_user(high_scores[i].user);
-        TELEBOT_SAFE_FREE(high_scores[i].user);
-    }
-    free(high_scores);
-
-    return TELEBOT_ERROR_NONE;
+    /* the array and everything it points to share one arena */
+    return telebot_owned_release(high_scores);
 }

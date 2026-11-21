@@ -59,7 +59,13 @@ telebot_error_e telebot_save_prepared_inline_message(telebot_handler_t handle,
         goto finish;
     }
 
-    ret = telebot_parser_get_prepared_inline_message(res_obj, prepared_message);
+    telebot_arena_t *arena = telebot_arena_begin();
+    ret = arena ? telebot_parser_get_prepared_inline_message(res_obj, prepared_message) : TELEBOT_ERROR_OUT_OF_MEMORY;
+    if (ret == TELEBOT_ERROR_NONE)
+        ret = telebot_owner_attach(prepared_message, arena); /* prepared_message now owns the arena */
+    telebot_arena_finish(arena, ret == TELEBOT_ERROR_NONE);
+    if (ret != TELEBOT_ERROR_NONE)
+        memset(prepared_message, 0, sizeof(*prepared_message));
 
 finish:
     if (obj)
@@ -70,11 +76,8 @@ finish:
 
 telebot_error_e telebot_put_prepared_inline_message(telebot_prepared_inline_message_t *prepared_message)
 {
-    if (prepared_message == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    TELEBOT_SAFE_FREE(prepared_message->id);
-    return TELEBOT_ERROR_NONE;
+    /* releases everything the result points to; a copy of it is rejected */
+    return telebot_owner_release(prepared_message, sizeof(*prepared_message));
 }
 
 telebot_error_e telebot_answer_web_app_query(telebot_handler_t handle, const char *web_app_query_id, const char *result, char **inline_message_id)

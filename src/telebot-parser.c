@@ -161,7 +161,7 @@ telebot_error_e telebot_parser_get_updates(struct cJSON *obj, telebot_update_t *
     if (array_len == 0)
         return TELEBOT_ERROR_NONE;
 
-    telebot_update_t *result = telebot_mem_calloc(array_len, sizeof(telebot_update_t));
+    telebot_update_t *result = telebot_owned_calloc(array_len, sizeof(telebot_update_t));
     if (result == NULL)
         return TELEBOT_ERROR_OUT_OF_MEMORY;
 
@@ -775,7 +775,7 @@ telebot_error_e telebot_parser_get_chat_admins(struct cJSON *obj, telebot_chat_m
     if (!array_len)
         return TELEBOT_ERROR_OPERATION_FAILED;
 
-    telebot_chat_member_t *result = telebot_mem_calloc(array_len, sizeof(telebot_chat_member_t));
+    telebot_chat_member_t *result = telebot_owned_calloc(array_len, sizeof(telebot_chat_member_t));
     if (result == NULL)
         return TELEBOT_ERROR_OUT_OF_MEMORY;
 
@@ -794,8 +794,7 @@ telebot_error_e telebot_parser_get_chat_admins(struct cJSON *obj, telebot_chat_m
 
     if (ret)
     {
-        telebot_put_chat_admins(result, index + 1);
-        *admins = NULL;
+        *admins = NULL; /* the arena holding `result` is discarded by the caller */
         *count = 0;
     }
 
@@ -1054,8 +1053,7 @@ telebot_error_e telebot_parser_get_message(struct cJSON *obj, telebot_message_t 
         if ((msg->sticker != NULL) && (telebot_parser_get_sticker(sticker, msg->sticker) != TELEBOT_ERROR_NONE))
         {
             ERR("Failed to get <sticker> from message object");
-            telebot_put_sticker(msg->sticker);
-            TELEBOT_SAFE_FREE(msg->sticker);
+            msg->sticker = NULL;
         }
     }
 
@@ -2663,7 +2661,7 @@ telebot_error_e telebot_parser_get_array_bot_command(struct cJSON *obj, telebot_
     if (!array_len)
         return TELEBOT_ERROR_OPERATION_FAILED;
 
-    telebot_bot_command_t *result = telebot_mem_calloc(array_len, sizeof(telebot_bot_command_t));
+    telebot_bot_command_t *result = telebot_owned_calloc(array_len, sizeof(telebot_bot_command_t));
     if (result == NULL)
         return TELEBOT_ERROR_OUT_OF_MEMORY;
 
@@ -2682,8 +2680,7 @@ telebot_error_e telebot_parser_get_array_bot_command(struct cJSON *obj, telebot_
 
     if (ret)
     {
-        telebot_put_my_commands(result, index + 1);
-        *cmds = NULL;
+        *cmds = NULL; /* the arena holding `result` is discarded by the caller */
         *count = 0;
     }
 
@@ -3687,7 +3684,8 @@ telebot_error_e telebot_parser_get_sticker(struct cJSON *obj, telebot_sticker_t 
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_parser_get_stickers(struct cJSON *obj, telebot_sticker_t **stickers, int *count)
+static telebot_error_e telebot_parser_get_sticker_array(struct cJSON *obj, telebot_sticker_t **stickers, int *count,
+                                                        bool owned)
 {
     if ((obj == NULL) || (stickers == NULL) || (count == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
@@ -3698,7 +3696,8 @@ telebot_error_e telebot_parser_get_stickers(struct cJSON *obj, telebot_sticker_t
     if (len == 0)
         return TELEBOT_ERROR_NONE;
 
-    telebot_sticker_t *result = telebot_mem_calloc(len, sizeof(telebot_sticker_t));
+    telebot_sticker_t *result = owned ? telebot_owned_calloc(len, sizeof(telebot_sticker_t))
+                                      : telebot_mem_calloc(len, sizeof(telebot_sticker_t));
     if (result == NULL)
         return TELEBOT_ERROR_OUT_OF_MEMORY;
 
@@ -3712,6 +3711,11 @@ telebot_error_e telebot_parser_get_stickers(struct cJSON *obj, telebot_sticker_t
     *stickers = result;
     *count = index;
     return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_parser_get_stickers(struct cJSON *obj, telebot_sticker_t **stickers, int *count)
+{
+    return telebot_parser_get_sticker_array(obj, stickers, count, true);
 }
 
 telebot_error_e telebot_parser_get_sticker_set(struct cJSON *obj, telebot_sticker_set_t *set)
@@ -3732,7 +3736,7 @@ telebot_error_e telebot_parser_get_sticker_set(struct cJSON *obj, telebot_sticke
         set->sticker_type = TELEBOT_SAFE_STRDUP(telebot_json_get_string(tmp));
     if (telebot_json_get_ex(obj, "stickers", &tmp))
     {
-        telebot_error_e ret = telebot_parser_get_stickers(tmp, &set->stickers, &set->count_stickers);
+        telebot_error_e ret = telebot_parser_get_sticker_array(tmp, &set->stickers, &set->count_stickers, false);
         if (ret != TELEBOT_ERROR_NONE)
             return ret;
     }

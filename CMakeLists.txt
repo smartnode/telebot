@@ -31,7 +31,7 @@ IF(ESP_PLATFORM)
              third_party/cjson/cJSON.c
         INCLUDE_DIRS include
         PRIV_INCLUDE_DIRS include_private third_party/cjson
-        PRIV_REQUIRES esp_http_client esp-tls mbedtls esp_hw_support)
+        PRIV_REQUIRES esp_http_client esp-tls mbedtls esp_hw_support pthread)
     TARGET_COMPILE_DEFINITIONS(${COMPONENT_LIB} PRIVATE _GNU_SOURCE)
     SET_SOURCE_FILES_PROPERTIES(third_party/cjson/cJSON.c PROPERTIES COMPILE_OPTIONS "-Wno-error")
     RETURN()
@@ -96,7 +96,10 @@ ENDIF(DEBUG)
 # libtelebot
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${SRCS})
 ADD_LIBRARY(${PROJECT_NAME}_static STATIC ${SRCS})
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${PKGS_LDFLAGS})
+# The result registry and arena block cache use a mutex
+FIND_PACKAGE(Threads REQUIRED)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${PKGS_LDFLAGS} Threads::Threads)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}_static Threads::Threads)
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})
 
 # package configuration

@@ -225,7 +225,7 @@ static inline char *telebot_strdup_or_null(const char *str)
 #ifdef DEBUG
 #define DBG(fmt, args...) fprintf(stdout, "[DEBUG][%s:%d]" fmt "\n", __func__, __LINE__, ##args)
 #else
-#define DBG(x, ...)
+#define DBG(...) do { } while (0)
 #endif
 
 /* A response carrying only an error code; used when a request fails validation */
