@@ -1,9 +1,9 @@
 var searchData=
 [
   ['edit_5fdate_0',['edit_date',['../structtelebot__message.html#a64286b36bd80be093b3d0018bdf6e15b',1,'telebot_message']]],
-  ['edited_5fbusiness_5fmessage_1',['edited_business_message',['../structtelebot__update.html#a32311151e10de1357b8b31fab96bdfd2',1,'telebot_update']]],
-  ['edited_5fchannel_5fpost_2',['edited_channel_post',['../structtelebot__update.html#a6dde1c016b0997dc9e98f619722f4938',1,'telebot_update']]],
-  ['edited_5fmessage_3',['edited_message',['../structtelebot__update.html#a2f811a3cf5bd3955804fb0c5f9bb5b94',1,'telebot_update']]],
+  ['edited_5fbusiness_5fmessage_1',['edited_business_message',['../uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html#a64abebd485ae6f549c43500fa6e5349b',1,'telebot_update::[union].__unnamed0__']]],
+  ['edited_5fchannel_5fpost_2',['edited_channel_post',['../uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html#a32c9de589e41b9cce4a0e841dab92b4d',1,'telebot_update::[union].__unnamed0__']]],
+  ['edited_5fmessage_3',['edited_message',['../uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html#a970ab71eb8aa40836340fb41668d4007',1,'telebot_update::[union].__unnamed0__']]],
   ['effect_5fid_4',['effect_id',['../structtelebot__message.html#a0f585acb54d7c1b6fc36d0d8bd7cf031',1,'telebot_message']]],
   ['element_5fhash_5',['element_hash',['../structtelebot__passport__element__error.html#ad4acaf5e6dd58449bfabb223caeb3852',1,'telebot_passport_element_error']]],
   ['email_6',['email',['../structtelebot__order__info.html#aa2910a00bb8209d792f0525f368bcb52',1,'telebot_order_info::email'],['../structtelebot__encrypted__passport__element.html#a3cd5cba6987252f90f2a55a8740bcf8a',1,'telebot_encrypted_passport_element::email']]],

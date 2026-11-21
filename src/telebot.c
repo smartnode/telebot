@@ -23,8 +23,8 @@
 #include <pthread.h>
 #include <assert.h>
 #include <errno.h>
-#include <json.h>
-#include <json_object.h>
+#include "telebot-json.h"
+#include "telebot-config.h"
 #include <telebot-methods.h>
 #include <telebot-core.h>
 #include <telebot-parser.h>
@@ -32,35 +32,9 @@
 #include <telebot-payments.h>
 #include <telebot-private.h>
 
-static const char *telebot_update_type_str[TELEBOT_UPDATE_TYPE_MAX] = {
-    "message",
-    "edited_message",
-    "channel_post",
-    "edited_channel_post",
-    "business_connection",
-    "business_message",
-    "edited_business_message",
-    "deleted_business_messages",
-    "message_reaction",
-    "message_reaction_count",
-    "inline_query",
-    "chosen_inline_result",
-    "callback_query",
-    "shipping_query",
-    "pre_checkout_query",
-    "purchased_paid_media",
-    "poll",
-    "poll_answer",
-    "my_chat_member",
-    "chat_member",
-    "chat_join_request",
-    "chat_boost",
-    "removed_chat_boost"};
-
 static void telebot_put_chat_photo(telebot_chat_photo_t *photo);
 static void telebot_put_chat_permissions(telebot_chat_permissions_t *permissions);
 static void telebot_put_chat_location(telebot_chat_location_t *chat_location);
-static void telebot_put_message(telebot_message_t *msg);
 static void telebot_put_telebot_message_entity(telebot_message_entity_t *entity);
 static void telebot_put_audio(telebot_audio_t *audio);
 static void telebot_put_document(telebot_document_t *document);
@@ -102,6 +76,54 @@ static void telebot_put_chat_invite_link_internal(telebot_chat_invite_link_t *in
 static void telebot_put_chosen_inline_result(telebot_chosen_inline_result_t *result);
 static void telebot_put_shipping_query(telebot_shipping_query_t *query);
 static void telebot_put_pre_checkout_query(telebot_pre_checkout_query_t *query);
+
+/*
+ * Shared tail of every "call, then parse result into a struct" API: checks the
+ * response, verifies "ok", and hands "result" to `parse`. Releases the response.
+ */
+typedef telebot_error_e (*telebot_result_parser_t)(cJSON *result, void *out);
+
+static telebot_error_e telebot_call_and_parse(telebot_core_response_t response, telebot_result_parser_t parse,
+                                              void *out)
+{
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    cJSON *root = NULL;
+    if (ret != TELEBOT_ERROR_NONE)
+        goto finish;
+
+    root = telebot_parser_str_to_obj(telebot_core_get_response_data(response));
+    cJSON *ok = NULL, *result = NULL;
+    if ((root == NULL) || !tb_json_get_ex(root, "ok", &ok) || !tb_json_get_bool(ok) ||
+        !tb_json_get_ex(root, "result", &result))
+    {
+        ret = TELEBOT_ERROR_OPERATION_FAILED;
+        goto finish;
+    }
+    ret = parse(result, out);
+
+finish:
+    tb_json_put(root);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+static telebot_error_e parse_sticker_set(cJSON *result, void *out)
+{
+    return telebot_parser_get_sticker_set(result, out);
+}
+
+static telebot_error_e parse_invite_link(cJSON *result, void *out)
+{
+    return telebot_parser_get_chat_invite_link(result, out);
+}
+
+/* For APIs whose result is just `true` */
+static telebot_error_e telebot_call(telebot_core_response_t response)
+{
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
 
 telebot_error_e telebot_create(telebot_handler_t *handle, char *token)
 {
@@ -165,6 +187,37 @@ telebot_error_e telebot_get_proxy(telebot_handler_t handle, char **addr)
     return telebot_core_get_proxy(handle->core_h, addr);
 }
 
+/*
+ * Serialises an allowed_updates filter as a JSON array of update names.
+ * count <= 0 means "no filter": *out stays NULL and the field is omitted.
+ * The caller frees *out.
+ */
+static telebot_error_e telebot_allowed_updates_json(const telebot_update_type_e types[], int count, char **out)
+{
+    *out = NULL;
+    if (count <= 0)
+        return TELEBOT_ERROR_NONE;
+    if (types == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    for (int i = 0; i < count; i++)
+    {
+        if (((unsigned)types[i]) >= TELEBOT_UPDATE_TYPE_MAX)
+        {
+            ERR("Invalid update type %d", (int)types[i]);
+            return TELEBOT_ERROR_INVALID_PARAMETER;
+        }
+    }
+
+    cJSON *array = cJSON_CreateArray();
+    for (int i = 0; array && (i < count); i++)
+        cJSON_AddItemToArray(array, cJSON_CreateString(telebot_update_type_names[types[i]]));
+
+    *out = array ? cJSON_PrintUnformatted(array) : NULL;
+    tb_json_put(array);
+    return (*out != NULL) ? TELEBOT_ERROR_NONE : TELEBOT_ERROR_OUT_OF_MEMORY;
+}
+
 telebot_error_e
 telebot_get_updates(telebot_handler_t handle, int offset, int limit, int timeout,
                     telebot_update_type_e allowed_updates[], int allowed_updates_count,
@@ -172,7 +225,7 @@ telebot_get_updates(telebot_handler_t handle, int offset, int limit, int timeout
 {
     int ret = TELEBOT_ERROR_NONE;
     telebot_core_response_t response;
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
 
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -183,29 +236,20 @@ telebot_get_updates(telebot_handler_t handle, int offset, int limit, int timeout
     *updates = NULL;
     *count = 0;
 
-    const char *str_allowed_updates = NULL;
-    struct json_object *array = NULL;
-    if (allowed_updates_count > 0)
-    {
-        array = json_object_new_array();
-        for (int i = 0; i < allowed_updates_count; i++)
-        {
-            const char *item = telebot_update_type_str[allowed_updates[i]];
-            json_object_array_add(array, json_object_new_string(item));
-        }
-        str_allowed_updates = json_object_to_json_string(array);
-        DBG("Allowed updates: %s", str_allowed_updates);
-    }
+    char *str_allowed_updates = NULL;
+    ret = telebot_allowed_updates_json(allowed_updates, allowed_updates_count, &str_allowed_updates);
+    if (ret != TELEBOT_ERROR_NONE)
+        return ret;
 
     int _offset = offset != 0 ? offset : handle->offset;
     int _timeout = timeout > 0 ? timeout : 0;
-    int _limit = TELEBOT_UPDATE_COUNT_MAX_LIMIT;
-    if ((limit > 0) && (limit < TELEBOT_UPDATE_COUNT_MAX_LIMIT))
-        _limit = limit;
+    /* limit <= 0 selects the build-time default (small on memory-constrained targets) */
+    int _limit = TELEBOT_DEFAULT_UPDATE_LIMIT;
+    if (limit > 0)
+        _limit = (limit < TELEBOT_UPDATE_COUNT_MAX_LIMIT) ? limit : TELEBOT_UPDATE_COUNT_MAX_LIMIT;
 
     response = telebot_core_get_updates(handle->core_h, _offset, _limit, _timeout, str_allowed_updates);
-    if (array)
-        json_object_put(array);
+    TELEBOT_SAFE_FREE(str_allowed_updates);
 
     ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -220,15 +264,15 @@ telebot_get_updates(telebot_handler_t handle, int offset, int limit, int timeout
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -247,7 +291,7 @@ telebot_get_updates(telebot_handler_t handle, int offset, int limit, int timeout
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
 
     return ret;
@@ -304,6 +348,13 @@ telebot_error_e telebot_put_updates(telebot_update_t *updates, int count)
         case TELEBOT_UPDATE_TYPE_REMOVED_CHAT_BOOST:
             telebot_put_chat_boost_removed(&(updates[index].chat_boost_removed));
             break;
+        case TELEBOT_UPDATE_TYPE_GUEST_MESSAGE:
+            telebot_put_message(&(updates[index].guest_message));
+            break;
+        case TELEBOT_UPDATE_TYPE_STOPPED_MESSAGE_GENERATION:
+            telebot_put_chat(updates[index].stopped_message_generation.chat);
+            TELEBOT_SAFE_FREE(updates[index].stopped_message_generation.chat);
+            break;
         case TELEBOT_UPDATE_TYPE_INLINE_QUERY:
             telebot_put_inline_query(&(updates[index].inline_query));
             break;
@@ -316,6 +367,8 @@ telebot_error_e telebot_put_updates(telebot_update_t *updates, int count)
         case TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY:
             telebot_put_pre_checkout_query(&(updates[index].pre_checkout_query));
             break;
+        case TELEBOT_UPDATE_TYPE_UNKNOWN:
+            break; /* nothing was parsed */
         default:
             ERR("Unsupported update type: %d", updates[index].update_type);
         }
@@ -330,13 +383,16 @@ telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t *me)
 {
     int ret = TELEBOT_ERROR_NONE;
     telebot_core_response_t response;
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
 
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
     if (me == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    /* The cleanup path frees *me, so it must start from a known state */
+    memset(me, 0, sizeof(*me));
 
     response = telebot_core_get_me(handle->core_h);
     ret = telebot_core_get_response_code(response);
@@ -351,15 +407,15 @@ telebot_error_e telebot_get_me(telebot_handler_t handle, telebot_user_t *me)
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -372,7 +428,7 @@ finish:
         telebot_put_me(me);
 
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
 
@@ -395,21 +451,13 @@ telebot_error_e telebot_set_webhook(telebot_handler_t handle, char *url, char *c
     if (url == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    char allowed_updates_str[TELEBOT_BUFFER_PAGE] = {};
-    if (allowed_updates_count > 0)
-    {
-        strncat(allowed_updates_str, "[", TELEBOT_BUFFER_BLOCK);
-        for (int index = 0; index < allowed_updates_count; index++)
-        {
-            strncat(allowed_updates_str, telebot_update_type_str[allowed_updates[index]],
-                    TELEBOT_BUFFER_BLOCK);
-            if (index < (allowed_updates_count - 1)) // intermediate element
-                strncat(allowed_updates_str, ",", TELEBOT_BUFFER_BLOCK);
-        }
-        strncat(allowed_updates_str, "]", TELEBOT_BUFFER_BLOCK);
-    }
+    char *allowed_updates_str = NULL;
+    telebot_error_e err = telebot_allowed_updates_json(allowed_updates, allowed_updates_count, &allowed_updates_str);
+    if (err != TELEBOT_ERROR_NONE)
+        return err;
 
     response = telebot_core_set_webhook(handle->core_h, url, certificate, max_connections, allowed_updates_str);
+    free(allowed_updates_str);
     int ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
 
@@ -436,7 +484,9 @@ telebot_error_e telebot_get_webhook_info(telebot_handler_t handle, telebot_webho
     if (info == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    memset(info, 0, sizeof(*info));
+
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_webhook_info(handle->core_h);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -450,15 +500,15 @@ telebot_error_e telebot_get_webhook_info(telebot_handler_t handle, telebot_webho
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -471,7 +521,7 @@ finish:
         telebot_put_webhook_info(info);
 
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
 
@@ -490,215 +540,144 @@ telebot_error_e telebot_put_webhook_info(telebot_webhook_info_t *info)
 }
 
 telebot_error_e telebot_send_message(telebot_handler_t handle, long long int chat_id, const char *text,
-                                     const char *parse_mode, bool disable_web_page_preview, bool disable_notification,
-                                     int reply_to_message_id, const char *reply_markup)
+        const char *parse_mode, bool disable_link_preview, const telebot_send_options_t *options)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (text == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    telebot_core_response_t response = telebot_core_send_message(handle->core_h, chat_id, text, parse_mode,
-                                                                 disable_web_page_preview, disable_notification,
-                                                                 reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_message(handle->core_h, chat_id, text, parse_mode, disable_link_preview, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
-telebot_error_e telebot_forward_message(telebot_handler_t handle, long long int chat_id, long long int from_chat_id,
-                                        bool disable_notification, int message_id)
+telebot_error_e telebot_forward_message(telebot_handler_t handle, long long int chat_id,
+        long long int from_chat_id, int message_id, const telebot_send_options_t *options)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (message_id <= 0)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    telebot_core_response_t response = telebot_core_forward_message(handle->core_h, chat_id, from_chat_id,
-                                                                    disable_notification, message_id);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_forward_message(handle->core_h, chat_id, from_chat_id, message_id, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
-telebot_error_e telebot_send_photo(telebot_handler_t handle, long long int chat_id, const char *photo, bool is_file,
-                                   const char *caption, const char *parse_mode, bool disable_notification,
-                                   int reply_to_message_id, const char *reply_markup)
+telebot_error_e telebot_send_photo(telebot_handler_t handle, long long int chat_id,
+        const telebot_input_file_t *photo, const char *caption, const char *parse_mode,
+        const telebot_send_options_t *options)
 {
-    telebot_core_response_t response;
-
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (photo == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    response = telebot_core_send_photo(handle->core_h, chat_id, photo, is_file, caption,
-                                       parse_mode, disable_notification, reply_to_message_id,
-                                       reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_photo(handle->core_h, chat_id, photo, caption, parse_mode, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
-telebot_error_e telebot_send_audio(telebot_handler_t handle, long long int chat_id, const char *audio, bool is_file,
-                                   const char *caption, const char *parse_mode, int duration, const char *performer,
-                                   const char *title, const char *thumb, bool disable_notification,
-                                   int reply_to_message_id, const char *reply_markup)
+telebot_error_e telebot_send_audio(telebot_handler_t handle, long long int chat_id,
+        const telebot_input_file_t *audio, const char *caption, const char *parse_mode, int duration,
+        const char *performer, const char *title, const telebot_input_file_t *thumbnail,
+        const telebot_send_options_t *options)
 {
-    telebot_core_response_t response;
-
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (audio == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    response = telebot_core_send_audio(handle->core_h, chat_id, audio, is_file, caption,
-                                       parse_mode, duration, performer, title, thumb,
-                                       disable_notification, reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_audio(handle->core_h, chat_id, audio, caption, parse_mode, duration, performer, title, thumbnail, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
 telebot_error_e telebot_send_document(telebot_handler_t handle, long long int chat_id,
-                                      const char *document, bool is_file, const char *thumb, const char *caption,
-                                      const char *parse_mode, bool disable_notification, int reply_to_message_id,
-                                      const char *reply_markup)
+        const telebot_input_file_t *document, const telebot_input_file_t *thumbnail, const char *caption,
+        const char *parse_mode, const telebot_send_options_t *options)
 {
-    telebot_core_response_t response;
-
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (document == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    response = telebot_core_send_document(handle->core_h, chat_id, document, is_file, thumb, caption, parse_mode,
-                                          disable_notification, reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_document(handle->core_h, chat_id, document, thumbnail, caption, parse_mode, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
-telebot_error_e telebot_send_video(telebot_handler_t handle, long long int chat_id, const char *video, bool is_file,
-                                   int duration, int width, int height, const char *thumb, const char *caption,
-                                   const char *parse_mode, bool supports_streaming, bool disable_notification,
-                                   int reply_to_message_id, const char *reply_markup)
+telebot_error_e telebot_send_video(telebot_handler_t handle, long long int chat_id,
+        const telebot_input_file_t *video, int duration, int width, int height,
+        const telebot_input_file_t *thumbnail, const char *caption, const char *parse_mode,
+        bool supports_streaming, const telebot_send_options_t *options)
 {
-    telebot_core_response_t response;
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (video == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    response = telebot_core_send_video(handle->core_h, chat_id, video, is_file, duration, width, height, thumb,
-                                       caption, parse_mode, supports_streaming, disable_notification,
-                                       reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_video(handle->core_h, chat_id, video, duration, width, height, thumbnail, caption, parse_mode, supports_streaming, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
-telebot_error_e telebot_send_animation(telebot_handler_t handle, long long int chat_id, const char *animation,
-                                       bool is_file, int duration, int width, int height, const char *thumb,
-                                       const char *caption, const char *parse_mode, bool disable_notification,
-                                       int reply_to_message_id, const char *reply_markup)
+telebot_error_e telebot_send_animation(telebot_handler_t handle, long long int chat_id,
+        const telebot_input_file_t *animation, int duration, int width, int height,
+        const telebot_input_file_t *thumbnail, const char *caption, const char *parse_mode,
+        const telebot_send_options_t *options)
 {
-    telebot_core_response_t response;
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (animation == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    response = telebot_core_send_animation(handle->core_h, chat_id, animation, is_file, duration, width, height,
-                                           thumb, caption, parse_mode, disable_notification, reply_to_message_id,
-                                           reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_animation(handle->core_h, chat_id, animation, duration, width, height, thumbnail, caption, parse_mode, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
-telebot_error_e telebot_send_voice(telebot_handler_t handle, long long int chat_id, const char *voice, bool is_file,
-                                   const char *caption, const char *parse_mode, int duration, bool disable_notification,
-                                   int reply_to_message_id, const char *reply_markup)
+telebot_error_e telebot_send_voice(telebot_handler_t handle, long long int chat_id,
+        const telebot_input_file_t *voice, const char *caption, const char *parse_mode, int duration,
+        const telebot_send_options_t *options)
 {
-    telebot_core_response_t response;
-
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (voice == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    response = telebot_core_send_voice(handle->core_h, chat_id, voice, is_file, caption, parse_mode, duration,
-                                       disable_notification, reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_voice(handle->core_h, chat_id, voice, caption, parse_mode, duration, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
 telebot_error_e telebot_send_video_note(telebot_handler_t handle, long long int chat_id,
-                                        char *video_note, bool is_file, int duration, int length, const char *thumb,
-                                        bool disable_notification, int reply_to_message_id, const char *reply_markup)
-{
-    telebot_core_response_t response;
-
-    if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
-
-    if (video_note == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    response = telebot_core_send_video_note(handle->core_h, chat_id, video_note, is_file, duration, length, thumb,
-                                            disable_notification, reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
-    telebot_core_put_response(response);
-
-    return ret;
-}
-
-telebot_error_e telebot_send_media_group(telebot_handler_t handle, long long int chat_id, char *media_paths[],
-                                         int count, bool disable_notification, int reply_to_message_id)
-{
-    telebot_core_response_t response;
-
-    if ((media_paths == NULL) || (count < 2) || (count > 10))
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    response = telebot_core_send_media_group(handle->core_h, chat_id, media_paths, count, disable_notification,
-                                             reply_to_message_id);
-    int ret = telebot_core_get_response_code(response);
-    telebot_core_put_response(response);
-    return ret;
-}
-
-telebot_error_e telebot_send_location(telebot_handler_t handle, long long int chat_id,
-                                      float latitude, float longitude, int live_period, bool disable_notification,
-                                      int reply_to_message_id, const char *reply_markup)
+        const telebot_input_file_t *video_note, int duration, int length,
+        const telebot_input_file_t *thumbnail, const telebot_send_options_t *options)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    telebot_core_response_t response;
-    response = telebot_core_send_location(handle->core_h, chat_id, latitude, longitude,
-                                          live_period, disable_notification, reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_video_note(handle->core_h, chat_id, video_note, duration, length, thumbnail, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
+    return ret;
+}
 
+telebot_error_e telebot_send_media_group(telebot_handler_t handle, long long int chat_id,
+        const telebot_input_media_t media[], int count, const telebot_send_options_t *options)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_send_media_group(handle->core_h, chat_id, media, count, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_send_location(telebot_handler_t handle, long long int chat_id, double latitude,
+        double longitude, int live_period, const telebot_send_options_t *options)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_send_location(handle->core_h, chat_id, latitude, longitude, live_period, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
     return ret;
 }
 
@@ -733,106 +712,72 @@ telebot_error_e telebot_stop_message_live_location(telebot_handler_t handle,
     return ret;
 }
 
-telebot_error_e telebot_send_venue(telebot_handler_t handle, long long int chat_id,
-                                   float latitude, float longitude, const char *title, const char *address,
-                                   const char *foursquare_id, const char *foursquare_type, bool disable_notification,
-                                   int reply_to_message_id, const char *reply_markup)
+telebot_error_e telebot_send_venue(telebot_handler_t handle, long long int chat_id, double latitude,
+        double longitude, const char *title, const char *address, const char *foursquare_id,
+        const char *foursquare_type, const telebot_send_options_t *options)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((title == NULL) || (address == NULL))
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    telebot_core_response_t response;
-    response = telebot_core_send_venue(handle->core_h, chat_id, latitude, longitude, title, address, foursquare_id,
-                                       foursquare_type, disable_notification, reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_venue(handle->core_h, chat_id, latitude, longitude, title, address, foursquare_id, foursquare_type, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
 telebot_error_e telebot_send_contact(telebot_handler_t handle, long long int chat_id,
-                                     const char *phone_number, const char *first_name, const char *last_name,
-                                     const char *vcard, bool disable_notification, int reply_to_message_id,
-                                     const char *reply_markup)
+        const char *phone_number, const char *first_name, const char *last_name, const char *vcard,
+        const telebot_send_options_t *options)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((phone_number == NULL) || (first_name == NULL))
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    telebot_core_response_t response;
-    response = telebot_core_send_contact(handle->core_h, chat_id, phone_number,
-                                         first_name, last_name, vcard, disable_notification, reply_to_message_id,
-                                         reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_contact(handle->core_h, chat_id, phone_number, first_name, last_name, vcard, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
 telebot_error_e telebot_send_poll(telebot_handler_t handle, long long int chat_id, const char *question,
-                                  const char **options, int count_options, bool is_anonymous, const char *type,
-                                  bool allows_multiple_answers, int correct_option_id, bool is_closed,
-                                  bool disable_notification, int reply_to_message_id, const char *reply_markup)
+        const char *const answers[], int count_answers, bool is_anonymous, const char *type,
+        bool allows_multiple_answers, const int correct_option_ids[], int count_correct, bool is_closed,
+        const telebot_send_options_t *options)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if ((question == NULL) || (options == NULL) || (count_options <= 0))
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    struct json_object *array = json_object_new_array();
-    for (int i = 0; i < count_options; i++)
-        json_object_array_add(array, json_object_new_string(options[i]));
-
-    const char *array_options = json_object_to_json_string(array);
-    DBG("Poll options: %s", array_options);
-
-    telebot_core_response_t response;
-    response = telebot_core_send_poll(handle->core_h, chat_id, question, array_options, is_anonymous, type,
-                                      allows_multiple_answers, correct_option_id, is_closed, disable_notification,
-                                      reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_poll(handle->core_h, chat_id, question, answers, count_answers, is_anonymous, type, allows_multiple_answers, correct_option_ids, count_correct, is_closed, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-    json_object_put(array);
-
     return ret;
 }
 
-telebot_error_e telebot_send_dice(telebot_handler_t handle, long long int chat_id, bool disable_notification,
-                                  int reply_to_message_id, const char *reply_markup)
+telebot_error_e telebot_send_dice(telebot_handler_t handle, long long int chat_id, const char *emoji,
+        const telebot_send_options_t *options)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    telebot_core_response_t response;
-    response = telebot_core_send_dice(handle->core_h, chat_id, disable_notification,
-                                      reply_to_message_id, reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_dice(handle->core_h, chat_id, emoji, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
-telebot_error_e telebot_send_chat_action(telebot_handler_t handle, long long int chat_id, char *action)
+telebot_error_e telebot_send_chat_action(telebot_handler_t handle, long long int chat_id,
+        int message_thread_id, const char *action)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    telebot_core_response_t response;
-    response = telebot_core_send_chat_action(handle->core_h, chat_id, action);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_send_chat_action(handle->core_h, chat_id, message_thread_id, action);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-
     return ret;
 }
 
-telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle, int user_id, int offset, int limit,
-                                                telebot_user_profile_photos_t *photos)
+telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle, long long int user_id, int offset,
+        int limit, telebot_user_profile_photos_t *photos)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -840,10 +785,12 @@ telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle, int us
     if (photos == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
+    memset(photos, 0, sizeof(*photos));
+
     if ((limit <= 0) || (limit > TELEBOT_USER_PROFILE_PHOTOS_LIMIT))
         limit = TELEBOT_USER_PROFILE_PHOTOS_LIMIT;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response;
     response = telebot_core_get_user_profile_photos(handle->core_h, user_id, offset, limit);
     int ret = telebot_core_get_response_code(response);
@@ -858,15 +805,15 @@ telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle, int us
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -879,7 +826,7 @@ finish:
         telebot_put_user_profile_photos(photos);
 
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
 
@@ -911,7 +858,7 @@ telebot_error_e telebot_get_user_profile_audios(telebot_handler_t handle,
     if (audios == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response;
     response = telebot_core_get_user_profile_audios(handle->core_h, user_id, offset, limit);
     int ret = telebot_core_get_response_code(response);
@@ -926,15 +873,15 @@ telebot_error_e telebot_get_user_profile_audios(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -944,7 +891,7 @@ telebot_error_e telebot_get_user_profile_audios(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
 
@@ -1010,7 +957,7 @@ telebot_error_e telebot_get_business_connection(telebot_handler_t handle,
     if (connection == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response;
     response = telebot_core_get_business_connection(handle->core_h, business_connection_id);
     int ret = telebot_core_get_response_code(response);
@@ -1025,15 +972,15 @@ telebot_error_e telebot_get_business_connection(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -1043,7 +990,7 @@ telebot_error_e telebot_get_business_connection(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
 
@@ -1071,7 +1018,7 @@ telebot_error_e telebot_get_user_chat_boosts(telebot_handler_t handle,
     if (boosts == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response;
     response = telebot_core_get_user_chat_boosts(handle->core_h, chat_id, user_id);
     int ret = telebot_core_get_response_code(response);
@@ -1086,15 +1033,15 @@ telebot_error_e telebot_get_user_chat_boosts(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -1104,7 +1051,7 @@ telebot_error_e telebot_get_user_chat_boosts(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
 
@@ -1157,7 +1104,7 @@ telebot_error_e telebot_download_file(telebot_handler_t handle, const char *file
     if (file_id == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response;
     response = telebot_core_get_file(handle->core_h, file_id);
     int ret = telebot_core_get_response_code(response);
@@ -1172,15 +1119,15 @@ telebot_error_e telebot_download_file(telebot_handler_t handle, const char *file
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -1202,104 +1149,69 @@ finish:
     telebot_put_file(&file);
 
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
-    telebot_core_put_response(response);
-    return ret;
-}
-
-telebot_error_e telebot_kick_chat_member(telebot_handler_t handle, long long int chat_id, int user_id, long until_date)
-{
-    if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
-
-    telebot_core_response_t response = telebot_core_kick_chat_member(handle->core_h, chat_id, user_id, until_date);
-    int ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
     return ret;
 }
 
 telebot_error_e telebot_unban_chat_member(telebot_handler_t handle, long long int chat_id,
-                                          int user_id)
+        long long int user_id, bool only_if_banned)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    telebot_core_response_t response = telebot_core_unban_chat_member(handle->core_h, chat_id, user_id);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_unban_chat_member(handle->core_h, chat_id, user_id, only_if_banned);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
     return ret;
 }
 
-telebot_error_e telebot_restrict_chat_member(telebot_handler_t handle, long long int chat_id, int user_id,
-                                             long until_date, bool can_send_messages, bool can_send_media_messages,
-                                             bool can_send_polls, bool can_send_other_messages,
-                                             bool can_add_web_page_previews, bool can_change_info, bool can_invite_users,
-                                             bool can_pin_messages)
+telebot_error_e telebot_restrict_chat_member(telebot_handler_t handle, long long int chat_id,
+        long long int user_id, const telebot_chat_permissions_t *permissions,
+        bool use_independent_chat_permissions, long until_date)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    telebot_core_response_t response;
-    response = telebot_core_restrict_chat_member(handle->core_h, chat_id, user_id,
-                                                 until_date, can_send_messages, can_send_media_messages, can_send_polls,
-                                                 can_send_other_messages, can_add_web_page_previews, can_change_info,
-                                                 can_invite_users, can_pin_messages);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_restrict_chat_member(handle->core_h, chat_id, user_id, permissions, use_independent_chat_permissions, until_date);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
     return ret;
 }
 
-telebot_error_e telebot_promote_chat_member(telebot_handler_t handle,
-                                            long long int chat_id, int user_id, bool can_change_info, bool can_post_messages,
-                                            bool can_edit_messages, bool can_delete_messages, bool can_invite_users,
-                                            bool can_restrict_members, bool can_pin_messages, bool can_promote_members)
+telebot_error_e telebot_promote_chat_member(telebot_handler_t handle, long long int chat_id,
+        long long int user_id, const telebot_chat_administrator_rights_t *rights)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    telebot_core_response_t response = telebot_core_promote_chat_member(handle->core_h, chat_id, user_id,
-                                                                        can_change_info, can_post_messages,
-                                                                        can_edit_messages, can_delete_messages,
-                                                                        can_invite_users, can_restrict_members,
-                                                                        can_pin_messages, can_promote_members);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_promote_chat_member(handle->core_h, chat_id, user_id, rights);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
     return ret;
 }
 
-telebot_error_e telebot_set_chat_admin_custom_title(telebot_handler_t handle,
-                                                    long long int chat_id, int user_id, const char *custom_title)
+telebot_error_e telebot_set_chat_admin_custom_title(telebot_handler_t handle, long long int chat_id,
+        long long int user_id, const char *custom_title)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (custom_title == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    telebot_core_response_t response;
-    response = telebot_core_set_chat_admin_custom_title(handle->core_h, chat_id,
-                                                        user_id, custom_title);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_set_chat_admin_custom_title(handle->core_h, chat_id, user_id, custom_title);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
     return ret;
 }
 
-telebot_error_e telebot_set_chat_permissions(telebot_handler_t handle,
-                                             long long int chat_id, bool can_send_messages, bool can_send_media_messages,
-                                             bool can_send_polls, bool can_send_other_messages, bool can_add_web_page_previews,
-                                             bool can_change_info, bool can_invite_users, bool can_pin_messages)
+telebot_error_e telebot_set_chat_permissions(telebot_handler_t handle, long long int chat_id,
+        const telebot_chat_permissions_t *permissions, bool use_independent_chat_permissions)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    telebot_core_response_t response;
-    response = telebot_core_set_chat_permissions(handle->core_h, chat_id,
-                                                 can_send_messages, can_send_media_messages, can_send_polls,
-                                                 can_send_other_messages, can_add_web_page_previews, can_change_info,
-                                                 can_invite_users, can_pin_messages);
-    int ret = telebot_core_get_response_code(response);
-
+    telebot_core_response_t response = telebot_core_set_chat_permissions(handle->core_h, chat_id, permissions, use_independent_chat_permissions);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
     return ret;
 }
@@ -1313,7 +1225,7 @@ telebot_error_e telebot_export_chat_invite_link(telebot_handler_t handle,
     if (invite_link == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response;
     response = telebot_core_export_chat_invite_link(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);
@@ -1328,17 +1240,17 @@ telebot_error_e telebot_export_chat_invite_link(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
     {
-        *invite_link = TELEBOT_SAFE_STRDUP(json_object_get_string(result));
+        *invite_link = TELEBOT_SAFE_STRDUP(tb_json_get_string(result));
         if (*invite_link == NULL)
             ret = TELEBOT_ERROR_OUT_OF_MEMORY;
         else
@@ -1351,20 +1263,20 @@ telebot_error_e telebot_export_chat_invite_link(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
     return ret;
 }
 
 telebot_error_e telebot_set_chat_photo(telebot_handler_t handle, long long int chat_id,
-                                       const char *photo)
+        const telebot_input_file_t *photo)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
     telebot_core_response_t response = telebot_core_set_chat_photo(handle->core_h, chat_id, photo);
-    int ret = telebot_core_get_response_code(response);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
     return ret;
 }
@@ -1457,7 +1369,9 @@ telebot_error_e telebot_get_chat(telebot_handler_t handle, long long int chat_id
     if (chat == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    memset(chat, 0, sizeof(*chat));
+
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_chat(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -1471,15 +1385,15 @@ telebot_error_e telebot_get_chat(telebot_handler_t handle, long long int chat_id
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -1492,14 +1406,14 @@ finish:
         telebot_put_chat(chat);
 
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
     return ret;
 }
 
-telebot_error_e telebot_get_chat_admins(telebot_handler_t handle, long long int chat_id,
-                                        telebot_chat_member_t **admins, int *count)
+telebot_error_e telebot_get_chat_admins(telebot_handler_t handle, long long int chat_id, bool return_bots,
+        telebot_chat_member_t **admins, int *count)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -1507,8 +1421,11 @@ telebot_error_e telebot_get_chat_admins(telebot_handler_t handle, long long int 
     if ((admins == NULL) || (count == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
-    telebot_core_response_t response = telebot_core_get_chat_admins(handle->core_h, chat_id);
+    *admins = NULL;
+    *count = 0;
+
+    struct cJSON *obj = NULL;
+    telebot_core_response_t response = telebot_core_get_chat_admins(handle->core_h, chat_id, return_bots);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
         goto finish;
@@ -1521,15 +1438,15 @@ telebot_error_e telebot_get_chat_admins(telebot_handler_t handle, long long int 
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -1542,7 +1459,7 @@ finish:
         telebot_put_chat_admins(*admins, *count);
 
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
     return ret;
@@ -1570,7 +1487,7 @@ telebot_error_e telebot_get_chat_members_count(telebot_handler_t handle, long lo
     if (count == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_chat_members_count(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -1584,29 +1501,29 @@ telebot_error_e telebot_get_chat_members_count(telebot_handler_t handle, long lo
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
-        *count = json_object_get_int(result);
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
+        *count = tb_json_get_int(result);
     else
         ret = TELEBOT_ERROR_OPERATION_FAILED;
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
     return ret;
 }
 
 telebot_error_e telebot_get_chat_member(telebot_handler_t handle, long long int chat_id,
-                                        int user_id, telebot_chat_member_t *member)
+        long long int user_id, telebot_chat_member_t *member)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
@@ -1614,7 +1531,9 @@ telebot_error_e telebot_get_chat_member(telebot_handler_t handle, long long int 
     if (member == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    memset(member, 0, sizeof(*member));
+
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_chat_member(handle->core_h, chat_id, user_id);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -1628,15 +1547,15 @@ telebot_error_e telebot_get_chat_member(telebot_handler_t handle, long long int 
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -1649,7 +1568,7 @@ finish:
         telebot_put_chat_member(member);
 
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
 
     telebot_core_put_response(response);
     return ret;
@@ -1663,6 +1582,8 @@ telebot_error_e telebot_put_chat_member(telebot_chat_member_t *member)
     telebot_put_user(member->user);
     TELEBOT_SAFE_FREE(member->user);
     TELEBOT_SAFE_FREE(member->status);
+    TELEBOT_SAFE_FREE(member->custom_title);
+    TELEBOT_SAFE_FREE(member->tag);
 
     return TELEBOT_ERROR_NONE;
 }
@@ -1721,25 +1642,31 @@ telebot_error_e telebot_set_my_commands(telebot_handler_t handle,
     if ((commands == NULL) || (count <= 0))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *array = json_object_new_array();
     for (int i = 0; i < count; i++)
     {
         if ((commands[i].command == NULL) || (commands[i].description == NULL))
             return TELEBOT_ERROR_INVALID_PARAMETER;
-
-        struct json_object *obj = json_object_new_object();
-        json_object_object_add(obj, "command", json_object_new_string(commands[i].command));
-        json_object_object_add(obj, "description", json_object_new_string(commands[i].description));
-        json_object_array_add(array, obj);
     }
 
-    const char *array_options = json_object_to_json_string(array);
+    cJSON *array = cJSON_CreateArray();
+    for (int i = 0; array && (i < count); i++)
+    {
+        cJSON *obj = cJSON_CreateObject();
+        cJSON_AddStringToObject(obj, "command", commands[i].command);
+        cJSON_AddStringToObject(obj, "description", commands[i].description);
+        cJSON_AddItemToArray(array, obj);
+    }
+
+    char *array_options = array ? cJSON_PrintUnformatted(array) : NULL;
+    tb_json_put(array);
+    if (array_options == NULL)
+        return TELEBOT_ERROR_OUT_OF_MEMORY;
     DBG("Commands: %s", array_options);
 
     telebot_core_response_t response = telebot_core_set_my_commands(handle->core_h, array_options);
     int ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
-    json_object_put(array);
+    free(array_options);
     return ret;
 }
 
@@ -1752,7 +1679,7 @@ telebot_error_e telebot_get_my_commands(telebot_handler_t handle,
     if ((commands == NULL) || (count == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_my_commands(handle->core_h);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -1766,15 +1693,15 @@ telebot_error_e telebot_get_my_commands(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -1786,7 +1713,7 @@ finish:
     if (ret)
         telebot_put_my_commands(*commands, *count);
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -1805,22 +1732,15 @@ telebot_error_e telebot_put_my_commands(telebot_bot_command_t *commands, int cou
     return TELEBOT_ERROR_NONE;
 }
 
-telebot_error_e telebot_edit_message_text(telebot_handler_t handle,
-                                          long long int chat_id, int message_id, const char *inline_message_id,
-                                          const char *text, const char *parse_mode, bool disable_web_page_preview,
-                                          const char *reply_markup)
+telebot_error_e telebot_edit_message_text(telebot_handler_t handle, long long int chat_id, int message_id,
+        const char *inline_message_id, const char *text, const char *parse_mode, bool disable_link_preview,
+        const char *reply_markup)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    if (text == NULL)
-        return TELEBOT_ERROR_INVALID_PARAMETER;
-
-    telebot_core_response_t response = telebot_core_edit_message_text(handle->core_h, chat_id, message_id,
-                                                                      inline_message_id, text, parse_mode,
-                                                                      disable_web_page_preview,
-                                                                      reply_markup);
-    int ret = telebot_core_get_response_code(response);
+    telebot_core_response_t response = telebot_core_edit_message_text(handle->core_h, chat_id, message_id, inline_message_id, text, parse_mode, disable_link_preview, reply_markup);
+    telebot_error_e ret = telebot_core_get_response_code(response);
     telebot_core_put_response(response);
     return ret;
 }
@@ -1957,10 +1877,186 @@ static void telebot_put_chat_location(telebot_chat_location_t *chat_location)
     telebot_put_location(chat_location->location);
 }
 
-static void telebot_put_message(telebot_message_t *msg)
+/* ---- Release helpers for message sub-objects (every pointer field, NULL-safe) ---- */
+
+static void telebot_put_message_origin(telebot_message_origin_t *origin)
+{
+    if (origin == NULL)
+        return;
+    TELEBOT_SAFE_FREE(origin->type);
+    telebot_put_user(origin->sender_user);
+    TELEBOT_SAFE_FREE(origin->sender_user);
+    TELEBOT_SAFE_FREE(origin->sender_user_name);
+    telebot_put_chat(origin->sender_chat);
+    TELEBOT_SAFE_FREE(origin->sender_chat);
+    TELEBOT_SAFE_FREE(origin->author_signature);
+}
+
+static void telebot_put_text_quote(telebot_text_quote_t *quote)
+{
+    if (quote == NULL)
+        return;
+    TELEBOT_SAFE_FREE(quote->text);
+    for (int i = 0; i < quote->count_entities; i++)
+        telebot_put_telebot_message_entity(&quote->entities[i]);
+    TELEBOT_SAFE_FZCNT(quote->entities, quote->count_entities);
+}
+
+static void telebot_put_story(telebot_story_t *story)
+{
+    if (story == NULL)
+        return;
+    telebot_put_chat(story->chat);
+    TELEBOT_SAFE_FREE(story->chat);
+}
+
+static void telebot_put_link_preview_options(telebot_link_preview_options_t *options)
+{
+    if (options == NULL)
+        return;
+    TELEBOT_SAFE_FREE(options->url);
+}
+
+static void telebot_put_photos(telebot_photo_t **photos, int *count)
+{
+    for (int i = 0; i < *count; i++)
+        telebot_put_photo(&(*photos)[i]);
+    TELEBOT_SAFE_FZCNT(*photos, *count);
+}
+
+static void telebot_put_paid_media_info(telebot_paid_media_info_t *info)
+{
+    if (info == NULL)
+        return;
+    for (int i = 0; i < info->count_paid_media; i++)
+    {
+        telebot_paid_media_t *media = &info->paid_media[i];
+        TELEBOT_SAFE_FREE(media->type);
+        telebot_put_photos(&media->photos, &media->count_photos);
+        telebot_put_video(media->video);
+        TELEBOT_SAFE_FREE(media->video);
+    }
+    TELEBOT_SAFE_FZCNT(info->paid_media, info->count_paid_media);
+}
+
+static void telebot_put_external_reply_info(telebot_external_reply_info_t *info)
+{
+    if (info == NULL)
+        return;
+    telebot_put_message_origin(&info->origin);
+    telebot_put_chat(info->chat);
+    TELEBOT_SAFE_FREE(info->chat);
+    telebot_put_link_preview_options(info->link_preview_options);
+    TELEBOT_SAFE_FREE(info->link_preview_options);
+    telebot_put_animation(info->animation);
+    TELEBOT_SAFE_FREE(info->animation);
+    telebot_put_audio(info->audio);
+    TELEBOT_SAFE_FREE(info->audio);
+    telebot_put_document(info->document);
+    TELEBOT_SAFE_FREE(info->document);
+    telebot_put_paid_media_info(info->paid_media);
+    TELEBOT_SAFE_FREE(info->paid_media);
+    telebot_put_photos(&info->photos, &info->count_photos);
+    telebot_put_sticker(info->sticker);
+    TELEBOT_SAFE_FREE(info->sticker);
+    telebot_put_story(info->story);
+    TELEBOT_SAFE_FREE(info->story);
+    telebot_put_video(info->video);
+    TELEBOT_SAFE_FREE(info->video);
+    telebot_put_video_note(info->video_note);
+    TELEBOT_SAFE_FREE(info->video_note);
+    telebot_put_voice(info->voice);
+    TELEBOT_SAFE_FREE(info->voice);
+    telebot_put_contact(info->contact);
+    TELEBOT_SAFE_FREE(info->contact);
+    telebot_put_dice(info->dice);
+    TELEBOT_SAFE_FREE(info->dice);
+    telebot_put_game(info->game);
+    TELEBOT_SAFE_FREE(info->game);
+    TELEBOT_SAFE_FREE(info->giveaway);         /* not parsed yet: no owned members */
+    TELEBOT_SAFE_FREE(info->giveaway_winners); /* not parsed yet: no owned members */
+    telebot_put_invoice(info->invoice);
+    TELEBOT_SAFE_FREE(info->invoice);
+    telebot_put_location(info->location);
+    TELEBOT_SAFE_FREE(info->location);
+    telebot_put_poll(info->poll);
+    TELEBOT_SAFE_FREE(info->poll);
+    telebot_put_venue(info->venue);
+    TELEBOT_SAFE_FREE(info->venue);
+}
+
+static void telebot_put_refunded_payment(telebot_refunded_payment_t *payment)
+{
+    if (payment == NULL)
+        return;
+    TELEBOT_SAFE_FREE(payment->currency);
+    TELEBOT_SAFE_FREE(payment->invoice_payload);
+    TELEBOT_SAFE_FREE(payment->telegram_payment_charge_id);
+    TELEBOT_SAFE_FREE(payment->provider_payment_charge_id);
+}
+
+static void telebot_put_users_shared(telebot_users_shared_t *shared)
+{
+    if (shared == NULL)
+        return;
+    for (int i = 0; i < shared->count_users; i++)
+    {
+        telebot_shared_user_t *user = &shared->users[i];
+        TELEBOT_SAFE_FREE(user->first_name);
+        TELEBOT_SAFE_FREE(user->last_name);
+        TELEBOT_SAFE_FREE(user->username);
+        telebot_put_photos(&user->photo, &user->count_photo);
+    }
+    TELEBOT_SAFE_FZCNT(shared->users, shared->count_users);
+}
+
+/* Frees the members a message owns that have no dedicated release function elsewhere */
+static void telebot_put_message_extras(telebot_message_t *msg)
+{
+    TELEBOT_SAFE_FREE(msg->sender_tag);
+    TELEBOT_SAFE_FREE(msg->business_connection_id);
+    TELEBOT_SAFE_FREE(msg->effect_id);
+    telebot_put_user(msg->sender_business_bot);
+    TELEBOT_SAFE_FREE(msg->sender_business_bot);
+    telebot_put_message_origin(msg->forward_origin);
+    TELEBOT_SAFE_FREE(msg->forward_origin);
+    telebot_put_external_reply_info(msg->external_reply);
+    TELEBOT_SAFE_FREE(msg->external_reply);
+    telebot_put_text_quote(msg->quote);
+    TELEBOT_SAFE_FREE(msg->quote);
+    telebot_put_story(msg->reply_to_story);
+    TELEBOT_SAFE_FREE(msg->reply_to_story);
+    telebot_put_link_preview_options(msg->link_preview_options);
+    TELEBOT_SAFE_FREE(msg->link_preview_options);
+    telebot_put_paid_media_info(msg->paid_media);
+    TELEBOT_SAFE_FREE(msg->paid_media);
+    telebot_put_refunded_payment(msg->refunded_payment);
+    TELEBOT_SAFE_FREE(msg->refunded_payment);
+    if (msg->write_access_allowed)
+        TELEBOT_SAFE_FREE(msg->write_access_allowed->web_app_name);
+    TELEBOT_SAFE_FREE(msg->write_access_allowed);
+    telebot_put_users_shared(msg->users_shared);
+    TELEBOT_SAFE_FREE(msg->users_shared);
+    TELEBOT_SAFE_FREE(msg->chat_shared);
+    TELEBOT_SAFE_FREE(msg->boost_added);
+    if (msg->chat_background_set)
+        TELEBOT_SAFE_FREE(msg->chat_background_set->type);
+    TELEBOT_SAFE_FREE(msg->chat_background_set);
+    TELEBOT_SAFE_FREE(msg->giveaway_created);
+    if (msg->giveaway_completed)
+    {
+        telebot_put_message(msg->giveaway_completed->giveaway_message);
+        TELEBOT_SAFE_FREE(msg->giveaway_completed->giveaway_message);
+    }
+    TELEBOT_SAFE_FREE(msg->giveaway_completed);
+}
+
+telebot_error_e telebot_put_message(telebot_message_t *msg)
 {
     if (msg == NULL)
-        return;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    telebot_put_message_extras(msg);
 
     telebot_put_user(msg->from);
     TELEBOT_SAFE_FREE(msg->from);
@@ -2136,6 +2232,8 @@ static void telebot_put_message(telebot_message_t *msg)
 
     telebot_put_inline_keyboard_markup(msg->reply_markup);
     TELEBOT_SAFE_FREE(msg->reply_markup);
+
+    return TELEBOT_ERROR_NONE;
 }
 
 static void telebot_put_telebot_message_entity(telebot_message_entity_t *entity)
@@ -2171,8 +2269,8 @@ static void telebot_put_audio(telebot_audio_t *audio)
     TELEBOT_SAFE_FREE(audio->title);
     TELEBOT_SAFE_FREE(audio->mime_type);
 
-    telebot_put_photo(audio->thumb);
-    TELEBOT_SAFE_FREE(audio->thumb);
+    telebot_put_photo(audio->thumbnail);
+    TELEBOT_SAFE_FREE(audio->thumbnail);
 }
 
 static void telebot_put_document(telebot_document_t *document)
@@ -2183,8 +2281,8 @@ static void telebot_put_document(telebot_document_t *document)
     TELEBOT_SAFE_FREE(document->file_id);
     TELEBOT_SAFE_FREE(document->file_unique_id);
 
-    telebot_put_photo(document->thumb);
-    TELEBOT_SAFE_FREE(document->thumb);
+    telebot_put_photo(document->thumbnail);
+    TELEBOT_SAFE_FREE(document->thumbnail);
 
     TELEBOT_SAFE_FREE(document->file_name);
     TELEBOT_SAFE_FREE(document->mime_type);
@@ -2198,8 +2296,8 @@ static void telebot_put_video(telebot_video_t *video)
     TELEBOT_SAFE_FREE(video->file_id);
     TELEBOT_SAFE_FREE(video->file_unique_id);
 
-    telebot_put_photo(video->thumb);
-    TELEBOT_SAFE_FREE(video->thumb);
+    telebot_put_photo(video->thumbnail);
+    TELEBOT_SAFE_FREE(video->thumbnail);
     TELEBOT_SAFE_FREE(video->mime_type);
 }
 
@@ -2211,8 +2309,8 @@ static void telebot_put_animation(telebot_animation_t *animation)
     TELEBOT_SAFE_FREE(animation->file_id);
     TELEBOT_SAFE_FREE(animation->file_unique_id);
 
-    telebot_put_photo(animation->thumb);
-    TELEBOT_SAFE_FREE(animation->thumb);
+    telebot_put_photo(animation->thumbnail);
+    TELEBOT_SAFE_FREE(animation->thumbnail);
     TELEBOT_SAFE_FREE(animation->file_name);
     TELEBOT_SAFE_FREE(animation->mime_type);
 }
@@ -2234,8 +2332,8 @@ static void telebot_put_video_note(telebot_video_note_t *vnote)
 
     TELEBOT_SAFE_FREE(vnote->file_id);
     TELEBOT_SAFE_FREE(vnote->file_unique_id);
-    telebot_put_photo(vnote->thumb);
-    TELEBOT_SAFE_FREE(vnote->thumb);
+    telebot_put_photo(vnote->thumbnail);
+    TELEBOT_SAFE_FREE(vnote->thumbnail);
 }
 
 static void telebot_put_contact(telebot_contact_t *contact)
@@ -2346,12 +2444,15 @@ telebot_error_e telebot_put_sticker(telebot_sticker_t *sticker)
 
     TELEBOT_SAFE_FREE(sticker->file_id);
     TELEBOT_SAFE_FREE(sticker->file_unique_id);
-    telebot_put_photo(sticker->thumb);
-    TELEBOT_SAFE_FREE(sticker->thumb);
+    TELEBOT_SAFE_FREE(sticker->type);
+    telebot_put_photo(sticker->thumbnail);
+    TELEBOT_SAFE_FREE(sticker->thumbnail);
     TELEBOT_SAFE_FREE(sticker->emoji);
     TELEBOT_SAFE_FREE(sticker->set_name);
-    // telebot_put_mask_position(sticker->mask_position);
+    if (sticker->mask_position)
+        TELEBOT_SAFE_FREE(sticker->mask_position->point);
     TELEBOT_SAFE_FREE(sticker->mask_position);
+    TELEBOT_SAFE_FREE(sticker->custom_emoji_id);
 
     return TELEBOT_ERROR_NONE;
 }
@@ -2489,7 +2590,7 @@ telebot_error_e telebot_get_my_name(telebot_handler_t handle, const char *langua
     if (name == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_my_name(handle->core_h, language_code);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -2503,20 +2604,20 @@ telebot_error_e telebot_get_my_name(telebot_handler_t handle, const char *langua
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
     {
-        struct json_object *name_obj = NULL;
-        if (json_object_object_get_ex(result, "name", &name_obj))
+        struct cJSON *name_obj = NULL;
+        if (tb_json_get_ex(result, "name", &name_obj))
         {
-            *name = TELEBOT_SAFE_STRDUP(json_object_get_string(name_obj));
+            *name = TELEBOT_SAFE_STRDUP(tb_json_get_string(name_obj));
         }
         else
         {
@@ -2530,7 +2631,7 @@ telebot_error_e telebot_get_my_name(telebot_handler_t handle, const char *langua
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -2553,7 +2654,7 @@ telebot_error_e telebot_get_my_description(telebot_handler_t handle, const char 
     if (description == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_my_description(handle->core_h, language_code);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -2567,20 +2668,20 @@ telebot_error_e telebot_get_my_description(telebot_handler_t handle, const char 
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
     {
-        struct json_object *desc_obj = NULL;
-        if (json_object_object_get_ex(result, "description", &desc_obj))
+        struct cJSON *desc_obj = NULL;
+        if (tb_json_get_ex(result, "description", &desc_obj))
         {
-            *description = TELEBOT_SAFE_STRDUP(json_object_get_string(desc_obj));
+            *description = TELEBOT_SAFE_STRDUP(tb_json_get_string(desc_obj));
         }
         else
         {
@@ -2594,7 +2695,7 @@ telebot_error_e telebot_get_my_description(telebot_handler_t handle, const char 
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -2617,7 +2718,7 @@ telebot_error_e telebot_get_my_short_description(telebot_handler_t handle, const
     if (short_description == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_my_short_description(handle->core_h, language_code);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -2631,20 +2732,20 @@ telebot_error_e telebot_get_my_short_description(telebot_handler_t handle, const
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
     {
-        struct json_object *desc_obj = NULL;
-        if (json_object_object_get_ex(result, "short_description", &desc_obj))
+        struct cJSON *desc_obj = NULL;
+        if (tb_json_get_ex(result, "short_description", &desc_obj))
         {
-            *short_description = TELEBOT_SAFE_STRDUP(json_object_get_string(desc_obj));
+            *short_description = TELEBOT_SAFE_STRDUP(tb_json_get_string(desc_obj));
         }
         else
         {
@@ -2658,7 +2759,7 @@ telebot_error_e telebot_get_my_short_description(telebot_handler_t handle, const
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -2681,7 +2782,7 @@ telebot_error_e telebot_get_chat_menu_button(telebot_handler_t handle, long long
     if (menu_button == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_chat_menu_button(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -2695,17 +2796,17 @@ telebot_error_e telebot_get_chat_menu_button(telebot_handler_t handle, long long
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
     {
-        *menu_button = TELEBOT_SAFE_STRDUP(json_object_get_string(result));
+        *menu_button = TELEBOT_SAFE_STRDUP(tb_json_get_string(result));
     }
     else
     {
@@ -2714,7 +2815,7 @@ telebot_error_e telebot_get_chat_menu_button(telebot_handler_t handle, long long
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -2737,7 +2838,7 @@ telebot_error_e telebot_get_my_default_administrator_rights(telebot_handler_t ha
     if (rights == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_my_default_administrator_rights(handle->core_h, for_channels);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -2751,17 +2852,17 @@ telebot_error_e telebot_get_my_default_administrator_rights(telebot_handler_t ha
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
     {
-        *rights = TELEBOT_SAFE_STRDUP(json_object_get_string(result));
+        *rights = TELEBOT_SAFE_STRDUP(tb_json_get_string(result));
     }
     else
     {
@@ -2770,7 +2871,7 @@ telebot_error_e telebot_get_my_default_administrator_rights(telebot_handler_t ha
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -2786,19 +2887,15 @@ telebot_error_e telebot_delete_my_commands(telebot_handler_t handle, const char 
     return ret;
 }
 
-telebot_error_e telebot_copy_message(telebot_handler_t handle, long long int chat_id, long long int from_chat_id, int message_id,
-                                     const char *caption, const char *parse_mode, const char *caption_entities,
-                                     bool disable_notification, bool protect_content, int reply_to_message_id,
-                                     bool allow_sending_without_reply, const char *reply_markup, int *message_id_out)
+telebot_error_e telebot_copy_message(telebot_handler_t handle, long long int chat_id,
+        long long int from_chat_id, int message_id, const char *caption, const char *parse_mode,
+        const telebot_send_options_t *options, int *message_id_out)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    struct json_object *obj = NULL;
-    telebot_core_response_t response = telebot_core_copy_message(handle->core_h, chat_id, from_chat_id, message_id,
-                                                                 caption, parse_mode, caption_entities, disable_notification,
-                                                                 protect_content, reply_to_message_id, allow_sending_without_reply,
-                                                                 reply_markup);
+    struct cJSON *obj = NULL;
+    telebot_core_response_t response = telebot_core_copy_message(handle->core_h, chat_id, from_chat_id, message_id, caption, parse_mode, options);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
         goto finish;
@@ -2813,46 +2910,45 @@ telebot_error_e telebot_copy_message(telebot_handler_t handle, long long int cha
             goto finish;
         }
 
-        struct json_object *ok = NULL;
-        if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+        struct cJSON *ok = NULL;
+        if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
             goto finish;
         }
 
-        struct json_object *result = NULL;
-        if (json_object_object_get_ex(obj, "result", &result))
+        struct cJSON *result = NULL;
+        if (tb_json_get_ex(obj, "result", &result))
         {
-            struct json_object *mid_obj = NULL;
-            if (json_object_object_get_ex(result, "message_id", &mid_obj))
+            struct cJSON *mid_obj = NULL;
+            if (tb_json_get_ex(result, "message_id", &mid_obj))
             {
-                *message_id_out = json_object_get_int(mid_obj);
+                *message_id_out = tb_json_get_int(mid_obj);
             }
         }
     }
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
 
-telebot_error_e telebot_copy_messages(telebot_handler_t handle, long long int chat_id, long long int from_chat_id, const char *message_ids,
-                                      bool disable_notification, bool protect_content, bool remove_caption,
-                                      int **message_ids_out, int *count)
+telebot_error_e telebot_copy_messages(telebot_handler_t handle, long long int chat_id,
+        long long int from_chat_id, const int message_ids[], int count, bool remove_caption,
+        const telebot_send_options_t *options, int **message_ids_out, int *count_out)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    struct json_object *obj = NULL;
-    telebot_core_response_t response = telebot_core_copy_messages(handle->core_h, chat_id, from_chat_id, message_ids,
-                                                                  disable_notification, protect_content, remove_caption);
+    struct cJSON *obj = NULL;
+    telebot_core_response_t response = telebot_core_copy_messages(handle->core_h, chat_id, from_chat_id, message_ids, count, remove_caption, options);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
         goto finish;
 
-    if (message_ids_out && count)
+    if (message_ids_out && count_out)
     {
         const char *rdata = telebot_core_get_response_data(response);
         obj = telebot_parser_str_to_obj(rdata);
@@ -2862,48 +2958,48 @@ telebot_error_e telebot_copy_messages(telebot_handler_t handle, long long int ch
             goto finish;
         }
 
-        struct json_object *ok = NULL;
-        if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+        struct cJSON *ok = NULL;
+        if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
             goto finish;
         }
 
-        struct json_object *result = NULL;
-        if (json_object_object_get_ex(obj, "result", &result))
+        struct cJSON *result = NULL;
+        if (tb_json_get_ex(obj, "result", &result))
         {
-            int array_len = json_object_array_length(result);
-            *count = array_len;
+            int array_len = tb_json_array_length(result);
+            *count_out = array_len;
             *message_ids_out = calloc(array_len, sizeof(int));
             for (int i = 0; i < array_len; i++)
             {
-                struct json_object *mid_obj = json_object_array_get_idx(result, i);
-                (*message_ids_out)[i] = json_object_get_int(mid_obj);
+                struct cJSON *mid_obj = tb_json_array_get_idx(result, i);
+                (*message_ids_out)[i] = tb_json_get_int(mid_obj);
             }
         }
     }
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
 
-telebot_error_e telebot_forward_messages(telebot_handler_t handle, long long int chat_id, long long int from_chat_id, const char *message_ids,
-                                         bool disable_notification, bool protect_content, int **message_ids_out, int *count)
+telebot_error_e telebot_forward_messages(telebot_handler_t handle, long long int chat_id,
+        long long int from_chat_id, const int message_ids[], int count,
+        const telebot_send_options_t *options, int **message_ids_out, int *count_out)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    struct json_object *obj = NULL;
-    telebot_core_response_t response = telebot_core_forward_messages(handle->core_h, chat_id, from_chat_id, message_ids,
-                                                                     disable_notification, protect_content);
+    struct cJSON *obj = NULL;
+    telebot_core_response_t response = telebot_core_forward_messages(handle->core_h, chat_id, from_chat_id, message_ids, count, options);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
         goto finish;
 
-    if (message_ids_out && count)
+    if (message_ids_out && count_out)
     {
         const char *rdata = telebot_core_get_response_data(response);
         obj = telebot_parser_str_to_obj(rdata);
@@ -2913,30 +3009,30 @@ telebot_error_e telebot_forward_messages(telebot_handler_t handle, long long int
             goto finish;
         }
 
-        struct json_object *ok = NULL;
-        if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+        struct cJSON *ok = NULL;
+        if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
             goto finish;
         }
 
-        struct json_object *result = NULL;
-        if (json_object_object_get_ex(obj, "result", &result))
+        struct cJSON *result = NULL;
+        if (tb_json_get_ex(obj, "result", &result))
         {
-            int array_len = json_object_array_length(result);
-            *count = array_len;
+            int array_len = tb_json_array_length(result);
+            *count_out = array_len;
             *message_ids_out = calloc(array_len, sizeof(int));
             for (int i = 0; i < array_len; i++)
             {
-                struct json_object *mid_obj = json_object_array_get_idx(result, i);
-                (*message_ids_out)[i] = json_object_get_int(mid_obj);
+                struct cJSON *mid_obj = tb_json_array_get_idx(result, i);
+                (*message_ids_out)[i] = tb_json_get_int(mid_obj);
             }
         }
     }
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -3291,4 +3387,287 @@ telebot_error_e telebot_put_chat_invite_link(telebot_chat_invite_link_t *invite_
         return TELEBOT_ERROR_INVALID_PARAMETER;
     telebot_put_chat_invite_link_internal(invite_link);
     return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_send_sticker(telebot_handler_t handle, long long int chat_id,
+        const telebot_input_file_t *sticker, const char *emoji, const telebot_send_options_t *options)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_send_sticker(handle->core_h, chat_id, sticker, emoji, options);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_set_message_reaction(telebot_handler_t handle, long long int chat_id, int message_id,
+        const char *emoji, bool is_big)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_set_message_reaction(handle->core_h, chat_id, message_id, emoji, is_big);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_ban_chat_member(telebot_handler_t handle, long long int chat_id,
+        long long int user_id, long until_date, bool revoke_messages)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_ban_chat_member(handle->core_h, chat_id, user_id, until_date, revoke_messages);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_approve_chat_join_request(telebot_handler_t handle, long long int chat_id,
+        long long int user_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_approve_chat_join_request(handle->core_h, chat_id, user_id);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_decline_chat_join_request(telebot_handler_t handle, long long int chat_id,
+        long long int user_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_decline_chat_join_request(handle->core_h, chat_id, user_id);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_get_sticker_set(telebot_handler_t handle, const char *name, telebot_sticker_set_t *stickers)
+{
+    if ((handle == NULL) || (stickers == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(stickers, 0, sizeof(*stickers));
+
+    telebot_error_e ret =
+        telebot_call_and_parse(telebot_core_get_sticker_set(handle->core_h, name), parse_sticker_set, stickers);
+    if (ret != TELEBOT_ERROR_NONE)
+        telebot_put_sticker_set(stickers);
+    return ret;
+}
+
+telebot_error_e telebot_put_sticker_set(telebot_sticker_set_t *stickers)
+{
+    if (stickers == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+
+    TELEBOT_SAFE_FREE(stickers->name);
+    TELEBOT_SAFE_FREE(stickers->title);
+    TELEBOT_SAFE_FREE(stickers->sticker_type);
+    for (int i = 0; i < stickers->count_stickers; i++)
+        telebot_put_sticker(&stickers->stickers[i]);
+    TELEBOT_SAFE_FZCNT(stickers->stickers, stickers->count_stickers);
+    telebot_put_photo(stickers->thumbnail);
+    TELEBOT_SAFE_FREE(stickers->thumbnail);
+    return TELEBOT_ERROR_NONE;
+}
+
+telebot_error_e telebot_ban_chat_sender_chat(telebot_handler_t handle, long long int chat_id,
+                                             long long int sender_chat_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+    return telebot_call(telebot_core_ban_chat_sender_chat(handle->core_h, chat_id, sender_chat_id));
+}
+
+telebot_error_e telebot_unban_chat_sender_chat(telebot_handler_t handle, long long int chat_id,
+                                               long long int sender_chat_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+    return telebot_call(telebot_core_unban_chat_sender_chat(handle->core_h, chat_id, sender_chat_id));
+}
+
+telebot_error_e telebot_create_chat_invite_link(telebot_handler_t handle, long long int chat_id, const char *name,
+                                                long expire_date, int member_limit, bool creates_join_request,
+                                                telebot_chat_invite_link_t *invite_link)
+{
+    if ((handle == NULL) || (invite_link == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(invite_link, 0, sizeof(*invite_link));
+    telebot_error_e ret = telebot_call_and_parse(
+        telebot_core_create_chat_invite_link(handle->core_h, chat_id, name, expire_date, member_limit,
+                                             creates_join_request),
+        parse_invite_link, invite_link);
+    if (ret != TELEBOT_ERROR_NONE)
+        telebot_put_chat_invite_link(invite_link);
+    return ret;
+}
+
+telebot_error_e telebot_edit_chat_invite_link(telebot_handler_t handle, long long int chat_id,
+                                              const char *invite_link_str, const char *name, long expire_date,
+                                              int member_limit, bool creates_join_request,
+                                              telebot_chat_invite_link_t *invite_link)
+{
+    if ((handle == NULL) || (invite_link == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(invite_link, 0, sizeof(*invite_link));
+    telebot_error_e ret = telebot_call_and_parse(
+        telebot_core_edit_chat_invite_link(handle->core_h, chat_id, invite_link_str, name, expire_date,
+                                           member_limit, creates_join_request),
+        parse_invite_link, invite_link);
+    if (ret != TELEBOT_ERROR_NONE)
+        telebot_put_chat_invite_link(invite_link);
+    return ret;
+}
+
+telebot_error_e telebot_revoke_chat_invite_link(telebot_handler_t handle, long long int chat_id,
+                                                const char *invite_link_str, telebot_chat_invite_link_t *invite_link)
+{
+    if ((handle == NULL) || (invite_link == NULL))
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    memset(invite_link, 0, sizeof(*invite_link));
+    telebot_error_e ret = telebot_call_and_parse(
+        telebot_core_revoke_chat_invite_link(handle->core_h, chat_id, invite_link_str), parse_invite_link,
+        invite_link);
+    if (ret != TELEBOT_ERROR_NONE)
+        telebot_put_chat_invite_link(invite_link);
+    return ret;
+}
+
+telebot_error_e telebot_edit_message_media(telebot_handler_t handle, long long int chat_id, int message_id,
+                                           const char *inline_message_id, const char *media,
+                                           const char *reply_markup)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+    return telebot_call(
+        telebot_core_edit_message_media(handle->core_h, chat_id, message_id, inline_message_id, media, reply_markup));
+}
+
+telebot_error_e telebot_put_stickers(telebot_sticker_t *stickers, int count)
+{
+    if (stickers == NULL)
+        return TELEBOT_ERROR_INVALID_PARAMETER;
+    for (int i = 0; i < count; i++)
+        telebot_put_sticker(&stickers[i]);
+    free(stickers);
+    return TELEBOT_ERROR_NONE;
+}
+
+int telebot_get_retry_after(telebot_handler_t handle)
+{
+    return handle ? telebot_core_get_retry_after(handle->core_h) : 0;
+}
+
+telebot_error_e telebot_send_message_draft(telebot_handler_t handle, long long int chat_id,
+        int message_thread_id, int draft_id, const char *text, const char *parse_mode, bool can_stop,
+        bool keep_on_stop)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_send_message_draft(handle->core_h, chat_id, message_thread_id, draft_id, text, parse_mode, can_stop, keep_on_stop);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_unpin_all_chat_messages(telebot_handler_t handle, long long int chat_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_unpin_all_chat_messages(handle->core_h, chat_id);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_delete_message_reaction(telebot_handler_t handle, long long int chat_id,
+        int message_id, long long int user_id, long long int actor_chat_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_delete_message_reaction(handle->core_h, chat_id, message_id, user_id, actor_chat_id);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_delete_all_message_reactions(telebot_handler_t handle, long long int chat_id,
+        long long int user_id, long long int actor_chat_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_delete_all_message_reactions(handle->core_h, chat_id, user_id, actor_chat_id);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_set_chat_member_tag(telebot_handler_t handle, long long int chat_id,
+        long long int user_id, const char *tag)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_set_chat_member_tag(handle->core_h, chat_id, user_id, tag);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_verify_user(telebot_handler_t handle, long long int user_id,
+        const char *custom_description, const char *parse_mode)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_verify_user(handle->core_h, user_id, custom_description, parse_mode);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_verify_chat(telebot_handler_t handle, long long int chat_id,
+        const char *custom_description, const char *parse_mode)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_verify_chat(handle->core_h, chat_id, custom_description, parse_mode);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_remove_user_verification(telebot_handler_t handle, long long int user_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_remove_user_verification(handle->core_h, user_id);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
+}
+
+telebot_error_e telebot_remove_chat_verification(telebot_handler_t handle, long long int chat_id)
+{
+    if (handle == NULL)
+        return TELEBOT_ERROR_NOT_SUPPORTED;
+
+    telebot_core_response_t response = telebot_core_remove_chat_verification(handle->core_h, chat_id);
+    telebot_error_e ret = telebot_core_get_response_code(response);
+    telebot_core_put_response(response);
+    return ret;
 }

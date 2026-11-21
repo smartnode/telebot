@@ -121,7 +121,7 @@ telebot_error_e telebot_unpin_all_forum_topic_messages(telebot_handler_t handle,
 /**
  * @brief Use this method to get custom emoji stickers, which can be used as a forum topic icon by any user.
  * @param[in] handle The telebot handler.
- * @param[out] stickers Pointer to stickers to be obtained, MUST be released with #telebot_put_stickers.
+ * @param[out] stickers Pointer to stickers to be obtained, MUST be released with #telebot_put_stickers().
  * @param[out] count Pointer to get the number of stickers.
  * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.

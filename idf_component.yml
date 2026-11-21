@@ -1,0 +1,12 @@
+version: "10.4.0"
+description: "Telegram Bot API client in C, sized for low-memory devices"
+url: "https://github.com/smartnode/telebot"
+license: "Apache-2.0"
+dependencies:
+  idf: ">=5.1"
+files:
+  exclude:
+    - "docs/**/*"
+    - "test/**/*"
+    - "examples/host_demo_bot/**/*"
+    - "build/**/*"

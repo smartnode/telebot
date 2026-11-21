@@ -24,7 +24,7 @@
  * @ingroup     TELEBOT_API
  * @brief       This file includes all the header files of the telegram bot library
  * @author      Elmurod Talipov
- * @date        2026-02-28
+ * @date        2026-11-21
  */
 
 #include "telebot-common.h"

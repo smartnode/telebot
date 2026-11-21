@@ -20,6 +20,7 @@
 #define __TELEBOT_TYPES_H__
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,9 +40,141 @@ extern "C" {
  */
 
 /**
+ * @brief Options shared by every method that sends a message.
+ *
+ * Pass NULL wherever a function takes `const telebot_send_options_t *` to use
+ * Telegram's defaults. Zero-initialise the struct and set only what you need:
+ * @code
+ * telebot_send_options_t opts = {0};
+ * opts.reply_to_message_id = msg->message_id;
+ * opts.reply_markup = "{\"inline_keyboard\":[[{\"text\":\"OK\",\"callback_data\":\"ok\"}]]}";
+ * telebot_send_message(bot, chat_id, "Done", NULL, false, &opts);
+ * @endcode
+ */
+typedef struct telebot_send_options {
+    int message_thread_id;              /**< Forum topic, or topic in a private chat; 0 for none */
+    int reply_to_message_id;            /**< Message to reply to; 0 when not a reply */
+    bool allow_sending_without_reply;   /**< Send even if the replied-to message was deleted */
+    bool disable_notification;          /**< Deliver silently */
+    bool protect_content;               /**< Prevent forwarding and saving */
+    const char *reply_markup;           /**< JSON inline keyboard, custom keyboard, or NULL */
+    const char *business_connection_id; /**< Send on behalf of a business account, or NULL */
+    const char *message_effect_id;      /**< Message effect for private chats, or NULL */
+} telebot_send_options_t;
+
+/**
+ * @brief Where the bytes of an uploaded file come from.
+ */
+typedef enum telebot_input_file_kind {
+    TELEBOT_INPUT_FILE_REMOTE = 0, /**< file_id already on Telegram's servers, or an HTTP URL */
+    TELEBOT_INPUT_FILE_PATH,       /**< Local file, streamed from disk (or SPIFFS/LittleFS/SD on ESP32) */
+    TELEBOT_INPUT_FILE_MEMORY,     /**< Bytes in RAM, e.g. a camera frame; never copied */
+} telebot_input_file_kind_e;
+
+/**
+ * @brief A file to send (Bot API "InputFile or String").
+ *
+ * Build one with telebot_input_file_remote(), telebot_input_file_path() or
+ * telebot_input_file_memory(), or in C with the TELEBOT_FILE_REMOTE(),
+ * TELEBOT_FILE_PATH() and TELEBOT_FILE_MEMORY() macros. All pointers are
+ * borrowed: they must stay valid until the call that uses the file returns.
+ */
+typedef struct telebot_input_file {
+    telebot_input_file_kind_e kind; /**< Where the bytes of the file come from */
+    const char *ref;      /**< REMOTE: file_id or URL; PATH: local file path */
+    const void *data;     /**< MEMORY: first byte */
+    size_t size;          /**< MEMORY: number of bytes */
+    const char *filename; /**< MEMORY: file name shown to the recipient (e.g. "photo.jpg") */
+} telebot_input_file_t;
+
+#ifndef __cplusplus
+/**
+ * @brief Pointer to a file_id/URL descriptor, for one-line calls in C, e.g.
+ * telebot_send_sticker(bot, chat_id, TELEBOT_FILE_REMOTE("CAACAgIAAxkB..."), NULL, NULL).
+ * The pointer is valid until the end of the enclosing block.
+ */
+#define TELEBOT_FILE_REMOTE(file_id_or_url) \
+    (&(telebot_input_file_t){TELEBOT_INPUT_FILE_REMOTE, (file_id_or_url), NULL, 0, NULL})
+/** @brief Pointer to a local-file descriptor; see TELEBOT_FILE_REMOTE(). */
+#define TELEBOT_FILE_PATH(path) \
+    (&(telebot_input_file_t){TELEBOT_INPUT_FILE_PATH, (path), NULL, 0, NULL})
+/** @brief Pointer to an in-memory descriptor; see TELEBOT_FILE_REMOTE(). */
+#define TELEBOT_FILE_MEMORY(data, size, filename) \
+    (&(telebot_input_file_t){TELEBOT_INPUT_FILE_MEMORY, NULL, (data), (size), (filename)})
+#endif
+
+/**
+ * @brief A file_id or URL of a file Telegram can fetch itself.
+ * @param[in] file_id_or_url file_id of a file already on Telegram's servers, or an HTTP(S) URL.
+ * @return The file descriptor.
+ */
+static inline telebot_input_file_t telebot_input_file_remote(const char *file_id_or_url)
+{
+    telebot_input_file_t f = {TELEBOT_INPUT_FILE_REMOTE, file_id_or_url, NULL, 0, NULL};
+    return f;
+}
+
+/**
+ * @brief A local file, uploaded in chunks without loading it into memory.
+ * @param[in] path Path of the file; it must stay valid until the call using it returns.
+ * @return The file descriptor.
+ */
+static inline telebot_input_file_t telebot_input_file_path(const char *path)
+{
+    telebot_input_file_t f = {TELEBOT_INPUT_FILE_PATH, path, NULL, 0, NULL};
+    return f;
+}
+
+/**
+ * @brief Bytes already in RAM; they are not copied.
+ * @param[in] data First byte; it must stay valid until the call using it returns.
+ * @param[in] size Number of bytes.
+ * @param[in] filename File name shown to the recipient, with the right extension (e.g. "cam.jpg").
+ * @return The file descriptor.
+ */
+static inline telebot_input_file_t telebot_input_file_memory(const void *data, size_t size, const char *filename)
+{
+    telebot_input_file_t f = {TELEBOT_INPUT_FILE_MEMORY, NULL, data, size, filename};
+    return f;
+}
+
+/**
+ * @brief Kind of an item in a media group.
+ */
+typedef enum telebot_input_media_type {
+    TELEBOT_INPUT_MEDIA_PHOTO = 0, /**< Photo; may be mixed with videos */
+    TELEBOT_INPUT_MEDIA_VIDEO,     /**< Video; may be mixed with photos */
+    TELEBOT_INPUT_MEDIA_AUDIO,     /**< Audio; a group must contain only audios */
+    TELEBOT_INPUT_MEDIA_DOCUMENT,  /**< Document; a group must contain only documents */
+} telebot_input_media_type_e;
+
+/**
+ * @brief One item of an album sent with #telebot_send_media_group().
+ */
+typedef struct telebot_input_media {
+    telebot_input_media_type_e type; /**< What the item is */
+    telebot_input_file_t file;       /**< Where its bytes come from */
+    const char *caption;             /**< Optional caption, or NULL */
+    const char *parse_mode;          /**< Optional caption parse mode, or NULL */
+} telebot_input_media_t;
+
+/**
+ * @brief One parameter of a raw Bot API call made with #telebot_core_call().
+ *
+ * Set either @p value (numbers, booleans and JSON objects are passed as text,
+ * e.g. "123", "true", "{\"type\":\"emoji\"}") or @p file.
+ */
+typedef struct telebot_param {
+    const char *name;                 /**< Parameter name as in the Bot API docs */
+    const char *value;                /**< Text value, or NULL when @p file is set */
+    const telebot_input_file_t *file; /**< File to send, or NULL when @p value is set */
+} telebot_param_t;
+
+/**
  * @brief Enumerations of telegram update types.
  */
 typedef enum telebot_update_type {
+    TELEBOT_UPDATE_TYPE_UNKNOWN = -1,         /**< Not recognised by this build (newer Bot API, or parsing disabled); payload is empty */
     TELEBOT_UPDATE_TYPE_MESSAGE = 0,          /**< Message */
     TELEBOT_UPDATE_TYPE_EDITED_MESSAGE,       /**< Edited message */
     TELEBOT_UPDATE_TYPE_CHANNEL_POST,         /**< Channel post */
@@ -65,6 +198,8 @@ typedef enum telebot_update_type {
     TELEBOT_UPDATE_TYPE_CHAT_JOIN_REQUEST,    /**< Chat join request */
     TELEBOT_UPDATE_TYPE_CHAT_BOOST,           /**< Chat boost updated */
     TELEBOT_UPDATE_TYPE_REMOVED_CHAT_BOOST,   /**< Chat boost removed */
+    TELEBOT_UPDATE_TYPE_GUEST_MESSAGE,        /**< Message sent to the bot in guest mode (Bot API 10.0) */
+    TELEBOT_UPDATE_TYPE_STOPPED_MESSAGE_GENERATION, /**< User pressed stop on a message draft (Bot API 10.3) */
     TELEBOT_UPDATE_TYPE_MAX                   /**< Number of update types */
 } telebot_update_type_e;
 
@@ -127,49 +262,49 @@ typedef struct telebot_business_opening_hours {
 
     /** List of time intervals describing business opening hours */
     struct telebot_business_opening_hours_interval *opening_hours;
-    int count_opening_hours;
+    int count_opening_hours; /**< Number of entries in opening_hours */
 } telebot_business_opening_hours_t;
 
 /**
  * @brief Represents the rights of a business bot.
  */
 typedef struct telebot_business_bot_rights {
-    bool can_reply;
-    bool can_read_messages;
-    bool can_delete_sent_messages;
-    bool can_delete_all_messages;
-    bool can_edit_name;
-    bool can_edit_bio;
-    bool can_edit_profile_photo;
-    bool can_edit_username;
-    bool can_change_gift_settings;
-    bool can_view_gifts_and_stars;
-    bool can_convert_gifts_to_stars;
-    bool can_transfer_and_upgrade_gifts;
-    bool can_transfer_stars;
-    bool can_manage_stories;
+    bool can_reply; /**< Reply to messages in chats */
+    bool can_read_messages; /**< Mark incoming private messages as read */
+    bool can_delete_sent_messages; /**< Delete messages sent by the bot */
+    bool can_delete_all_messages; /**< Delete all private messages in managed chats */
+    bool can_edit_name; /**< Edit the first and last name of the business account */
+    bool can_edit_bio; /**< Edit the bio of the business account */
+    bool can_edit_profile_photo; /**< Edit the profile photo of the business account */
+    bool can_edit_username; /**< Edit the username of the business account */
+    bool can_change_gift_settings; /**< Change the gift privacy settings of the business account */
+    bool can_view_gifts_and_stars; /**< View gifts and the Telegram Stars balance of the business account */
+    bool can_convert_gifts_to_stars; /**< Convert regular gifts owned by the business account to Telegram Stars */
+    bool can_transfer_and_upgrade_gifts; /**< Transfer and upgrade gifts owned by the business account */
+    bool can_transfer_stars; /**< Transfer Telegram Stars received by the business account */
+    bool can_manage_stories; /**< Post, edit and delete stories on behalf of the business account */
 } telebot_business_bot_rights_t;
 
 /**
  * @brief Describes the connection of the bot with a business account.
  */
 typedef struct telebot_business_connection {
-    char *id;
-    struct telebot_user *user;
-    long long int user_chat_id;
-    long date;
-    bool can_reply;
-    bool is_enabled;
+    char *id; /**< Unique identifier of the business connection */
+    struct telebot_user *user; /**< Business account user that created the connection */
+    long long int user_chat_id; /**< Identifier of a private chat with that user */
+    long date; /**< Unix time when the connection was established */
+    telebot_business_bot_rights_t rights; /**< Actions the bot may take on behalf of the business account */
+    bool is_enabled; /**< True if the connection is active */
 } telebot_business_connection_t;
 
 /**
  * @brief This object is received when messages are deleted from a connected business account.
  */
 typedef struct telebot_business_messages_deleted {
-    char *business_connection_id;
-    struct telebot_chat *chat;
-    int *message_ids;
-    int count_message_ids;
+    char *business_connection_id; /**< Unique identifier of the business connection */
+    struct telebot_chat *chat; /**< Chat in the business account where the messages were deleted */
+    int *message_ids; /**< Identifiers of the deleted messages */
+    int count_message_ids; /**< Number of entries in message_ids */
 } telebot_business_messages_deleted_t;
 
 /**
@@ -264,7 +399,7 @@ typedef struct telebot_chat {
      * for private chats, supergroups and channels. Returned only in getChat.
      */
     char **active_usernames;
-    int count_active_usernames;
+    int count_active_usernames; /**< Number of entries in active_usernames */
 
     /** Optional. For private chats, the date of birth of the user. */
     struct telebot_birthdate *birthdate;
@@ -298,7 +433,7 @@ typedef struct telebot_chat {
 
     /**
      * Optional. True, if privacy settings of the other party in the private
-     * chat allows to use tg://user?id=<user_id> links only in chats with the user.
+     * chat allows to use tg://user?id=&lt;user_id&gt; links only in chats with the user.
      * Returned only in getChat.
      */
     bool has_private_forwards;
@@ -431,7 +566,7 @@ typedef struct telebot_game {
      * bot commands, etc.
      */
     struct telebot_message_entity *text_entities;
-    int count_text_entities;
+    int count_text_entities; /**< Number of entries in text_entities */
 
     /**
      * Optional. Animation that will be displayed in the game message in chats.
@@ -580,7 +715,7 @@ typedef struct telebot_encrypted_passport_element {
 
     /** Optional. Array of encrypted files with documents provided by the user. */
     struct telebot_passport_file *files;
-    int count_files;
+    int count_files; /**< Number of entries in files */
 
     /** Optional. Encrypted file with the front side of the document. */
     struct telebot_passport_file *front_side;
@@ -593,7 +728,7 @@ typedef struct telebot_encrypted_passport_element {
 
     /** Optional. Array of encrypted files with translated versions of documents. */
     struct telebot_passport_file *translation;
-    int count_translation;
+    int count_translation; /**< Number of entries in translation */
 
     /** Base64-encoded element hash for using in PassportElementErrorUnspecified */
     char *hash;
@@ -623,7 +758,7 @@ typedef struct telebot_passport_data {
      * elements that were shared with the bot
      */
     struct telebot_encrypted_passport_element *data;
-    int count_data;
+    int count_data; /**< Number of entries in data */
 
     /** Encrypted credentials required to decrypt the data */
     struct telebot_encrypted_credentials *credentials;
@@ -711,7 +846,7 @@ typedef struct telebot_video_chat_ended {
 typedef struct telebot_video_chat_participants_invited {
     /** New members that were invited to the video chat */
     struct telebot_user *users;
-    int count_users;
+    int count_users; /**< Number of entries in users */
 } telebot_video_chat_participants_invited_t;
 
 /**
@@ -732,7 +867,7 @@ typedef struct telebot_web_app_data {
  * @brief A placeholder, currently holds no information. Use BotFather to set up your game.
  */
 typedef struct telebot_callback_game {
-    bool dummy;
+    bool dummy; /**< Unused; CallbackGame carries no data */
 } telebot_callback_game_t;
 
 /**
@@ -1035,11 +1170,11 @@ typedef struct telebot_message_reaction_updated {
 
     /** List of reaction types that were set by the user */
     struct telebot_reaction_type *old_reaction;
-    int count_old_reaction;
+    int count_old_reaction; /**< Number of entries in old_reaction */
 
     /** List of reaction types that are set by the user */
     struct telebot_reaction_type *new_reaction;
-    int count_new_reaction;
+    int count_new_reaction; /**< Number of entries in new_reaction */
 } telebot_message_reaction_updated_t;
 
 /**
@@ -1058,7 +1193,7 @@ typedef struct telebot_message_reaction_count_updated {
 
     /** List of reactions that are present on the message */
     struct telebot_reaction_count *reactions;
-    int count_reactions;
+    int count_reactions; /**< Number of entries in reactions */
 } telebot_message_reaction_count_updated_t;
 
 /**
@@ -1178,7 +1313,7 @@ typedef struct telebot_text_quote {
 
     /** Optional. Special entities that appear in the quote. */
     struct telebot_message_entity *entities;
-    int count_entities;
+    int count_entities; /**< Number of entries in entities */
 
     /** Approximate quote position in the original message */
     int position;
@@ -1229,7 +1364,7 @@ typedef struct telebot_external_reply_info {
 
     /** Optional. Message is a photo, available sizes of the photo */
     struct telebot_photo *photos;
-    int count_photos;
+    int count_photos; /**< Number of entries in photos */
 
     /** Optional. Message is a sticker, information about the sticker */
     struct telebot_sticker *sticker;
@@ -1315,7 +1450,7 @@ typedef struct telebot_paid_media {
 
     /** Optional. The photo */
     struct telebot_photo *photos;
-    int count_photos;
+    int count_photos; /**< Number of entries in photos */
 
     /** Optional. The video */
     struct telebot_video *video;
@@ -1330,7 +1465,7 @@ typedef struct telebot_paid_media_info {
 
     /** Information about the paid media */
     struct telebot_paid_media *paid_media;
-    int count_paid_media;
+    int count_paid_media; /**< Number of entries in paid_media */
 } telebot_paid_media_info_t;
 
 /**
@@ -1339,7 +1474,7 @@ typedef struct telebot_paid_media_info {
 typedef struct telebot_giveaway {
     /** The list of chats which the user must join to participate in the giveaway */
     struct telebot_chat *chats;
-    int count_chats;
+    int count_chats; /**< Number of entries in chats */
 
     /** Point in time (Unix timestamp) when winners of the giveaway will be selected */
     long winners_selection_date;
@@ -1358,7 +1493,7 @@ typedef struct telebot_giveaway {
 
     /** Optional. A list of two-letter ISO 3166-1 alpha-2 country codes */
     char **country_codes;
-    int count_country_codes;
+    int count_country_codes; /**< Number of entries in country_codes */
 
     /** Optional. The number of Telegram Stars to be split between giveaway winners */
     int prize_star_count;
@@ -1386,7 +1521,7 @@ typedef struct telebot_giveaway_winners {
 
     /** List of winners of the giveaway */
     struct telebot_user *winners;
-    int count_winners;
+    int count_winners; /**< Number of entries in winners */
 
     /** Optional. The number of other chats the user had to join in order to be eligible for the giveaway */
     int additional_chat_count;
@@ -1440,7 +1575,7 @@ typedef struct telebot_users_shared {
 
     /** Information about users shared with the bot. */
     struct telebot_shared_user *users;
-    int count_users;
+    int count_users; /**< Number of entries in users */
 } telebot_users_shared_t;
 
 /**
@@ -1462,7 +1597,7 @@ typedef struct telebot_shared_user {
 
     /** Optional. Available sizes of the chat photo */
     struct telebot_photo *photo;
-    int count_photo;
+    int count_photo; /**< Number of entries in photo */
 } telebot_shared_user_t;
 
 /**
@@ -1506,7 +1641,7 @@ typedef struct telebot_gift_info {
 
     /** Optional. Special entities that appear in the text */
     struct telebot_message_entity *entities;
-    int count_entities;
+    int count_entities; /**< Number of entries in entities */
 
     /** Optional. True, if the sender and gift text are shown only to the receiver */
     bool is_private;
@@ -1660,7 +1795,7 @@ typedef struct telebot_transaction_partner {
 
     /** Optional. Information about the paid media bought by the user */
     struct telebot_paid_media *paid_media;
-    int count_paid_media;
+    int count_paid_media; /**< Number of entries in paid_media */
 
     /** Optional. Bot-specified paid media payload */
     char *paid_media_payload;
@@ -1713,7 +1848,7 @@ typedef struct telebot_star_transaction {
 typedef struct telebot_star_transactions {
     /** The list of transactions */
     struct telebot_star_transaction *transactions;
-    int count_transactions;
+    int count_transactions; /**< Number of entries in transactions */
 } telebot_star_transactions_t;
 
 /**
@@ -1751,7 +1886,7 @@ typedef struct telebot_passport_element_error {
 
     /** List of base64-encoded file hashes */
     char **file_hashes;
-    int count_file_hashes;
+    int count_file_hashes; /**< Number of entries in file_hashes */
 
     /** Base64-encoded element hash */
     char *element_hash;
@@ -1802,6 +1937,9 @@ typedef struct telebot_message {
 
     /** Optional. The bot that actually sent the message on behalf of the business account. */
     struct telebot_user *sender_business_bot;
+
+    /** Optional. Tag of the sender in the chat (Bot API 9.5) */
+    char *sender_tag;
 
     /** Optional. Unique identifier of the business connection */
     char *business_connection_id;
@@ -1902,7 +2040,7 @@ typedef struct telebot_message {
      * commands, etc. that appear in the text.
      */
     struct telebot_message_entity *entities;
-    int count_entities;
+    int count_entities; /**< Number of entries in entities */
 
     /** Optional. Options used for link preview generation for the message */
     struct telebot_link_preview_options *link_preview_options;
@@ -1928,7 +2066,7 @@ typedef struct telebot_message {
 
     /** Optional. Message is a photo, available sizes of the photo */
     struct telebot_photo *photos;
-    int count_photos;
+    int count_photos; /**< Number of entries in photos */
 
     /** Optional. Message is a sticker, information about the sticker */
     struct telebot_sticker *sticker;
@@ -1950,7 +2088,7 @@ typedef struct telebot_message {
      * URLs, bot commands, etc. that appear in the caption.
      */
     struct telebot_message_entity *caption_entities;
-    int count_caption_entities;
+    int count_caption_entities; /**< Number of entries in caption_entities */
 
     /** Optional. True, if the caption must be shown above the message media */
     bool show_caption_above_media;
@@ -1978,21 +2116,21 @@ typedef struct telebot_message {
      * information about them (the bot itself may be one of these members)
      */
     struct telebot_user *new_chat_members;
-    int count_new_chat_members;
+    int count_new_chat_members; /**< Number of entries in new_chat_members */
 
     /**
      * Optional. A member was removed from the group, information about them
      * (this member may be the bot itself)
      */
     struct telebot_user *left_chat_members;
-    int count_left_chat_members;
+    int count_left_chat_members; /**< Number of entries in left_chat_members */
 
     /** Optional. A chat title was changed to this value */
     char *new_chat_title;
 
     /** Optional. A chat photo was change to this value */
     struct telebot_photo *new_chat_photos;
-    int count_new_chat_photos;
+    int count_new_chat_photos; /**< Number of entries in new_chat_photos */
 
     /** Optional. Informs that the chat photo was deleted */
     bool delete_chat_photo;
@@ -2131,7 +2269,7 @@ typedef struct telebot_message {
  */
 typedef struct telebot_message_entity {
     /**
-     * Type of the entity. Can be mention (@username), hashtag, bot_command,
+     * Type of the entity. Can be mention (\@username), hashtag, bot_command,
      * url, email, bold (bold text), italic (italic text), code (monowidth
      * string), pre (monowidth block), text_link (for clickable text URLs),
      * text_mention (for users without usernames)
@@ -2213,7 +2351,7 @@ typedef struct telebot_audio {
     int file_size;
 
     /** Optional. Thumbnail of the album cover to which the music file belongs */
-    struct telebot_photo *thumb;
+    struct telebot_photo *thumbnail;
 } telebot_audio_t;
 
 /**
@@ -2309,7 +2447,7 @@ typedef struct telebot_document {
     char *file_unique_id;
 
     /** Optional. Document thumbnail as defined by sender. */
-    struct telebot_photo *thumb;
+    struct telebot_photo *thumbnail;
 
     /** Optional. Original filename as defined by sender. */
     char *file_name;
@@ -2345,7 +2483,7 @@ typedef struct telebot_video {
     int duration;
 
     /** Optional. Video thumbnail */
-    struct telebot_photo *thumb;
+    struct telebot_photo *thumbnail;
 
     /** Optional. Mime type of a file as defined by sender */
     char *mime_type;
@@ -2377,7 +2515,7 @@ typedef struct telebot_animation {
     int duration;
 
     /** Optional. Video thumbnail */
-    struct telebot_photo *thumb;
+    struct telebot_photo *thumbnail;
 
     /** Optional. Original animation filename as defined by sender */
     char *file_name;
@@ -2434,7 +2572,7 @@ typedef struct telebot_video_note {
     int duration;
 
     /** Optional. Video thumbnail */
-    struct telebot_photo *thumb;
+    struct telebot_photo *thumbnail;
 
     /** Optional. File size */
     int file_size;
@@ -2526,7 +2664,7 @@ typedef struct telebot_poll_answer {
     int *option_ids;
 
     /* Number of option ids */
-    int count_option_ids;
+    int count_option_ids; /**< Number of entries in option_ids */
 } telebot_poll_answer_t;
 
 /**
@@ -2543,7 +2681,7 @@ typedef struct telebot_poll {
     telebot_poll_option_t *options;
 
     /* Number of options */
-    int count_options;
+    int count_options; /**< Number of entries in options */
 
     /** Total number of users that voted in the poll */
     int total_voter_count;
@@ -2765,10 +2903,10 @@ typedef struct telebot_reply_keyboard_markup {
     telebot_keyboard_button_t *keyboard;
 
     /* Number of keyboard rows */
-    int keyboard_rows;
+    int keyboard_rows; /**< Number of rows in keyboard */
 
     /* Number of keyboard columns */
-    int keyboard_cols;
+    int keyboard_cols; /**< Number of buttons in each row of keyboard */
 
     /**
      * Optional. Requests clients to always show the keyboard when the regular
@@ -2795,7 +2933,7 @@ typedef struct telebot_reply_keyboard_markup {
 
     /**
      * Optional. Use this parameter if you want to show the keyboard to specific
-     * users only. Targets: 1) users that are @mentioned in the text of
+     * users only. Targets: 1) users that are \@mentioned in the text of
      * the Message object; 2) if the bot's message is a reply
      * (has reply_to_message_id), sender of the original message.
      */
@@ -2819,7 +2957,7 @@ typedef struct telebot_reply_keyboard_remove
 
     /**
      * Optional. Use this parameter if you want to remove the keyboard for
-     * specific users only. Targets: 1) users that are @mentioned in the
+     * specific users only. Targets: 1) users that are \@mentioned in the
      * text of the Message object; 2) if the bot's message is a reply
      * (has reply_to_message_id), sender of the original message.
      */
@@ -2892,7 +3030,7 @@ typedef struct telebot_force_reply
     /**
      * Optional. Use this parameter if you want to force reply from specific
      * users only. Targets:
-     * 1) users that are @mentioned in the text of the Message object;
+     * 1) users that are \@mentioned in the text of the Message object;
      * 2) if the bot's message is a reply (has reply_to_message_id),
      * sender of the original message.
      */
@@ -2931,166 +3069,77 @@ typedef struct telebot_chat_photo {
 } telebot_chat_photo_t;
 
 /**
- * @brief This object contains information about one member of a chat.
- */
-typedef struct telebot_chat_member {
-    /** Information about the user. */
-    struct telebot_user *user;
-
-    /**
-     * The member's status in the chat. Can be "creator", "administrator"”,
-     * "member", "restricted", "left" or "kicked".
-     */
-    char *status;
-
-    /** Optional. Owner and administrators only. Custom title for this user. */
-    char *custom_title;
-
-    /**
-     * Optional. Restricted and kicked only. Date when restrictions will be
-     * lifted for this user; unix time.
-     */
-    long until_date;
-
-    /**
-     * Optional. Administrators only. True, if the bot is allowed to edit
-     * administrator privileges of that user.
-     */
-    bool can_be_edited;
-
-    /**
-     * Optional. Administrators only. True, if the administrator can post in
-     * the channel; channels only.
-     */
-    bool can_post_messages;
-
-    /**
-     * Optional. Administrators only. True, if the administrator can edit
-     * messages of other users and can pin messages; channels only.
-     */
-    bool can_edit_messages;
-
-    /**
-     * Optional. Administrators only. True, if the administrator can delete
-     * messages of other users.
-     */
-    bool can_delete_messages;
-
-    /**
-     * Optional. Administrators only. True, if the administrator can restrict,
-     * ban or unban chat members.
-     */
-    bool can_restrict_members;
-
-    /**
-     * Optional. Administrators only. True, if the administrator can add new
-     * administrators with a subset of his own privileges or demote
-     * administrators that he has promoted, directly or indirectly
-     * (promoted by administrators that were appointed by the user).
-     */
-    bool can_promote_members;
-
-    /**
-     * Optional. Administrators and restricted only. True, if the user is
-     * allowed to change the chat title, photo and other settings.
-     */
-    bool can_change_info;
-
-    /**
-     * Optional. Administrators and restricted only. True, if the user is
-     * allowed to invite new users to the chat.
-     */
-    bool can_invite_users;
-
-    /**
-     * Optional. Administrators and restricted only. True, if the user is
-     * allowed to pin messages; groups and supergroups only.
-     */
-    bool can_pin_messages;
-
-    /**
-     * Optional. Restricted only. True, if the user is a member of the chat at
-     * the moment of the request
-     */
-    bool is_member;
-
-    /**
-     * Optional. Restricted only. True, if the user is allowed to send text
-     * messages, contacts, locations and venues
-     */
-    bool can_send_messages;
-
-    /**
-     * Optional. Restricted only. True, if the user is allowed to send audios,
-     * documents, photos, videos, video notes and voice notes
-     */
-    bool can_send_media_messages;
-
-    /** Optional. Restricted only. True, if the user is allowed to send polls. */
-    bool can_send_polls;
-
-    /**
-     * Optional. Restricted only. True, if the user is allowed to send animations,
-     * games, stickers and use inline bots
-     */
-    bool can_send_other_messages;
-
-    /**
-     * Optional. Restricted only. True, if the user is allowed to add web page
-     * previews to their messages
-     */
-    bool can_add_web_page_previews;
-} telebot_chat_member_t;
-
-/**
- * @brief Describes actions that a non-administrator user is allowed to take in a chat.
+ * @brief Actions a non-administrator user is allowed to take in a chat (Bot API ChatPermissions).
+ *
+ * Used when reading a chat and when restricting members. A field left false
+ * denies the permission.
  */
 typedef struct telebot_chat_permissions {
-    /**
-     * Optional. True, if the user is allowed to send text messages, contacts,
-     * locations and venues.
-     */
-    bool can_send_messages;
-
-    /**
-     * Optional. True, if the user is allowed to send audios, documents,
-     * photos, videos, video notes and voice notes, implies can_send_messages.
-     */
-    bool can_send_media_messages;
-
-    /**
-     * Optional. True, if the user is allowed to send polls, implies
-     * can_send_messages.
-     */
-    bool can_send_polls;
-
-    /**
-     * Optional. True, if the user is allowed to send animations, games,
-     * stickers and use inline bots, implies can_send_media_messages.
-     */
-    bool can_send_other_messages;
-
-    /**
-     * Optional. True, if the user is allowed to add web page previews to their
-     * messages, implies can_send_media_messages.
-     */
-    bool can_add_web_page_previews;
-
-    /**
-     * Optional. True, if the user is allowed to change the chat title, photo
-     * and other settings. Ignored in public supergroups
-     */
-    bool can_change_info;
-
-    /** Optional. True, if the user is allowed to invite new users to the chat. */
-    bool can_invite_users;
-
-    /**
-     * Optional. True, if the user is allowed to pin messages. Ignored in
-     * public supergroups.
-     */
-    bool can_pin_messages;
+    bool can_send_messages;          /**< Send text messages, contacts, giveaways, invoices, locations and venues */
+    bool can_send_audios;            /**< Send audios */
+    bool can_send_documents;         /**< Send documents */
+    bool can_send_photos;            /**< Send photos */
+    bool can_send_videos;            /**< Send videos */
+    bool can_send_video_notes;       /**< Send video notes */
+    bool can_send_voice_notes;       /**< Send voice notes */
+    bool can_send_polls;             /**< Send polls and checklists */
+    bool can_send_other_messages;    /**< Send animations, games, stickers and use inline bots */
+    bool can_add_web_page_previews;  /**< Add web page previews to messages */
+    bool can_react_to_messages;      /**< React to messages (Bot API 10.0) */
+    bool can_edit_tag;               /**< Edit their own member tag (Bot API 9.5) */
+    bool can_change_info;            /**< Change the chat title, photo and other settings */
+    bool can_invite_users;           /**< Invite new users to the chat */
+    bool can_pin_messages;           /**< Pin messages */
+    bool can_manage_topics;          /**< Create forum topics */
 } telebot_chat_permissions_t;
+
+/**
+ * @brief Rights of an administrator in a chat (Bot API ChatAdministratorRights).
+ *
+ * Used to promote members. A field left false does not grant the right.
+ */
+typedef struct telebot_chat_administrator_rights {
+    bool is_anonymous;               /**< The administrator's presence in the chat is hidden */
+    bool can_manage_chat;            /**< Access the event log, boost list, member list and more */
+    bool can_delete_messages;        /**< Delete messages of other users */
+    bool can_manage_video_chats;     /**< Manage video chats */
+    bool can_restrict_members;       /**< Restrict, ban or unban members, or access statistics */
+    bool can_promote_members;        /**< Add new administrators with a subset of their own rights */
+    bool can_change_info;            /**< Change the chat title, photo and other settings */
+    bool can_invite_users;           /**< Invite new users to the chat */
+    bool can_post_stories;           /**< Post stories to the chat */
+    bool can_edit_stories;           /**< Edit stories posted by other users */
+    bool can_delete_stories;         /**< Delete stories posted by other users */
+    bool can_post_messages;          /**< Channels only: post messages */
+    bool can_edit_messages;          /**< Channels only: edit messages of other users and pin messages */
+    bool can_pin_messages;           /**< Groups and supergroups only: pin messages */
+    bool can_manage_topics;          /**< Supergroups only: manage forum topics */
+    bool can_manage_direct_messages; /**< Channels only: manage direct messages (Bot API 9.2) */
+    bool can_manage_tags;            /**< Edit member tags (Bot API 9.5) */
+    bool can_send_welcome_messages;  /**< Send welcome messages (Bot API 10.3) */
+} telebot_chat_administrator_rights_t;
+
+/**
+ * @brief Information about one member of a chat (Bot API ChatMember).
+ *
+ * Which fields are meaningful depends on @c status: @c rights for
+ * "administrator", @c permissions and @c until_date for "restricted",
+ * @c until_date for "kicked".
+ */
+typedef struct telebot_chat_member {
+    struct telebot_user *user; /**< Information about the user */
+    char *status; /**< "creator", "administrator", "member", "restricted", "left" or "kicked" */
+    char *custom_title; /**< Optional. Custom title of an owner or administrator */
+    char *tag; /**< Optional. Tag of a member or restricted user (Bot API 9.5) */
+    long until_date; /**< Unix time when restrictions or the ban end; 0 means forever */
+    bool is_anonymous; /**< Owner or administrator whose presence in the chat is hidden */
+    bool can_be_edited; /**< Administrator: the bot may edit this administrator's rights */
+    bool is_member; /**< Restricted: the user is a member of the chat at the moment */
+    telebot_chat_administrator_rights_t rights; /**< Administrator: granted rights */
+    telebot_chat_permissions_t permissions; /**< Restricted: what the user may still do */
+} telebot_chat_member_t;
+
+
 
 /** @brief This object represents a bot command. */
 typedef struct telebot_bot_command {
@@ -3261,29 +3310,41 @@ typedef struct telebot_sticker {
      */
     char *file_unique_id;
 
+    /** Type of the sticker: "regular", "mask" or "custom_emoji" */
+    char *type;
+
     /** Sticker width */
     int width;
 
     /** Sticker height */
     int height;
 
-    /** True, if the sticker is animated */
+    /** True, if the sticker is animated (.TGS) */
     bool is_animated;
 
-    /** Optional. Sticker thumbnail in .webp or .jpg format */
-    struct telebot_photo *thumb;
+    /** True, if the sticker is a video sticker (.WEBM) */
+    bool is_video;
 
-    /** Optional. Emoji associated with the sticker. */
+    /** Optional. Sticker thumbnail in .webp or .jpg format */
+    struct telebot_photo *thumbnail;
+
+    /** Optional. Emoji associated with the sticker */
     char *emoji;
 
     /** Optional. Name of the sticker set to which the sticker belongs */
     char *set_name;
 
-    /** Optional. For mask stickers, the position where the mask should be placed. */
+    /** Optional. For mask stickers, the position where the mask should be placed */
     struct telebot_mask_position *mask_position;
 
-    /** Optional. File size */
-    int file_size;
+    /** Optional. For custom emoji stickers, unique identifier of the custom emoji */
+    char *custom_emoji_id;
+
+    /** Optional. True, if the custom emoji changes colour to match the context */
+    bool needs_repainting;
+
+    /** Optional. File size in bytes */
+    long long int file_size;
 } telebot_sticker_t;
 
 /**
@@ -3321,6 +3382,15 @@ typedef struct telebot_sent_web_app_message {
     /** Optional. Identifier of the sent inline message. */
     char *inline_message_id;
 } telebot_sent_web_app_message_t;
+
+/**
+ * @brief The user stopped a message draft sent with #telebot_send_message_draft() (Bot API MessageGenerationStopped).
+ */
+typedef struct telebot_message_generation_stopped {
+    struct telebot_chat *chat; /**< Chat where the draft was shown */
+    int message_thread_id;     /**< Topic of the draft, or 0 */
+    int draft_id;              /**< Identifier of the stopped draft */
+} telebot_message_generation_stopped_t;
 
 /**
  * @brief This object represents an incoming update.
@@ -3416,6 +3486,12 @@ typedef struct telebot_update {
 
         /** A boost was removed from a chat. The bot must be an administrator in the chat to receive these updates. */
         telebot_chat_boost_removed_t chat_boost_removed;
+
+        /** Message sent to the bot in guest mode */
+        telebot_message_t guest_message;
+
+        /** The user stopped a message draft */
+        telebot_message_generation_stopped_t stopped_message_generation;
     };
 } telebot_update_t;
 

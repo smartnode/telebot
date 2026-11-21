@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <json.h>
+#include "telebot-json.h"
 #include <telebot-core.h>
 #include <telebot-methods.h>
 #include <telebot-parser.h>
@@ -34,7 +34,7 @@ telebot_error_e telebot_create_forum_topic(telebot_handler_t handle, long long i
     if (topic == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_create_forum_topic(handle->core_h, chat_id, name, icon_color, icon_custom_emoji_id);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -48,15 +48,15 @@ telebot_error_e telebot_create_forum_topic(telebot_handler_t handle, long long i
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -66,7 +66,7 @@ telebot_error_e telebot_create_forum_topic(telebot_handler_t handle, long long i
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -145,7 +145,7 @@ telebot_error_e telebot_get_forum_topic_icon_stickers(telebot_handler_t handle, 
     if ((stickers == NULL) || (count == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_forum_topic_icon_stickers(handle->core_h);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -159,15 +159,15 @@ telebot_error_e telebot_get_forum_topic_icon_stickers(telebot_handler_t handle, 
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -177,7 +177,7 @@ telebot_error_e telebot_get_forum_topic_icon_stickers(telebot_handler_t handle, 
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }

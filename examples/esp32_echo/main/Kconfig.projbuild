@@ -1,0 +1,22 @@
+menu "Telebot echo example"
+
+    config ECHO_BOT_TOKEN
+        string "Telegram bot token"
+        default ""
+        help
+            Token from @BotFather, e.g. 123456:ABC-DEF...
+
+    config ECHO_POLL_TIMEOUT_S
+        int "Long-polling timeout (seconds)"
+        default 30
+        range 0 60
+        help
+            Must stay below CONFIG_TELEBOT_HTTP_TIMEOUT_MS.
+
+    config ECHO_TASK_STACK_SIZE
+        int "Bot task stack size (bytes)"
+        default 8192
+        help
+            The TLS handshake runs on this task, so it needs more than the default.
+
+endmenu

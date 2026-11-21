@@ -4,14 +4,38 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: all features
+            flags: ""
+          - name: minimal parser
+            flags: >-
+              -DTELEBOT_FEATURE_PAYMENTS=0 -DTELEBOT_FEATURE_PASSPORT=0 -DTELEBOT_FEATURE_BUSINESS=0
+              -DTELEBOT_FEATURE_GIFTS=0 -DTELEBOT_FEATURE_CHAT_EXTRAS=0
+    name: ${{ matrix.name }}
 
     steps:
     - uses: actions/checkout@v3
     - name: prepare
-      run: sudo apt update && sudo apt install -y pkg-config libcurl4-openssl-dev libjson-c-dev cmake binutils make
+      run: sudo apt update && sudo apt install -y pkg-config libcurl4-openssl-dev cmake binutils make g++
     - name: cmake
-      run: mkdir -p build && cd build && cmake ..
+      run: >-
+        cmake -S . -B build
+        -DCMAKE_C_FLAGS="${{ matrix.flags }}"
+        -DCMAKE_CXX_FLAGS="${{ matrix.flags }}"
     - name: make
-      run: cd build && make
+      run: cmake --build build -j
+    - name: unit tests
+      run: cd build && ctest --output-on-failure
+
+  docs:
+    runs-on: ubuntu-latest
+    name: API docs
+    steps:
+    - uses: actions/checkout@v3
+    - name: prepare
+      run: sudo apt update && sudo apt install -y doxygen
+    - name: doxygen (any warning fails the build)
+      run: ( cat Doxyconf; echo "OUTPUT_DIRECTORY=/tmp/telebot-docs"; echo "WARN_AS_ERROR=FAIL_ON_WARNINGS" ) | doxygen -

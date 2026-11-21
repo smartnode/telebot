@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['value_0',['value',['../structtelebot__dice.html#a18efa7b3bb5344f972993dfec5cc1ad1',1,'telebot_dice']]],
+  ['value_0',['value',['../structtelebot__param.html#a0d7f7d292dd4888dae53e83c5a7e5cd1',1,'telebot_param::value'],['../structtelebot__dice.html#a18efa7b3bb5344f972993dfec5cc1ad1',1,'telebot_dice::value']]],
   ['vcard_1',['vcard',['../structtelebot__contact.html#a0b4f94405ccf4f85cef13e07257c9430',1,'telebot_contact']]],
   ['venue_2',['venue',['../structtelebot__external__reply__info.html#ad8d596f440d0acaac9d6065930765152',1,'telebot_external_reply_info::venue'],['../structtelebot__message.html#abf7a1cf2d1eaeb7b65d775aa6565d732',1,'telebot_message::venue']]],
   ['via_5fbot_3',['via_bot',['../structtelebot__message.html#aca1855ddd0f5bceb643307eef60b69ff',1,'telebot_message']]],

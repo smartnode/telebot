@@ -16,26 +16,22 @@
  * limitations under the License.
  */
 
-#include <json.h>
+#include "telebot-json.h"
 #include <telebot-core.h>
 #include <telebot-methods.h>
 #include <telebot-parser.h>
 #include <telebot-private.h>
 
-telebot_error_e telebot_send_game(telebot_handler_t handle,
-                                  long long int chat_id, int message_thread_id, const char *game_short_name,
-                                  bool disable_notification, bool protect_content, const char *reply_parameters,
-                                  const char *reply_markup, telebot_message_t *message)
+telebot_error_e telebot_send_game(telebot_handler_t handle, long long int chat_id,
+        const char *game_short_name, const telebot_send_options_t *options, telebot_message_t *message)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
     if (message == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
-    telebot_core_response_t response = telebot_core_send_game(handle->core_h, chat_id, message_thread_id,
-                                                               game_short_name, disable_notification, protect_content,
-                                                               reply_parameters, reply_markup);
+    struct cJSON *obj = NULL;
+    telebot_core_response_t response = telebot_core_send_game(handle->core_h, chat_id, game_short_name, options);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
         goto finish;
@@ -48,15 +44,15 @@ telebot_error_e telebot_send_game(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -66,7 +62,7 @@ telebot_error_e telebot_send_game(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -79,7 +75,7 @@ telebot_error_e telebot_set_game_score(telebot_handler_t handle,
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_set_game_score(handle->core_h, user_id, score, force,
                                                                     disable_edit_message, chat_id, message_id, inline_message_id);
     int ret = telebot_core_get_response_code(response);
@@ -96,24 +92,24 @@ telebot_error_e telebot_set_game_score(telebot_handler_t handle,
             goto finish;
         }
 
-        struct json_object *ok = NULL;
-        if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+        struct cJSON *ok = NULL;
+        if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
             goto finish;
         }
 
-        struct json_object *result = NULL;
-        if (json_object_object_get_ex(obj, "result", &result))
+        struct cJSON *result = NULL;
+        if (tb_json_get_ex(obj, "result", &result))
         {
-            if (json_object_get_type(result) == json_type_object)
+            if (cJSON_IsObject(result))
                 ret = telebot_parser_get_message(result, message);
         }
     }
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -127,7 +123,7 @@ telebot_error_e telebot_get_game_high_scores(telebot_handler_t handle,
     if ((high_scores == NULL) || (count == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_game_high_scores(handle->core_h, user_id, chat_id, message_id, inline_message_id);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -141,21 +137,21 @@ telebot_error_e telebot_get_game_high_scores(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    int array_len = json_object_array_length(result);
+    int array_len = tb_json_array_length(result);
     if (array_len <= 0)
     {
         *count = 0;
@@ -173,12 +169,12 @@ telebot_error_e telebot_get_game_high_scores(telebot_handler_t handle,
 
     for (int i = 0; i < array_len; i++)
     {
-        telebot_parser_get_game_high_score(json_object_array_get_idx(result, i), &((*high_scores)[i]));
+        telebot_parser_get_game_high_score(tb_json_array_get_idx(result, i), &((*high_scores)[i]));
     }
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
