@@ -165,9 +165,9 @@ Flash used by telebot in the ESP32 echo example (ESP-IDF v6.1.1, cJSON included,
 
 | Parsed features | Flash |
 |---|---|
-| everything | 35.5 KB |
-| ESP default (chat events only) | 30.8 KB |
-| minimal (all groups off) | 27.2 KB |
+| everything | 33.2 KB |
+| ESP default (chat events only) | 29.2 KB |
+| minimal (all groups off) | 26.0 KB |
 
 ## Testing
 

@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "telebot-config.h"
+#include "telebot-common.h"
 #include "telebot-types.h"
 
 #define TELEBOT_CHAT_PERMISSIONS_FIELDS(X) \
@@ -113,6 +114,7 @@ typedef enum telebot_field_kind
     TELEBOT_FIELD_INT,       /* int */
     TELEBOT_FIELD_LONG,      /* long */
     TELEBOT_FIELD_LONG_LONG, /* long long */
+    TELEBOT_FIELD_OBJECT,    /* pointer to a nested struct, parsed by telebot_object_types[aux] */
 } telebot_field_kind_e;
 
 typedef struct telebot_json_field
@@ -120,13 +122,26 @@ typedef struct telebot_json_field
     const char *key;
     unsigned short offset;
     unsigned char kind;
+    unsigned char aux; /* TELEBOT_FIELD_OBJECT: index into telebot_object_types */
 } telebot_json_field_t;
 
-#define TELEBOT_JSON_FIELD(key, type, field, kind) {key, (unsigned short)offsetof(type, field), kind}
-
-TELEBOT_STATIC_ASSERT(sizeof(telebot_message_t) < 65536, "field offsets must fit in 16 bits");
+#define TELEBOT_JSON_FIELD(key, type, field, kind) {key, (unsigned short)offsetof(type, field), kind, 0}
+#define TELEBOT_JSON_OBJECT(key, type, field, object_type) \
+    {key, (unsigned short)offsetof(type, field), TELEBOT_FIELD_OBJECT, object_type}
 
 struct cJSON;
+
+/* How to allocate and parse one kind of nested object */
+typedef struct telebot_object_type
+{
+    unsigned short size;
+    telebot_error_e (*parse)(struct cJSON *obj, void *target);
+} telebot_object_type_t;
+
+/* Defined by the parser, indexed by telebot_json_field_t.aux */
+extern const telebot_object_type_t telebot_object_types[];
+
+TELEBOT_STATIC_ASSERT(sizeof(telebot_message_t) < 65536, "field offsets must fit in 16 bits");
 
 /* Copies every listed field present in `obj` into the struct at `target` */
 void telebot_parse_fields(const struct cJSON *obj, void *target, const telebot_json_field_t *fields, size_t count);
