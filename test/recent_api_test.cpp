@@ -120,8 +120,7 @@ class RecentApiHighLevel : public ::testing::Test
 protected:
     void SetUp() override
     {
-        char token[] = "123456:TEST-TOKEN";
-        ASSERT_EQ(telebot_create(&handle_, token), TELEBOT_ERROR_NONE);
+        ASSERT_EQ(telebot_create(&handle_, "123456:TEST-TOKEN"), TELEBOT_ERROR_NONE);
         fake_ = FakeTransport::install(handle_->core_h);
     }
     void TearDown() override { telebot_destroy(handle_); }
@@ -202,7 +201,99 @@ TEST(RecentApiParser, GuestMessageAndStoppedDraft)
     ASSERT_NE(updates[1].stopped_message_generation.chat, nullptr);
     EXPECT_EQ(updates[1].stopped_message_generation.chat->id, 5);
     telebot_put_updates(updates, count);
-    tb_json_put(root);
+    telebot_json_put(root);
+}
+
+} // namespace
+
+namespace
+{
+
+TEST_F(RecentApi, AnswerWidgetQuery)
+{
+    CoreResponse r(telebot_core_answer_widget_query(core_, "wq-1", "{\"ok\":1}"));
+    EXPECT_EQ(last().method(), "answerWidgetQuery");
+    EXPECT_EQ(last().at("widget_query_id"), "wq-1");
+
+    CoreResponse missing(telebot_core_answer_widget_query(core_, nullptr, nullptr));
+    EXPECT_EQ(missing.code(), TELEBOT_ERROR_INVALID_PARAMETER);
+}
+
+TEST(RecentApiParser, ManagedBotSubscriptionAndWidgets)
+{
+    cJSON *root = telebot_parser_str_to_obj(R"([
+        {"update_id":1,"managed_bot":{"user":{"id":1,"is_bot":false,"first_name":"Owner"},
+                                      "bot":{"id":2,"is_bot":true,"first_name":"Child","username":"child_bot"}}},
+        {"update_id":2,"subscription":{"user":{"id":3,"is_bot":false,"first_name":"S"},
+                                       "invoice_payload":"plan-pro","state":"canceled"}},
+        {"update_id":3,"widget_query":{"id":"wq","from":{"id":4,"is_bot":false,"first_name":"W"},
+            "chat":{"id":-100,"type":"supergroup","title":"G"},"message_id":12,"chat_instance":"ci",
+            "type":{"type":"sign_data","sign_data":"{\"x\":1}",
+                    "wallet":{"address":"EQabc","amount":"1000","public_key":"ab12"}},"data":"payload"}},
+        {"update_id":4,"shared_widget_query":{"id":"sq","from":{"id":5,"is_bot":false,"first_name":"X"},
+            "type":{"type":"data"},"data":"d","widget_id":"wid"}}])");
+    telebot_update_t *updates = nullptr;
+    int count = 0;
+    ASSERT_EQ(telebot_parser_get_updates(root, &updates, &count), TELEBOT_ERROR_NONE);
+    ASSERT_EQ(count, 4);
+
+    EXPECT_EQ(updates[0].update_type, TELEBOT_UPDATE_TYPE_MANAGED_BOT);
+    ASSERT_NE(updates[0].managed_bot.bot, nullptr);
+    EXPECT_STREQ(updates[0].managed_bot.bot->username, "child_bot");
+
+    if (TELEBOT_FEATURE_PAYMENTS)
+    {
+        EXPECT_EQ(updates[1].update_type, TELEBOT_UPDATE_TYPE_SUBSCRIPTION);
+        EXPECT_STREQ(updates[1].subscription.state, "canceled");
+        EXPECT_STREQ(updates[1].subscription.invoice_payload, "plan-pro");
+    }
+    else
+    {
+        EXPECT_EQ(updates[1].update_type, TELEBOT_UPDATE_TYPE_UNKNOWN);
+    }
+
+    if (TELEBOT_FEATURE_WIDGETS)
+    {
+        const telebot_widget_query_t &q = updates[2].widget_query;
+        EXPECT_EQ(updates[2].update_type, TELEBOT_UPDATE_TYPE_WIDGET_QUERY);
+        EXPECT_STREQ(q.query_type, "sign_data");
+        EXPECT_STREQ(q.sign_data, "{\"x\":1}");
+        ASSERT_NE(q.wallet, nullptr);
+        EXPECT_STREQ(q.wallet->address, "EQabc");
+        EXPECT_EQ(q.wallet->state_init, nullptr);
+        EXPECT_EQ(q.message_id, 12);
+
+        EXPECT_EQ(updates[3].update_type, TELEBOT_UPDATE_TYPE_SHARED_WIDGET_QUERY);
+        EXPECT_STREQ(updates[3].shared_widget_query.widget_id, "wid");
+        EXPECT_EQ(updates[3].shared_widget_query.wallet, nullptr);
+    }
+    else
+    {
+        EXPECT_EQ(updates[2].update_type, TELEBOT_UPDATE_TYPE_UNKNOWN);
+    }
+
+    telebot_put_updates(updates, count);
+    telebot_json_put(root);
+}
+
+} // namespace
+
+namespace
+{
+
+TEST_F(RecentApi, ProfilePhotoIsSentAsInputProfilePhoto)
+{
+    const char jpeg[] = "\xFF\xD8\xFF\xD9";
+    const telebot_input_file_t photo = telebot_input_file_memory(jpeg, 4, "me.jpg");
+    CoreResponse r(telebot_core_set_my_profile_photo(core_, &photo));
+    ASSERT_EQ(r.code(), TELEBOT_ERROR_NONE);
+    EXPECT_EQ(last().method(), "setMyProfilePhoto");
+    EXPECT_EQ(last().at("photo"), R"({"type":"static","photo":"attach://file0"})");
+    EXPECT_EQ(last().fields.at("file0").type, TELEBOT_MIME_TYPE_BUFFER);
+
+    const telebot_input_file_t remote = telebot_input_file_remote("AgAC");
+    CoreResponse bad(telebot_core_set_my_profile_photo(core_, &remote));
+    EXPECT_EQ(bad.code(), TELEBOT_ERROR_INVALID_PARAMETER);
 }
 
 } // namespace

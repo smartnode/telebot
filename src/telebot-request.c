@@ -18,6 +18,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "telebot-fields.h"
 #include "telebot-request.h"
 
@@ -26,6 +27,7 @@ void telebot_request_init(telebot_request_t *req)
     req->count = 0;
     req->error = TELEBOT_ERROR_NONE;
     req->scratch_used = 0;
+    req->owned_count = 0;
 }
 
 static void fail(telebot_request_t *req, telebot_error_e error, const char *name, const char *why)
@@ -51,35 +53,35 @@ static telebot_core_mime_t *slot(telebot_request_t *req, const char *name, teleb
     return part;
 }
 
-void tb_req_int(telebot_request_t *req, const char *name, int value)
+void telebot_request_int(telebot_request_t *req, const char *name, int value)
 {
     telebot_core_mime_t *p = slot(req, name, TELEBOT_MIME_TYPE_INT);
     if (p)
         p->data.d = value;
 }
 
-void tb_req_ll(telebot_request_t *req, const char *name, long long value)
+void telebot_request_ll(telebot_request_t *req, const char *name, long long value)
 {
     telebot_core_mime_t *p = slot(req, name, TELEBOT_MIME_TYPE_LONG_LONG_INT);
     if (p)
         p->data.lld = value;
 }
 
-void tb_req_double(telebot_request_t *req, const char *name, double value)
+void telebot_request_double(telebot_request_t *req, const char *name, double value)
 {
     telebot_core_mime_t *p = slot(req, name, TELEBOT_MIME_TYPE_DOUBLE);
     if (p)
         p->data.lf = value;
 }
 
-void tb_req_bool(telebot_request_t *req, const char *name, bool value)
+void telebot_request_bool(telebot_request_t *req, const char *name, bool value)
 {
     telebot_core_mime_t *p = slot(req, name, TELEBOT_MIME_TYPE_BOOL);
     if (p)
         p->data.b = value;
 }
 
-void tb_req_str(telebot_request_t *req, const char *name, const char *value)
+void telebot_request_str(telebot_request_t *req, const char *name, const char *value)
 {
     if (value == NULL)
         return;
@@ -88,27 +90,27 @@ void tb_req_str(telebot_request_t *req, const char *name, const char *value)
         p->data.s = value;
 }
 
-void tb_req_id(telebot_request_t *req, const char *name, long long value)
+void telebot_request_id(telebot_request_t *req, const char *name, long long value)
 {
     if (value > 0)
-        tb_req_ll(req, name, value);
+        telebot_request_ll(req, name, value);
 }
 
-void tb_req_flag(telebot_request_t *req, const char *name, bool value)
+void telebot_request_flag(telebot_request_t *req, const char *name, bool value)
 {
     if (value)
-        tb_req_bool(req, name, true);
+        telebot_request_bool(req, name, true);
 }
 
-void tb_req_str_required(telebot_request_t *req, const char *name, const char *value)
+void telebot_request_str_required(telebot_request_t *req, const char *name, const char *value)
 {
     if (value == NULL)
         fail(req, TELEBOT_ERROR_INVALID_PARAMETER, name, "is required");
     else
-        tb_req_str(req, name, value);
+        telebot_request_str(req, name, value);
 }
 
-void tb_req_file(telebot_request_t *req, const char *name, const telebot_input_file_t *file)
+void telebot_request_file(telebot_request_t *req, const char *name, const telebot_input_file_t *file)
 {
     if (file == NULL)
         return;
@@ -149,22 +151,22 @@ void tb_req_file(telebot_request_t *req, const char *name, const telebot_input_f
     }
 }
 
-void tb_req_file_required(telebot_request_t *req, const char *name, const telebot_input_file_t *file)
+void telebot_request_file_required(telebot_request_t *req, const char *name, const telebot_input_file_t *file)
 {
     if (file == NULL)
         fail(req, TELEBOT_ERROR_INVALID_PARAMETER, name, "is required");
     else
-        tb_req_file(req, name, file);
+        telebot_request_file(req, name, file);
 }
 
-void tb_req_upload(telebot_request_t *req, const char *name, const telebot_input_file_t *file)
+void telebot_request_upload(telebot_request_t *req, const char *name, const telebot_input_file_t *file)
 {
     if ((file != NULL) && (file->kind == TELEBOT_INPUT_FILE_REMOTE))
     {
         fail(req, TELEBOT_ERROR_INVALID_PARAMETER, name, "must be uploaded (path or memory), not a file_id/URL");
         return;
     }
-    tb_req_file(req, name, file);
+    telebot_request_file(req, name, file);
 }
 
 /* Appends formatted text to the scratch arena; returns its start or NULL when full. */
@@ -191,35 +193,35 @@ static char *scratch_printf(telebot_request_t *req, const char *name, const char
     return out;
 }
 
-void tb_req_printf(telebot_request_t *req, const char *name, const char *fmt, ...)
+void telebot_request_printf(telebot_request_t *req, const char *name, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
     char *value = scratch_vprintf(req, name, fmt, ap);
     va_end(ap);
     if (value)
-        tb_req_str(req, name, value);
+        telebot_request_str(req, name, value);
 }
 
-void tb_req_send_options(telebot_request_t *req, const telebot_send_options_t *options)
+void telebot_request_send_options(telebot_request_t *req, const telebot_send_options_t *options)
 {
     if (options == NULL)
         return;
 
-    tb_req_str(req, "business_connection_id", options->business_connection_id);
-    tb_req_id(req, "message_thread_id", options->message_thread_id);
-    tb_req_flag(req, "disable_notification", options->disable_notification);
-    tb_req_flag(req, "protect_content", options->protect_content);
-    tb_req_str(req, "message_effect_id", options->message_effect_id);
+    telebot_request_str(req, "business_connection_id", options->business_connection_id);
+    telebot_request_id(req, "message_thread_id", options->message_thread_id);
+    telebot_request_flag(req, "disable_notification", options->disable_notification);
+    telebot_request_flag(req, "protect_content", options->protect_content);
+    telebot_request_str(req, "message_effect_id", options->message_effect_id);
     if (options->reply_to_message_id > 0)
     {
-        tb_req_printf(req, "reply_parameters", "{\"message_id\":%d%s}", options->reply_to_message_id,
+        telebot_request_printf(req, "reply_parameters", "{\"message_id\":%d%s}", options->reply_to_message_id,
                       options->allow_sending_without_reply ? ",\"allow_sending_without_reply\":true" : "");
     }
-    tb_req_str(req, "reply_markup", options->reply_markup);
+    telebot_request_str(req, "reply_markup", options->reply_markup);
 }
 
-void tb_req_permissions(telebot_request_t *req, const char *name, const telebot_chat_permissions_t *permissions)
+void telebot_request_permissions(telebot_request_t *req, const char *name, const telebot_chat_permissions_t *permissions)
 {
     if (permissions == NULL)
         return;
@@ -243,16 +245,60 @@ void tb_req_permissions(telebot_request_t *req, const char *name, const telebot_
     req->scratch_used--;
     if (scratch_printf(req, name, "}") == NULL)
         return;
-    tb_req_str(req, name, json);
+    telebot_request_str(req, name, json);
 }
 
-void tb_req_rights_fields(telebot_request_t *req, const telebot_chat_administrator_rights_t *rights)
+void telebot_request_rights_fields(telebot_request_t *req, const telebot_chat_administrator_rights_t *rights)
 {
     if (rights == NULL)
         return;
     for (size_t i = 0; i < TELEBOT_FIELD_COUNT(telebot_chat_administrator_rights_fields); i++)
     {
         const telebot_bool_field_t *field = &telebot_chat_administrator_rights_fields[i];
-        tb_req_flag(req, field->key, *telebot_bool_field_ptr((void *)rights, field));
+        telebot_request_flag(req, field->key, *telebot_bool_field_ptr((void *)rights, field));
     }
+}
+
+void telebot_request_json(telebot_request_t *req, const char *name, telebot_json_compose_fn compose, const void *ctx)
+{
+    if (req->error != TELEBOT_ERROR_NONE)
+        return;
+
+    telebot_json_writer_t measure = {.buf = NULL};
+    compose(&measure, ctx);
+    size_t need = measure.len + 1;
+
+    char *out;
+    if (need <= sizeof(req->scratch) - req->scratch_used)
+    {
+        out = req->scratch + req->scratch_used;
+        req->scratch_used += need;
+    }
+    else
+    {
+        if (req->owned_count >= sizeof(req->owned) / sizeof(req->owned[0]))
+        {
+            fail(req, TELEBOT_ERROR_INVALID_PARAMETER, name, "too many large JSON values");
+            return;
+        }
+        out = malloc(need);
+        if (out == NULL)
+        {
+            fail(req, TELEBOT_ERROR_OUT_OF_MEMORY, name, "out of memory");
+            return;
+        }
+        req->owned[req->owned_count++] = out;
+    }
+
+    telebot_json_writer_t writer = {.buf = out, .cap = need};
+    compose(&writer, ctx);
+    out[writer.len] = '\0';
+    telebot_request_str(req, name, out);
+}
+
+void telebot_request_release(telebot_request_t *req)
+{
+    for (size_t i = 0; i < req->owned_count; i++)
+        free(req->owned[i]);
+    req->owned_count = 0;
 }

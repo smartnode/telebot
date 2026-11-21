@@ -49,14 +49,14 @@ telebot_error_e telebot_create_forum_topic(telebot_handler_t handle, long long i
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *result = NULL;
-    if (!tb_json_get_ex(obj, "result", &result))
+    if (!telebot_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -66,7 +66,7 @@ telebot_error_e telebot_create_forum_topic(telebot_handler_t handle, long long i
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -160,14 +160,14 @@ telebot_error_e telebot_get_forum_topic_icon_stickers(telebot_handler_t handle, 
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *result = NULL;
-    if (!tb_json_get_ex(obj, "result", &result))
+    if (!telebot_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -177,7 +177,7 @@ telebot_error_e telebot_get_forum_topic_icon_stickers(telebot_handler_t handle, 
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }

@@ -200,6 +200,10 @@ typedef enum telebot_update_type {
     TELEBOT_UPDATE_TYPE_REMOVED_CHAT_BOOST,   /**< Chat boost removed */
     TELEBOT_UPDATE_TYPE_GUEST_MESSAGE,        /**< Message sent to the bot in guest mode (Bot API 10.0) */
     TELEBOT_UPDATE_TYPE_STOPPED_MESSAGE_GENERATION, /**< User pressed stop on a message draft (Bot API 10.3) */
+    TELEBOT_UPDATE_TYPE_MANAGED_BOT,          /**< A bot managed by this bot was created or changed (Bot API 9.6) */
+    TELEBOT_UPDATE_TYPE_SUBSCRIPTION,         /**< A user's payment subscription to the bot changed (Bot API 10.2) */
+    TELEBOT_UPDATE_TYPE_WIDGET_QUERY,         /**< Query from a widget in a message (Bot API 10.4) */
+    TELEBOT_UPDATE_TYPE_SHARED_WIDGET_QUERY,  /**< Query from a forwarded shared widget (Bot API 10.4) */
     TELEBOT_UPDATE_TYPE_MAX                   /**< Number of update types */
 } telebot_update_type_e;
 
@@ -3154,26 +3158,6 @@ typedef struct telebot_bot_command {
 } telebot_bot_command_t;
 
 /**
- * @brief Contains information about why a request was unsuccessful.
- */
-typedef struct telebot_response_paramters {
-    /**
-     * Optional. The group has been migrated to a supergroup with the specified
-     * identifier. This number may be greater than 32 bits and some programming
-     * languages may have difficulty/silent defects in interpreting it.
-     * But it is smaller than 52 bits, so a signed 64 bit integer or
-     * double-precision float type are safe for storing this identifier.
-     */
-    int migrate_to_chat_id;
-
-    /**
-     * Optional. In case of exceeding flood control, the number of seconds
-     * left to wait before the request can be repeated.
-     */
-    int retry_after;
-} telebot_response_paramters_t;
-
-/**
  * @brief This object represents an incoming inline query. When the user sends
  * an empty query, your bot could return some default or trending results.
  */
@@ -3384,6 +3368,56 @@ typedef struct telebot_sent_web_app_message {
 } telebot_sent_web_app_message_t;
 
 /**
+ * @brief A bot managed by the current bot was created, or its token or owner changed (Bot API ManagedBotUpdated).
+ */
+typedef struct telebot_managed_bot_updated {
+    struct telebot_user *user; /**< User who created the bot */
+    struct telebot_user *bot;  /**< The managed bot */
+} telebot_managed_bot_updated_t;
+
+/**
+ * @brief A user's payment subscription to the bot changed (Bot API BotSubscriptionUpdated).
+ */
+typedef struct telebot_bot_subscription_updated {
+    struct telebot_user *user; /**< User who subscribed */
+    char *invoice_payload;     /**< Bot-defined invoice payload */
+    char *state;               /**< New state: "active", "canceled" or "failed" */
+} telebot_bot_subscription_updated_t;
+
+/**
+ * @brief TON wallet that signed data or sent a transaction from a widget (Bot API WidgetQueryWallet).
+ */
+typedef struct telebot_widget_query_wallet {
+    char *address;    /**< Wallet address */
+    char *amount;     /**< Balance in the smallest units, as a decimal number */
+    char *public_key; /**< Optional. Hex-encoded public key */
+    char *state_init; /**< Optional. Base64-encoded StateInit */
+} telebot_widget_query_wallet_t;
+
+/**
+ * @brief Query from a widget (Bot API WidgetQuery and SharedWidgetQuery).
+ *
+ * Answer it within 15 seconds with #telebot_answer_widget_query(). For a
+ * shared widget only @c id, @c from, @c query_type, @c data and @c widget_id
+ * are set.
+ */
+typedef struct telebot_widget_query {
+    char *id;                  /**< Unique identifier of the query */
+    struct telebot_user *from; /**< Sender */
+    struct telebot_chat *chat; /**< Optional. Chat of the message with the widget */
+    int message_id;            /**< Optional. Message with the widget, or 0 */
+    char *inline_message_id;   /**< Optional. Inline message with the widget */
+    char *chat_instance;       /**< Global identifier of the chat with the widget */
+    char *chat_type;           /**< Optional. For inline messages: "sender", "private", "group", "supergroup" or "channel" */
+    char *query_type;          /**< "data", "sign_data" or "sent_transaction" */
+    char *data;                /**< Query data, 1-64 bytes */
+    char *widget_id;           /**< Optional. Identifier of the shared widget */
+    char *sign_data;           /**< "sign_data" only: JSON of the signed data */
+    char *msg_hash;            /**< "sent_transaction" only: msg_hash of the transaction */
+    struct telebot_widget_query_wallet *wallet; /**< "sign_data" and "sent_transaction": the wallet */
+} telebot_widget_query_t;
+
+/**
  * @brief The user stopped a message draft sent with #telebot_send_message_draft() (Bot API MessageGenerationStopped).
  */
 typedef struct telebot_message_generation_stopped {
@@ -3492,7 +3526,25 @@ typedef struct telebot_update {
 
         /** The user stopped a message draft */
         telebot_message_generation_stopped_t stopped_message_generation;
+
+        /** A bot managed by this bot was created or changed */
+        telebot_managed_bot_updated_t managed_bot;
+
+        /** A user's payment subscription to the bot changed */
+        telebot_bot_subscription_updated_t subscription;
+
+        /** Query from a widget in a message */
+        telebot_widget_query_t widget_query;
+
+        /** Query from a forwarded shared widget */
+        telebot_widget_query_t shared_widget_query;
     };
+
+    /**
+     * Internal: memory that owns this batch of updates. Set only on the first
+     * update returned by #telebot_get_updates(); released by #telebot_put_updates().
+     */
+    void *arena;
 } telebot_update_t;
 
 /**

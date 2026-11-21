@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.18.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Telebot: telebot_response_paramters Struct Reference</title>
+<title>Telebot: telebot_bot_subscription_updated Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="codefolding.js"></script>
 <script type="text/javascript" src="clipboard.js"></script>
@@ -95,51 +95,67 @@ document.addEventListener('DOMContentLoaded', codefold.init);
 <div class="header">
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
-<a href="structtelebot__response__paramters-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">telebot_response_paramters Struct Reference<div class="ingroups"><a class="el" href="group__TELEBOT__API.html">Simple Telegram Bot API</a></div></div></div>
+<a href="structtelebot__bot__subscription__updated-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">telebot_bot_subscription_updated Struct Reference<div class="ingroups"><a class="el" href="group__TELEBOT__API.html">Simple Telegram Bot API</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Contains information about why a request was unsuccessful.  
+<p>A user's payment subscription to the bot changed (Bot API BotSubscriptionUpdated).  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="telebot-types_8h_source.html">telebot-types.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a5574f88bb60506cfa87b5e927d80f323" id="r_a5574f88bb60506cfa87b5e927d80f323"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a5574f88bb60506cfa87b5e927d80f323">migrate_to_chat_id</a></td></tr>
-<tr class="memitem:a0d8e62d6e077a136190345c434f8d70d" id="r_a0d8e62d6e077a136190345c434f8d70d"><td class="memItemLeft">int&#160;</td><td class="memItemRight"><a class="el" href="#a0d8e62d6e077a136190345c434f8d70d">retry_after</a></td></tr>
+<tr class="memitem:a52ccc1491b496ad7fb605b11a82ccaef" id="r_a52ccc1491b496ad7fb605b11a82ccaef"><td class="memItemLeft">struct <a class="el" href="structtelebot__user.html">telebot_user</a> *&#160;</td><td class="memItemRight"><a class="el" href="#a52ccc1491b496ad7fb605b11a82ccaef">user</a></td></tr>
+<tr class="memitem:ae461781980978e23b6b5a8bec1d311dd" id="r_ae461781980978e23b6b5a8bec1d311dd"><td class="memItemLeft">char *&#160;</td><td class="memItemRight"><a class="el" href="#ae461781980978e23b6b5a8bec1d311dd">invoice_payload</a></td></tr>
+<tr class="memitem:acc42efc03faa25084ef0fccbd1e0e07e" id="r_acc42efc03faa25084ef0fccbd1e0e07e"><td class="memItemLeft">char *&#160;</td><td class="memItemRight"><a class="el" href="#acc42efc03faa25084ef0fccbd1e0e07e">state</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Contains information about why a request was unsuccessful. </p>
+<div class="textblock"><p>A user's payment subscription to the bot changed (Bot API BotSubscriptionUpdated). </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
-<a id="a5574f88bb60506cfa87b5e927d80f323" name="a5574f88bb60506cfa87b5e927d80f323"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5574f88bb60506cfa87b5e927d80f323">&#9670;&#160;</a></span>migrate_to_chat_id</h2>
+<a id="ae461781980978e23b6b5a8bec1d311dd" name="ae461781980978e23b6b5a8bec1d311dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae461781980978e23b6b5a8bec1d311dd">&#9670;&#160;</a></span>invoice_payload</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int telebot_response_paramters::migrate_to_chat_id</td>
+          <td class="memname">char* telebot_bot_subscription_updated::invoice_payload</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Optional. The group has been migrated to a supergroup with the specified identifier. This number may be greater than 32 bits and some programming languages may have difficulty/silent defects in interpreting it. But it is smaller than 52 bits, so a signed 64 bit integer or double-precision float type are safe for storing this identifier. </p>
+<p>Bot-defined invoice payload </p>
 
 </div>
 </div>
-<a id="a0d8e62d6e077a136190345c434f8d70d" name="a0d8e62d6e077a136190345c434f8d70d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d8e62d6e077a136190345c434f8d70d">&#9670;&#160;</a></span>retry_after</h2>
+<a id="acc42efc03faa25084ef0fccbd1e0e07e" name="acc42efc03faa25084ef0fccbd1e0e07e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc42efc03faa25084ef0fccbd1e0e07e">&#9670;&#160;</a></span>state</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int telebot_response_paramters::retry_after</td>
+          <td class="memname">char* telebot_bot_subscription_updated::state</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Optional. In case of exceeding flood control, the number of seconds left to wait before the request can be repeated. </p>
+<p>New state: "active", "canceled" or "failed" </p>
+
+</div>
+</div>
+<a id="a52ccc1491b496ad7fb605b11a82ccaef" name="a52ccc1491b496ad7fb605b11a82ccaef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a52ccc1491b496ad7fb605b11a82ccaef">&#9670;&#160;</a></span>user</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structtelebot__user.html">telebot_user</a>* telebot_bot_subscription_updated::user</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>User who subscribed </p>
 
 </div>
 </div>

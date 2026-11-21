@@ -121,3 +121,30 @@ TEST(MimeFormat, NonScalarsReturnNull)
 }
 
 } // namespace
+
+namespace
+{
+
+int g_json_allocs = 0;
+void *counting_malloc(size_t size)
+{
+    g_json_allocs++;
+    return malloc(size);
+}
+
+TEST(JsonAllocator, ParsingUsesTheConfiguredAllocator)
+{
+    g_json_allocs = 0;
+    telebot_set_json_allocator(counting_malloc, free);
+    cJSON *root = telebot_parser_str_to_obj(R"({"ok":true,"result":[1,2,3]})");
+    ASSERT_NE(root, nullptr);
+    telebot_json_put(root);
+    telebot_set_json_allocator(nullptr, nullptr);
+
+    EXPECT_GT(g_json_allocs, 0);
+    int before = g_json_allocs;
+    telebot_json_put(telebot_parser_str_to_obj("[1]"));
+    EXPECT_EQ(g_json_allocs, before); // defaults restored
+}
+
+} // namespace

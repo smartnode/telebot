@@ -132,6 +132,18 @@
 #endif
 #endif
 
+#ifndef TELEBOT_FEATURE_WIDGETS /* widget queries (TON wallets, Mini App widgets) */
+#ifdef ESP_PLATFORM
+#ifdef CONFIG_TELEBOT_FEATURE_WIDGETS
+#define TELEBOT_FEATURE_WIDGETS 1
+#else
+#define TELEBOT_FEATURE_WIDGETS 0
+#endif
+#else
+#define TELEBOT_FEATURE_WIDGETS 1
+#endif
+#endif
+
 #ifdef __cplusplus
 #define TELEBOT_STATIC_ASSERT static_assert
 #else

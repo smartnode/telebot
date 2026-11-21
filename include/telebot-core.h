@@ -77,6 +77,17 @@ telebot_error_e telebot_core_get_response_code(telebot_core_response_t response)
 int telebot_core_get_response_retry_after(telebot_core_response_t response);
 
 /**
+ * @brief New identifier of a group that was upgraded to a supergroup.
+ *
+ * Non-zero when a request failed because the group was migrated; repeat the
+ * request with this chat identifier.
+ *
+ * @param[in] response Response returned by a core function.
+ * @return The supergroup identifier, or 0.
+ */
+long long int telebot_core_get_response_migrate_to_chat_id(telebot_core_response_t response);
+
+/**
  * @brief Seconds to wait after the most recent request made with a core handler.
  *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
@@ -97,6 +108,23 @@ const char *telebot_core_get_response_data(telebot_core_response_t response);
  * @param[in] response Response to release.
  */
 void telebot_core_put_response(telebot_core_response_t response);
+
+/**
+ * @brief Routes the memory used for JSON parsing through custom allocators.
+ *
+ * Parsing a reply builds a temporary JSON tree whose size depends on the
+ * reply. On boards with external RAM this keeps it out of internal memory:
+ * @code
+ * static void *psram_malloc(size_t size) { return heap_caps_malloc(size, MALLOC_CAP_SPIRAM); }
+ * telebot_set_json_allocator(psram_malloc, heap_caps_free);
+ * @endcode
+ * The setting is global. Call it before creating any handler; pass NULL for
+ * both to restore malloc() and free().
+ *
+ * @param[in] malloc_fn Allocation function, or NULL for malloc().
+ * @param[in] free_fn Matching release function, or NULL for free().
+ */
+void telebot_set_json_allocator(void *(*malloc_fn)(size_t size), void (*free_fn)(void *ptr));
 
 /**
  * @brief Start function to use telebot core APIs.
@@ -169,29 +197,29 @@ telebot_core_response_t telebot_core_get_updates(telebot_core_handler_t core_h,
         int offset, int limit, int timeout, const char *allowed_updates);
 
 /**
- * @brief Specify a url and receive incoming updates via an outgoing webhook.
- * Whenever there is an update for the bot, we will send an HTTPS POST request
- * to the specified url, containing a JSON-serialized Update. In case of an
- * unsuccessful request, we will give up after a reasonable amount of attempts.
+ * @brief Sets a URL that receives updates through an HTTPS POST request.
+ *
+ * While a webhook is set, #telebot_get_updates() does not work. Use @p secret_token and check the
+ *     X-Telegram-Bot-Api-Secret-Token header to make sure a request really comes from Telegram.
+ *
+ * Bot API method: setWebhook.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] url HTTPS url to send updates to. Use an empty string to remove webhook
- * integration
- * @param[in] certificate A path to to a public key certificate to upload server.
- * @param[in] max_connections Optional  Maximum allowed number of simultaneous
- * HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40.
- * Use lower values to limit the load on your bot's server, and higher values
- * to increase your bot's throughput.
- * @param[in] allowed_updates List the types of updates you want your bot to
- * receive. For example, specify ["message", "edited_channel_post",
- * "callback_query"] to only receive updates of these types.
- * @return #telebot_core_response_t response that contains the result (true/false),
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #telebot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] url HTTPS URL that receives the updates; an empty string removes the webhook.
+ * @param[in] certificate Optional public key of a self-signed certificate, uploaded from a path or
+ *     memory, or NULL.
+ * @param[in] max_connections Maximum simultaneous HTTPS connections, 1-100; 0 for the default of
+ *     40.
+ * @param[in] allowed_updates Optional JSON array of update type names, or NULL for all.
+ * @param[in] drop_pending_updates Drop all updates waiting to be delivered.
+ * @param[in] secret_token Optional secret, 1-256 characters of A-Z, a-z, 0-9, _ and -, sent back in
+ *     every request; or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_set_webhook(telebot_core_handler_t core_h,
-        const char *url, const char *certificate, int max_connections,
-        const char *allowed_updates);
+telebot_core_response_t telebot_core_set_webhook(telebot_core_handler_t core_h, const char *url,
+        const telebot_input_file_t *certificate, int max_connections, const char *allowed_updates,
+        bool drop_pending_updates, const char *secret_token);
 
 /**
  * @brief Remove webhook integration if you decide to switch back to getUpdates.
@@ -1108,20 +1136,26 @@ telebot_core_response_t telebot_core_edit_message_reply_markup(telebot_core_hand
         const char *reply_markup);
 
 /**
- * @brief Use this method to edit animation, audio, document, photo, or video
- * messages. If a message is part of a message album, then it can be edited
- * only to an audio of the same type and with the same caption.
- * @param[in] core_h The telebot core handler.
- * @param[in] chat_id Required if inline_message_id is not specified.
- * @param[in] message_id Required if inline_message_id is not specified.
- * @param[in] inline_message_id Required if chat_id and message_id are not specified.
- * @param[in] media A JSON-serialized object for a new media content of the message.
- * @param[in] reply_markup A JSON-serialized object for a new inline keyboard.
- * @return #telebot_core_response_t response that contains the edited message.
+ * @brief Replaces the photo, video, audio or document of a message.
+ *
+ * Identify the message either by @p chat_id and @p message_id, or by @p inline_message_id. New
+ *     media can be uploaded from a path or memory, or given as a file_id or URL.
+ *
+ * Bot API method: editMessageMedia.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_id Identifier of the message to edit, or 0 when using @p inline_message_id.
+ * @param[in] inline_message_id Identifier of an inline message, or NULL.
+ * @param[in] media New content of the message; see #telebot_input_media_t.
+ * @param[in] reply_markup Optional JSON inline keyboard, or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_edit_message_media(telebot_core_handler_t core_h,
-        long long int chat_id, int message_id, const char *inline_message_id,
-        const char *media, const char *reply_markup);
+telebot_core_response_t telebot_core_edit_message_media(telebot_core_handler_t core_h, long long int chat_id,
+        int message_id, const char *inline_message_id, const telebot_input_media_t *media,
+        const char *reply_markup);
 
 /**
  * @brief Stop a poll which was sent by the bot.
@@ -1816,13 +1850,17 @@ telebot_core_response_t telebot_core_get_user_profile_audios(telebot_core_handle
         long long int user_id, int offset, int limit);
 
 /**
- * @brief Use this method to set the bot's profile photo.
- * @param[in] core_h The telebot core handler.
- * @param[in] photo Path to the new profile photo.
- * @return #telebot_core_response_t response.
+ * @brief Changes the profile photo of the bot.
+ *
+ * Bot API method: setMyProfilePhoto.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] photo New photo, uploaded from a path or memory. A file_id or URL is rejected.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_set_my_profile_photo(telebot_core_handler_t core_h,
-        const char *photo);
+        const telebot_input_file_t *photo);
 
 /**
  * @brief Use this method to remove the bot's profile photo.
@@ -2189,6 +2227,23 @@ telebot_core_response_t telebot_core_remove_user_verification(telebot_core_handl
  */
 telebot_core_response_t telebot_core_remove_chat_verification(telebot_core_handler_t core_h,
         long long int chat_id);
+
+/**
+ * @brief Answers a query from a widget.
+ *
+ * Answer within 15 seconds. The answer goes only to the widget that sent the query and does not
+ *     change the data of the widget.
+ *
+ * Bot API method: answerWidgetQuery.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] widget_query_id Identifier of the query, from #telebot_widget_query_t.
+ * @param[in] data Optional data returned to the widget, 0-1024 bytes, or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_answer_widget_query(telebot_core_handler_t core_h,
+        const char *widget_query_id, const char *data);
 
 /**
  * @} // end of APIs

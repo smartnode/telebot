@@ -115,7 +115,7 @@ TEST_F(CoreRequests, NetworkFailureIsReported)
 
 TEST_F(CoreRequests, SetWebhookSendsMaxConnectionsAndAllowedUpdates)
 {
-    Response r(telebot_core_set_webhook(core_, "https://example.org/hook", nullptr, 40, R"(["message"])"));
+    Response r(telebot_core_set_webhook(core_, "https://example.org/hook", nullptr, 40, R"(["message"])", false, nullptr));
     const RecordedRequest &req = fake_->last();
     EXPECT_EQ(req.method(), "setWebhook");
     EXPECT_EQ(req.at("url"), "https://example.org/hook");
@@ -203,8 +203,7 @@ class HighLevel : public ::testing::Test
 protected:
     void SetUp() override
     {
-        char token[] = "123456:TEST-TOKEN";
-        ASSERT_EQ(telebot_create(&handle_, token), TELEBOT_ERROR_NONE);
+        ASSERT_EQ(telebot_create(&handle_, "123456:TEST-TOKEN"), TELEBOT_ERROR_NONE);
         fake_ = FakeTransport::install(handle_->core_h);
     }
     void TearDown() override { telebot_destroy(handle_); }
@@ -267,14 +266,14 @@ TEST_F(HighLevel, SetWebhookSendsValidAllowedUpdatesJson)
 {
     char url[] = "https://example.org/hook";
     telebot_update_type_e types[] = {TELEBOT_UPDATE_TYPE_MESSAGE, TELEBOT_UPDATE_TYPE_CALLBACK_QUERY};
-    EXPECT_EQ(telebot_set_webhook(handle_, url, nullptr, 0, types, 2), TELEBOT_ERROR_NONE);
+    EXPECT_EQ(telebot_set_webhook(handle_, url, nullptr, 0, types, 2, false, nullptr), TELEBOT_ERROR_NONE);
     EXPECT_EQ(fake_->last().at("allowed_updates"), R"(["message","callback_query"])");
 }
 
 TEST_F(HighLevel, SetWebhookWithoutFilterOmitsAllowedUpdates)
 {
     char url[] = "https://example.org/hook";
-    EXPECT_EQ(telebot_set_webhook(handle_, url, nullptr, 0, nullptr, 0), TELEBOT_ERROR_NONE);
+    EXPECT_EQ(telebot_set_webhook(handle_, url, nullptr, 0, nullptr, 0, false, nullptr), TELEBOT_ERROR_NONE);
     EXPECT_FALSE(fake_->last().has("allowed_updates"));
 }
 
@@ -282,7 +281,7 @@ TEST_F(HighLevel, OutOfRangeUpdateTypeIsRejected)
 {
     char url[] = "https://example.org/hook";
     telebot_update_type_e bad[] = {static_cast<telebot_update_type_e>(TELEBOT_UPDATE_TYPE_MAX + 5)};
-    EXPECT_EQ(telebot_set_webhook(handle_, url, nullptr, 0, bad, 1), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_set_webhook(handle_, url, nullptr, 0, bad, 1, false, nullptr), TELEBOT_ERROR_INVALID_PARAMETER);
 
     telebot_update_t *updates = nullptr;
     int count = 0;
@@ -329,12 +328,15 @@ protected:
 
 TEST_F(Webhook, CertificateIsUploadedAsFile)
 {
-    Response r(telebot_core_set_webhook(core_, "https://example.org/hook", "/etc/bot/cert.pem", 0, nullptr));
+    const telebot_input_file_t cert = telebot_input_file_path("/etc/bot/cert.pem");
+    Response r(telebot_core_set_webhook(core_, "https://example.org/hook", &cert, 0, nullptr, true, "s3cr3t_token"));
     const RecordedRequest &req = fake_->last();
     ASSERT_TRUE(req.has("certificate"));
     EXPECT_EQ(req.fields.at("certificate").type, TELEBOT_MIME_TYPE_FILE);
     EXPECT_EQ(req.at("certificate"), "/etc/bot/cert.pem");
     EXPECT_FALSE(req.has("max_connections")); // 0 = use Telegram's default
+    EXPECT_EQ(req.at("drop_pending_updates"), "true");
+    EXPECT_EQ(req.at("secret_token"), "s3cr3t_token");
 }
 
 } // namespace
@@ -391,6 +393,53 @@ TEST_F(RawCall, MalformedParametersAreRejectedLocally)
     EXPECT_EQ(c.code(), TELEBOT_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(d.code(), TELEBOT_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(fake_->requests().size(), sent);
+}
+
+} // namespace
+
+namespace
+{
+
+TEST_F(Webhook, CertificateMustBeAnUpload)
+{
+    const telebot_input_file_t remote = telebot_input_file_remote("https://example.org/cert.pem");
+    Response r(telebot_core_set_webhook(core_, "https://example.org/hook", &remote, 0, nullptr, false, nullptr));
+    EXPECT_EQ(r.code(), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_TRUE(fake_->requests().empty());
+}
+
+TEST_F(Webhook, EditMessageMediaUploadsNewContent)
+{
+    const char jpeg[] = "\xFF\xD8\xFF\xD9";
+    telebot_input_media_t media{};
+    media.type = TELEBOT_INPUT_MEDIA_PHOTO;
+    media.file = telebot_input_file_memory(jpeg, 4, "new.jpg");
+    media.caption = "updated";
+    Response r(telebot_core_edit_message_media(core_, 5, 10, nullptr, &media, nullptr));
+    ASSERT_EQ(r.code(), TELEBOT_ERROR_NONE);
+    const RecordedRequest &req = fake_->last();
+    EXPECT_EQ(req.method(), "editMessageMedia");
+    EXPECT_EQ(req.at("media"), R"({"type":"photo","media":"attach://file0","caption":"updated"})");
+    EXPECT_EQ(req.fields.at("file0").type, TELEBOT_MIME_TYPE_BUFFER);
+    EXPECT_EQ(req.at("message_id"), "10");
+
+    media.file = telebot_input_file_remote("AgACAgIAAxkB");
+    Response remote(telebot_core_edit_message_media(core_, 0, 0, "inl", &media, nullptr));
+    EXPECT_EQ(fake_->last().at("media"), R"({"type":"photo","media":"AgACAgIAAxkB","caption":"updated"})");
+    EXPECT_FALSE(fake_->last().has("file0"));
+
+    Response none(telebot_core_edit_message_media(core_, 5, 10, nullptr, nullptr, nullptr));
+    EXPECT_EQ(none.code(), TELEBOT_ERROR_INVALID_PARAMETER);
+}
+
+TEST_F(Webhook, MigratedGroupReportsNewChatId)
+{
+    fake_->reply(400, R"({"ok":false,"error_code":400,"description":"Bad Request: group chat was upgraded",)"
+                      R"("parameters":{"migrate_to_chat_id":-1001234567890}})");
+    Response r(telebot_core_get_me(core_));
+    EXPECT_EQ(r.code(), TELEBOT_ERROR_OPERATION_FAILED);
+    EXPECT_EQ(telebot_core_get_response_migrate_to_chat_id(r.r), -1001234567890LL);
+    EXPECT_EQ(telebot_core_get_response_retry_after(r.r), 0);
 }
 
 } // namespace

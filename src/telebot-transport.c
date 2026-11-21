@@ -38,16 +38,28 @@ static bool memory_sink_write(telebot_sink_t *self, const void *data, size_t len
         return false;
     }
 
-    char *grown = realloc(sink->data, sink->size + len + 1);
-    if (grown == NULL)
+    size_t need = sink->size + len + 1;
+    if (need > sink->capacity)
     {
-        ERR("Failed to allocate %zu bytes for response", sink->size + len + 1);
-        sink->error = TELEBOT_ERROR_OUT_OF_MEMORY;
-        return false;
+        /* Grow geometrically so a response costs a few reallocations, not one per chunk */
+        size_t capacity = (sink->capacity > 0) ? sink->capacity : 512;
+        while (capacity < need)
+            capacity *= 2;
+        if ((sink->limit > 0) && (capacity > sink->limit + 1))
+            capacity = sink->limit + 1;
+
+        char *grown = realloc(sink->data, capacity);
+        if (grown == NULL)
+        {
+            ERR("Failed to allocate %zu bytes for response", capacity);
+            sink->error = TELEBOT_ERROR_OUT_OF_MEMORY;
+            return false;
+        }
+        sink->data = grown;
+        sink->capacity = capacity;
     }
 
-    memcpy(grown + sink->size, data, len);
-    sink->data = grown;
+    memcpy(sink->data + sink->size, data, len);
     sink->size += len;
     sink->data[sink->size] = '\0';
     return true;
@@ -67,12 +79,16 @@ char *telebot_memory_sink_take(telebot_memory_sink_t *sink, size_t *size)
         *size = sink->size;
     sink->data = NULL;
     sink->size = 0;
+    sink->capacity = 0;
     return data;
 }
 
 void telebot_memory_sink_release(telebot_memory_sink_t *sink)
 {
-    TELEBOT_SAFE_FZCNT(sink->data, sink->size);
+    free(sink->data);
+    sink->data = NULL;
+    sink->size = 0;
+    sink->capacity = 0;
 }
 
 /* ----------------------------- file sink --------------------------------- */

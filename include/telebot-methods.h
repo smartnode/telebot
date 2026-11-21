@@ -54,7 +54,7 @@ extern "C" {
  * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_create(telebot_handler_t *handle, char *token);
+telebot_error_e telebot_create(telebot_handler_t *handle, const char *token);
 
 /**
  * @brief Final function to use telebo APIs
@@ -112,7 +112,7 @@ telebot_error_e telebot_get_proxy(telebot_handler_t handle, char **addr);
  * error value.
  */
 telebot_error_e telebot_get_updates(telebot_handler_t handle, int offset,
-        int limit, int timeout, telebot_update_type_e allowed_updates[],
+        int limit, int timeout, const telebot_update_type_e allowed_updates[],
         int allowed_updates_count, telebot_update_t **updates, int *count);
 
 /**
@@ -154,29 +154,30 @@ int telebot_get_retry_after(telebot_handler_t handle);
 
 
 /**
- * @brief This function is used to specify a url and receive incoming updates
- * via an outgoing webhook. Whenever there is an update for the bot, we will
- * send an HTTPS POST request to the specified url, containing a JSON-serialized
- * Update. In case of an unsuccessful request, we will give up after a reasonable
- * amount of attempts.
+ * @brief Sets a URL that receives updates through an HTTPS POST request.
+ *
+ * While a webhook is set, #telebot_get_updates() does not work. Use @p secret_token and check the
+ *     X-Telegram-Bot-Api-Secret-Token header to make sure a request really comes from Telegram.
+ *
+ * Bot API method: setWebhook.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
- * @param[in] url HTTPS url to send updates to. Use an empty string to remove
- * webhook integration
- * @param[in] certificate A path to to a public key certificate to upload server.
- * @param[in] max_connections Optional  Maximum allowed number of simultaneous
- * HTTPS connections to the webhook for update delivery, 1-100. Defaults to 40.
- * Use lower values to limit the load on your bot's server, and higher values
- * to increase your bot's throughput.
- * @param[in] allowed_updates Array of the update types you want your bot to
- * receive.
- * @param[in] allowed_updates_count Size of array of the update types.
- * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
- * error value.
+ * @param[in] url HTTPS URL that receives the updates; an empty string removes the webhook.
+ * @param[in] certificate Optional public key of a self-signed certificate, uploaded from a path or
+ *     memory, or NULL.
+ * @param[in] max_connections Maximum simultaneous HTTPS connections, 1-100; 0 for the default of
+ *     40.
+ * @param[in] allowed_updates Update types to receive, or NULL for all.
+ * @param[in] allowed_updates_count Number of entries in @p allowed_updates; 0 for all types.
+ * @param[in] drop_pending_updates Drop all updates waiting to be delivered.
+ * @param[in] secret_token Optional secret, 1-256 characters of A-Z, a-z, 0-9, _ and -, sent back in
+ *     every request; or NULL.
+ * @return #TELEBOT_ERROR_NONE on success, otherwise a negative #telebot_error_e value.
  */
-telebot_error_e telebot_set_webhook(telebot_handler_t handle, char *url,
-    char *certificate, int max_connections,telebot_update_type_e allowed_updates[],
-    int allowed_updates_count);
+telebot_error_e telebot_set_webhook(telebot_handler_t handle, const char *url,
+        const telebot_input_file_t *certificate, int max_connections,
+        const telebot_update_type_e allowed_updates[], int allowed_updates_count, bool drop_pending_updates,
+        const char *secret_token);
 
 /**
  * @brief This function is used to remove webhook integration if you decide to
@@ -692,14 +693,15 @@ telebot_error_e telebot_get_user_profile_audios(telebot_handler_t handle,
 telebot_error_e telebot_put_user_profile_audios(telebot_user_profile_audios_t *audios);
 
 /**
- * @brief Use this method to set the bot's profile photo.
+ * @brief Changes the profile photo of the bot.
+ *
+ * Bot API method: setMyProfilePhoto.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
- * @param[in] photo JSON InputProfilePhoto describing the new photo.
+ * @param[in] photo New photo, uploaded from a path or memory. A file_id or URL is rejected.
  * @return #TELEBOT_ERROR_NONE on success, otherwise a negative #telebot_error_e value.
  */
-telebot_error_e telebot_set_my_profile_photo(telebot_handler_t handle,
-    const char *photo);
+telebot_error_e telebot_set_my_profile_photo(telebot_handler_t handle, const telebot_input_file_t *photo);
 
 /**
  * @brief Use this method to remove the bot's profile photo.
@@ -1577,19 +1579,24 @@ telebot_error_e telebot_set_message_reaction(telebot_handler_t handle, long long
         const char *emoji, bool is_big);
 
 /**
- * @brief Use this method to edit animation, audio, document, photo, or video messages.
- * @param[in] handle The telebot handler.
- * @param[in] chat_id Required if inline_message_id is not specified.
- * @param[in] message_id Required if inline_message_id is not specified.
- * @param[in] inline_message_id Required if chat_id and message_id are not specified.
- * @param[in] media A JSON-serialized object for a new media content of the message.
- * @param[in] reply_markup A JSON-serialized object for a new inline keyboard.
- * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
- * error value.
+ * @brief Replaces the photo, video, audio or document of a message.
+ *
+ * Identify the message either by @p chat_id and @p message_id, or by @p inline_message_id. New
+ *     media can be uploaded from a path or memory, or given as a file_id or URL.
+ *
+ * Bot API method: editMessageMedia.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_id Identifier of the message to edit, or 0 when using @p inline_message_id.
+ * @param[in] inline_message_id Identifier of an inline message, or NULL.
+ * @param[in] media New content of the message; see #telebot_input_media_t.
+ * @param[in] reply_markup Optional JSON inline keyboard, or NULL.
+ * @return #TELEBOT_ERROR_NONE on success, otherwise a negative #telebot_error_e value.
  */
-telebot_error_e telebot_edit_message_media(telebot_handler_t handle,
-    long long int chat_id, int message_id, const char *inline_message_id,
-    const char *media, const char *reply_markup);
+telebot_error_e telebot_edit_message_media(telebot_handler_t handle, long long int chat_id, int message_id,
+        const char *inline_message_id, const telebot_input_media_t *media, const char *reply_markup);
 
 /**
  * @brief Streams a partial message to a private chat while it is being generated.
@@ -1737,6 +1744,22 @@ telebot_error_e telebot_remove_user_verification(telebot_handler_t handle, long 
  * @return #TELEBOT_ERROR_NONE on success, otherwise a negative #telebot_error_e value.
  */
 telebot_error_e telebot_remove_chat_verification(telebot_handler_t handle, long long int chat_id);
+
+/**
+ * @brief Answers a query from a widget.
+ *
+ * Answer within 15 seconds. The answer goes only to the widget that sent the query and does not
+ *     change the data of the widget.
+ *
+ * Bot API method: answerWidgetQuery.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] widget_query_id Identifier of the query, from #telebot_widget_query_t.
+ * @param[in] data Optional data returned to the widget, 0-1024 bytes, or NULL.
+ * @return #TELEBOT_ERROR_NONE on success, otherwise a negative #telebot_error_e value.
+ */
+telebot_error_e telebot_answer_widget_query(telebot_handler_t handle, const char *widget_query_id,
+        const char *data);
 
 /**
  * @} // end of APIs

@@ -46,14 +46,14 @@ telebot_error_e telebot_save_prepared_inline_message(telebot_handler_t handle,
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *res_obj = NULL;
-    if (!tb_json_get_ex(obj, "result", &res_obj))
+    if (!telebot_json_get_ex(obj, "result", &res_obj))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -63,7 +63,7 @@ telebot_error_e telebot_save_prepared_inline_message(telebot_handler_t handle,
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -99,26 +99,26 @@ telebot_error_e telebot_answer_web_app_query(telebot_handler_t handle, const cha
         }
 
         struct cJSON *ok = NULL;
-        if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+        if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
             goto finish;
         }
 
         struct cJSON *result_obj = NULL;
-        if (tb_json_get_ex(obj, "result", &result_obj))
+        if (telebot_json_get_ex(obj, "result", &result_obj))
         {
             struct cJSON *imid_obj = NULL;
-            if (tb_json_get_ex(result_obj, "inline_message_id", &imid_obj))
+            if (telebot_json_get_ex(result_obj, "inline_message_id", &imid_obj))
             {
-                *inline_message_id = TELEBOT_SAFE_STRDUP(tb_json_get_string(imid_obj));
+                *inline_message_id = TELEBOT_SAFE_STRDUP(telebot_json_get_string(imid_obj));
             }
         }
     }
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }

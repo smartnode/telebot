@@ -83,11 +83,8 @@ static void echo_update(telebot_handler_t bot, const telebot_update_t *update)
 static void bot_task(void *arg)
 {
     (void)arg;
-    static char token[128];
-    strlcpy(token, CONFIG_ECHO_BOT_TOKEN, sizeof(token));
-
     telebot_handler_t bot = NULL;
-    if (telebot_create(&bot, token) != TELEBOT_ERROR_NONE)
+    if (telebot_create(&bot, CONFIG_ECHO_BOT_TOKEN) != TELEBOT_ERROR_NONE)
     {
         ESP_LOGE(TAG, "telebot_create failed");
         vTaskDelete(NULL);

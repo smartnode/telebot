@@ -116,3 +116,30 @@ TEST_F(Members, JoinRequestsAndMemberLookups)
 }
 
 } // namespace
+
+namespace
+{
+
+// Groups, supergroups and channels have negative identifiers.
+TEST_F(Members, GroupChatIdsAreAccepted)
+{
+    const long long group = -1001234567890LL;
+    CoreResponse a(telebot_core_get_chat(core_, group));
+    CoreResponse b(telebot_core_leave_chat(core_, group));
+    CoreResponse c(telebot_core_delete_message(core_, group, 5));
+    CoreResponse d(telebot_core_set_chat_title(core_, group, "Lab"));
+    CoreResponse e(telebot_core_pin_chat_message(core_, group, 5, false));
+    for (const CoreResponse *r : {&a, &b, &c, &d, &e})
+        EXPECT_EQ(r->code(), TELEBOT_ERROR_NONE);
+    ASSERT_EQ(fake_->requests().size(), 5u);
+    EXPECT_EQ(fake_->requests()[0].at("chat_id"), "-1001234567890");
+}
+
+TEST_F(Members, MissingChatIdIsRejected)
+{
+    CoreResponse r(telebot_core_get_chat(core_, 0));
+    EXPECT_EQ(r.code(), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_TRUE(nothing_sent());
+}
+
+} // namespace
