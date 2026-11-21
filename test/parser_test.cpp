@@ -40,7 +40,7 @@ const char *kUpdates =
         "date":1763700001,"photo":[
           {"file_id":"A","file_unique_id":"a","width":90,"height":60,"file_size":1200},
           {"file_id":"B","file_unique_id":"b","width":800,"height":600,"file_size":64000}]}},
-      {"update_id":900000003,"widget_query":{"id":"w1"}},
+      {"update_id":900000003,"some_future_update":{"id":"x1"}},
       {"update_id":900000004,"callback_query":{"id":"cbq-1",
         "from":{"id":7123456789,"is_bot":false,"first_name":"Ada"},
         "chat_instance":"ci","data":"btn:1"}}
@@ -55,7 +55,7 @@ protected:
         root_ = telebot_parser_str_to_obj(kUpdates);
         ASSERT_NE(root_, nullptr);
         cJSON *result = nullptr;
-        ASSERT_TRUE(tb_json_get_ex(root_, "result", &result));
+        ASSERT_TRUE(telebot_json_get_ex(root_, "result", &result));
         ASSERT_EQ(telebot_parser_get_updates(result, &updates_, &count_), TELEBOT_ERROR_NONE);
         ASSERT_EQ(count_, 4);
     }
@@ -64,7 +64,7 @@ protected:
     {
         if (updates_)
             telebot_put_updates(updates_, count_);
-        tb_json_put(root_);
+        telebot_json_put(root_);
     }
 
     cJSON *root_ = nullptr;
@@ -156,18 +156,18 @@ TEST(JsonAccessors, TypeMismatchYieldsDefaults)
     ASSERT_NE(root, nullptr);
     cJSON *v = nullptr;
 
-    ASSERT_TRUE(tb_json_get_ex(root, "n", &v));
-    EXPECT_EQ(tb_json_get_int(v), 0); // strings are not coerced to numbers
-    ASSERT_TRUE(tb_json_get_ex(root, "s", &v));
-    EXPECT_EQ(tb_json_get_string(v), nullptr);
-    ASSERT_TRUE(tb_json_get_ex(root, "b", &v));
-    EXPECT_FALSE(tb_json_get_bool(v)); // only JSON true is true
-    ASSERT_TRUE(tb_json_get_ex(root, "arr", &v));
-    EXPECT_EQ(tb_json_array_length(v), 0);
-    EXPECT_FALSE(tb_json_get_ex(root, "missing", &v));
-    EXPECT_FALSE(tb_json_get_ex(nullptr, "n", &v));
+    ASSERT_TRUE(telebot_json_get_ex(root, "n", &v));
+    EXPECT_EQ(telebot_json_get_int(v), 0); // strings are not coerced to numbers
+    ASSERT_TRUE(telebot_json_get_ex(root, "s", &v));
+    EXPECT_EQ(telebot_json_get_string(v), nullptr);
+    ASSERT_TRUE(telebot_json_get_ex(root, "b", &v));
+    EXPECT_FALSE(telebot_json_get_bool(v)); // only JSON true is true
+    ASSERT_TRUE(telebot_json_get_ex(root, "arr", &v));
+    EXPECT_EQ(telebot_json_array_length(v), 0);
+    EXPECT_FALSE(telebot_json_get_ex(root, "missing", &v));
+    EXPECT_FALSE(telebot_json_get_ex(nullptr, "n", &v));
 
-    tb_json_put(root);
+    telebot_json_put(root);
 }
 
 } // namespace
@@ -196,7 +196,7 @@ TEST(ParserFeatures, GatedUpdatesFollowBuildConfiguration)
               TELEBOT_FEATURE_PAYMENTS ? TELEBOT_UPDATE_TYPE_PRE_CHECKOUT_QUERY : TELEBOT_UPDATE_TYPE_UNKNOWN);
 
     telebot_put_updates(updates, count);
-    tb_json_put(root);
+    telebot_json_put(root);
 }
 
 } // namespace
@@ -220,7 +220,7 @@ TEST(ParserStickers, StickerSet)
     ASSERT_NE(set.thumbnail, nullptr);
     telebot_put_sticker_set(&set);
     EXPECT_EQ(set.stickers, nullptr);
-    tb_json_put(root);
+    telebot_json_put(root);
 }
 
 TEST(ParserPermissions, AllCurrentFieldsAreRead)
@@ -234,7 +234,7 @@ TEST(ParserPermissions, AllCurrentFieldsAreRead)
     EXPECT_TRUE(p.can_react_to_messages);
     EXPECT_FALSE(p.can_manage_topics);
     EXPECT_FALSE(p.can_send_photos);
-    tb_json_put(root);
+    telebot_json_put(root);
 }
 
 } // namespace
@@ -275,7 +275,7 @@ TEST(ParserOwnership, RichMessageIsFullyReleased)
     EXPECT_STREQ(m.link_preview_options->url, "https://example.org");
 
     telebot_put_updates(updates, count);
-    tb_json_put(root);
+    telebot_json_put(root);
 }
 
 } // namespace

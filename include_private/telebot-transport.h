@@ -72,6 +72,7 @@ typedef struct telebot_memory_sink
     telebot_sink_t base;
     char *data;
     size_t size;
+    size_t capacity; /* allocated bytes, grown geometrically */
     size_t limit;
     telebot_error_e error; /* why the sink rejected data, if it did */
 } telebot_memory_sink_t;

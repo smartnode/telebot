@@ -133,9 +133,19 @@ telebot_send_photo(bot, chat_id, TELEBOT_FILE_MEMORY(fb->buf, fb->len, "door.jpg
 esp_camera_fb_return(fb);
 ```
 
+**Memory.** Each batch from `telebot_get_updates()` is parsed into one arena of
+`CONFIG_TELEBOT_ARENA_BLOCK_SIZE` blocks and released with a single `telebot_put_updates()`, so a
+poll costs a handful of allocations instead of hundreds. On boards with PSRAM, the temporary JSON
+tree can be moved out of internal RAM:
+
+```c
+static void *psram_malloc(size_t size) { return heap_caps_malloc(size, MALLOC_CAP_SPIRAM); }
+telebot_set_json_allocator(psram_malloc, heap_caps_free);
+```
+
 **Choosing what gets parsed.** Most of the library's flash goes to parsing incoming messages.
 Under *Telebot → Parsed features* in menuconfig you can switch off groups a device rarely needs
-(payments, business, gifts, passport). Fields of a disabled group stay `NULL` and its updates arrive
+(payments, business, gifts, passport, widgets). Fields of a disabled group stay `NULL` and its updates arrive
 as `TELEBOT_UPDATE_TYPE_UNKNOWN`. On Linux/macOS everything is enabled; pass for example
 `-DTELEBOT_FEATURE_PAYMENTS=0` in `CMAKE_C_FLAGS` to switch a group off there.
 
@@ -143,9 +153,9 @@ Flash used by telebot in the ESP32 echo example (ESP-IDF v6.1.1, cJSON included,
 
 | Parsed features | Flash |
 |---|---|
-| everything | 52.2 KB |
-| ESP default (chat events only) | 45.3 KB |
-| minimal (all groups off) | 40.6 KB |
+| everything | 40.5 KB |
+| ESP default (chat events only) | 35.8 KB |
+| minimal (all groups off) | 32.1 KB |
 
 ## Testing
 

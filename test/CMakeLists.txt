@@ -18,6 +18,7 @@ ENDIF()
 
 ADD_EXECUTABLE(telebot_unit_tests
     fake_transport.cpp
+    arena_test.cpp
     core_requests_test.cpp
     members_test.cpp
     messages_test.cpp
@@ -29,7 +30,7 @@ ADD_EXECUTABLE(telebot_unit_tests
 )
 # The tests reach into private headers (parser, transport, json accessors).
 TARGET_INCLUDE_DIRECTORIES(telebot_unit_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/third_party/cjson)
+    ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/include_private ${CMAKE_SOURCE_DIR}/third_party/cjson)
 TARGET_LINK_LIBRARIES(telebot_unit_tests PRIVATE ${PROJECT_NAME}_static ${PKGS_LDFLAGS} GTest::gtest_main)
 
 INCLUDE(GoogleTest)

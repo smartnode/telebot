@@ -13,7 +13,7 @@ jobs:
           - name: minimal parser
             flags: >-
               -DTELEBOT_FEATURE_PAYMENTS=0 -DTELEBOT_FEATURE_PASSPORT=0 -DTELEBOT_FEATURE_BUSINESS=0
-              -DTELEBOT_FEATURE_GIFTS=0 -DTELEBOT_FEATURE_CHAT_EXTRAS=0
+              -DTELEBOT_FEATURE_GIFTS=0 -DTELEBOT_FEATURE_CHAT_EXTRAS=0 -DTELEBOT_FEATURE_WIDGETS=0
     name: ${{ matrix.name }}
 
     steps:

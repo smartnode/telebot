@@ -131,6 +131,10 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft"><a class="el" href="group__TELEBOT__API.html#gabd4d1aa1a2d4f616edac24f3f0f5b797">telebot_chat_boost_removed_t</a>&#160;</td><td class="memItemRight"><a class="el" href="#abacfaae798e9b7b15e2dc651ab862f08">chat_boost_removed</a></td></tr>
 <tr class="memitem:"><td class="memItemLeft"><a class="el" href="group__TELEBOT__API.html#ga27543a6989ece9ab291180ab557b2ce0">telebot_message_t</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5b7fcea8ec44f7c14095951485c85e60">guest_message</a></td></tr>
 <tr class="memitem:"><td class="memItemLeft"><a class="el" href="group__TELEBOT__API.html#ga571a0c985ead3bf7bd78b82b71617c52">telebot_message_generation_stopped_t</a>&#160;</td><td class="memItemRight"><a class="el" href="#a5c10f3d5a600a4ed7af82f0f4af06b69">stopped_message_generation</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft"><a class="el" href="group__TELEBOT__API.html#gaf5a7dacf8c5b04e20b6efbf9f3d003b2">telebot_managed_bot_updated_t</a>&#160;</td><td class="memItemRight"><a class="el" href="#abd36ddb05eeeddab3a99fcb74714e510">managed_bot</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft"><a class="el" href="group__TELEBOT__API.html#ga9bee98dc9a097f7a643d9de57fb4b356">telebot_bot_subscription_updated_t</a>&#160;</td><td class="memItemRight"><a class="el" href="#ab58db1ac583502e0508f61d655c746d3">subscription</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft"><a class="el" href="group__TELEBOT__API.html#ga85637055890e16e85ac0154cd4d79293">telebot_widget_query_t</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3fa8d36b87ae217a91759d43c4411548">widget_query</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft"><a class="el" href="group__TELEBOT__API.html#ga85637055890e16e85ac0154cd4d79293">telebot_widget_query_t</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac9e8c269702a85c71653c581fa0ddbbb">shared_widget_query</a></td></tr>
 </table>
 <a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a4cc7f88bf8c2271d60a1cf5256de8b65" name="a4cc7f88bf8c2271d60a1cf5256de8b65"></a>
@@ -358,6 +362,21 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="abd36ddb05eeeddab3a99fcb74714e510" name="abd36ddb05eeeddab3a99fcb74714e510"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd36ddb05eeeddab3a99fcb74714e510">&#9670;&#160;</a></span>managed_bot</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">telebot_managed_bot_updated_t <a class="el" href="uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html">telebot_update::[union].__unnamed0__</a> managed_bot</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A bot managed by this bot was created or changed </p>
+
+</div>
+</div>
 <a id="aea6ba3df8df55ade51bf94baac3db261" name="aea6ba3df8df55ade51bf94baac3db261"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aea6ba3df8df55ade51bf94baac3db261">&#9670;&#160;</a></span>message</h2>
 
@@ -478,6 +497,21 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ac9e8c269702a85c71653c581fa0ddbbb" name="ac9e8c269702a85c71653c581fa0ddbbb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9e8c269702a85c71653c581fa0ddbbb">&#9670;&#160;</a></span>shared_widget_query</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">telebot_widget_query_t <a class="el" href="uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html">telebot_update::[union].__unnamed0__</a> shared_widget_query</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Query from a forwarded shared widget </p>
+
+</div>
+</div>
 <a id="a9763222087e89c8625674a3bdd0092f4" name="a9763222087e89c8625674a3bdd0092f4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9763222087e89c8625674a3bdd0092f4">&#9670;&#160;</a></span>shipping_query</h2>
 
@@ -505,6 +539,36 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>The user stopped a message draft </p>
+
+</div>
+</div>
+<a id="ab58db1ac583502e0508f61d655c746d3" name="ab58db1ac583502e0508f61d655c746d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab58db1ac583502e0508f61d655c746d3">&#9670;&#160;</a></span>subscription</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">telebot_bot_subscription_updated_t <a class="el" href="uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html">telebot_update::[union].__unnamed0__</a> subscription</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A user's payment subscription to the bot changed </p>
+
+</div>
+</div>
+<a id="a3fa8d36b87ae217a91759d43c4411548" name="a3fa8d36b87ae217a91759d43c4411548"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3fa8d36b87ae217a91759d43c4411548">&#9670;&#160;</a></span>widget_query</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">telebot_widget_query_t <a class="el" href="uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html">telebot_update::[union].__unnamed0__</a> widget_query</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Query from a widget in a message </p>
 
 </div>
 </div>

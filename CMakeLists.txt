@@ -13,6 +13,8 @@ SET(TELEBOT_COMMON_SRCS
     src/telebot-transport.c
     src/telebot-multipart.c
     src/telebot-request.c
+    src/telebot-arena.c
+    src/telebot-json.c
     src/telebot-core-messages.c
     src/telebot-core-members.c
 )
@@ -28,7 +30,7 @@ IF(ESP_PLATFORM)
              src/transport/telebot-transport-esp.c
              third_party/cjson/cJSON.c
         INCLUDE_DIRS include
-        PRIV_INCLUDE_DIRS src third_party/cjson
+        PRIV_INCLUDE_DIRS include_private third_party/cjson
         PRIV_REQUIRES esp_http_client esp-tls mbedtls esp_hw_support)
     TARGET_COMPILE_DEFINITIONS(${COMPONENT_LIB} PRIVATE _GNU_SOURCE)
     SET_SOURCE_FILES_PROPERTIES(third_party/cjson/cJSON.c PROPERTIES COMPILE_OPTIONS "-Wno-error")
@@ -73,7 +75,7 @@ SET_SOURCE_FILES_PROPERTIES(third_party/cjson/cJSON.c PROPERTIES
     COMPILE_OPTIONS "-Wno-error;-Wno-deprecated-declarations")
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/third_party/cjson)
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/include_private)
 INCLUDE(FindPkgConfig)
 pkg_check_modules(PKGS REQUIRED ${DEPENDENTS})
 

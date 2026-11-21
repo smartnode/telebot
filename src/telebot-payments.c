@@ -47,14 +47,14 @@ telebot_error_e telebot_send_invoice(telebot_handler_t handle, long long int cha
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *result = NULL;
-    if (!tb_json_get_ex(obj, "result", &result))
+    if (!telebot_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -64,7 +64,7 @@ telebot_error_e telebot_send_invoice(telebot_handler_t handle, long long int cha
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -92,16 +92,16 @@ telebot_error_e telebot_create_invoice_link(telebot_handler_t handle,
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *result = NULL;
-    if (tb_json_get_ex(obj, "result", &result))
+    if (telebot_json_get_ex(obj, "result", &result))
     {
-        *invoice_link = TELEBOT_SAFE_STRDUP(tb_json_get_string(result));
+        *invoice_link = TELEBOT_SAFE_STRDUP(telebot_json_get_string(result));
     }
     else
     {
@@ -110,7 +110,7 @@ telebot_error_e telebot_create_invoice_link(telebot_handler_t handle,
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -162,25 +162,25 @@ telebot_error_e telebot_get_my_star_balance(telebot_handler_t handle, long long 
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *result = NULL;
-    if (tb_json_get_ex(obj, "result", &result))
+    if (telebot_json_get_ex(obj, "result", &result))
     {
         struct cJSON *balance_obj = NULL;
-        if (tb_json_get_ex(result, "balance", &balance_obj))
+        if (telebot_json_get_ex(result, "balance", &balance_obj))
         {
-            *balance = tb_json_get_int(balance_obj);
+            *balance = telebot_json_get_int(balance_obj);
         }
     }
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -208,14 +208,14 @@ telebot_error_e telebot_get_star_transactions(telebot_handler_t handle,
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *result = NULL;
-    if (!tb_json_get_ex(obj, "result", &result))
+    if (!telebot_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -225,7 +225,7 @@ telebot_error_e telebot_get_star_transactions(telebot_handler_t handle,
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -278,7 +278,7 @@ telebot_error_e telebot_get_available_gifts(telebot_handler_t handle,
         else
         {
             ret = telebot_parser_get_gifts(obj, gifts);
-            tb_json_put(obj);
+            telebot_json_put(obj);
         }
     }
     telebot_core_put_response(response);
@@ -318,7 +318,7 @@ telebot_error_e telebot_get_user_gifts(telebot_handler_t handle,
         else
         {
             ret = telebot_parser_get_user_gifts(obj, gifts);
-            tb_json_put(obj);
+            telebot_json_put(obj);
         }
     }
     telebot_core_put_response(response);
@@ -359,7 +359,7 @@ telebot_error_e telebot_get_chat_gifts(telebot_handler_t handle,
         else
         {
             ret = telebot_parser_get_user_gifts(obj, gifts);
-            tb_json_put(obj);
+            telebot_json_put(obj);
         }
     }
     telebot_core_put_response(response);

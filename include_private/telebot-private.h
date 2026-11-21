@@ -29,6 +29,7 @@
 #include "telebot-common.h"
 #include "telebot-types.h"
 #include "telebot-core.h"
+#include "telebot-arena.h"
 
 #define TELEBOT_API_URL                      "https://api.telegram.org"
 /* Stack buffer for request URLs ("https://api.telegram.org/bot<token>/<method>") */
@@ -41,9 +42,13 @@
 #endif
 #define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
 #define TELEBOT_USER_PROFILE_PHOTOS_LIMIT    100
-#define TELEBOT_SAFE_FREE(addr)              if (addr) { free(addr); addr = NULL; }
-#define TELEBOT_SAFE_FZCNT(addr, count)      { TELEBOT_SAFE_FREE(addr); count = 0; }
-#define TELEBOT_SAFE_STRDUP(str)             (str) ? strdup(str) : NULL;
+#define TELEBOT_SAFE_FREE(addr)              do { telebot_mem_free(addr); (addr) = NULL; } while (0)
+#define TELEBOT_SAFE_FZCNT(addr, count)      do { TELEBOT_SAFE_FREE(addr); (count) = 0; } while (0)
+static inline char *telebot_strdup_or_null(const char *str)
+{
+    return telebot_mem_strdup(str); /* NULL-safe */
+}
+#define TELEBOT_SAFE_STRDUP(str)             telebot_strdup_or_null(str)
 
 #define TELEBOT_METHOD_GET_UPDATES                              "getUpdates"
 #define TELEBOT_METHOD_SET_WEBHOOK                              "setWebhook"
@@ -147,6 +152,7 @@
 #define TELEBOT_METHOD_DELETE_MESSAGE_REACTION                   "deleteMessageReaction"
 #define TELEBOT_METHOD_DELETE_ALL_MESSAGE_REACTIONS              "deleteAllMessageReactions"
 #define TELEBOT_METHOD_SET_CHAT_MEMBER_TAG                       "setChatMemberTag"
+#define TELEBOT_METHOD_ANSWER_WIDGET_QUERY                       "answerWidgetQuery"
 #define TELEBOT_METHOD_EDIT_MESSAGE_TEXT                         "editMessageText"
 #define TELEBOT_METHOD_EDIT_MESSAGE_CAPTION                      "editMessageCaption"
 #define TELEBOT_METHOD_EDIT_MESSAGE_MEDIA                        "editMessageMedia"
@@ -225,23 +231,6 @@
 /* A response carrying only an error code; used when a request fails validation */
 telebot_core_response_t telebot_core_error_response(telebot_error_e error);
 
-#define CHECK_ARG_NULL(PARAM)                                                    \
-    if (PARAM == NULL)                                                           \
-    {                                                                            \
-        ERR("Argument '%s' is null)", #PARAM);                                   \
-        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
-    }
-
-#define CHECK_ARG_CONDITION(CONDITION, MESSAGE)                                  \
-    if (CONDITION)                                                               \
-    {                                                                            \
-        ERR(MESSAGE);                                                            \
-        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
-    }
-
-/**
- * @brief Kind of value carried by one multipart form field.
- */
 typedef enum
 {
     TELEBOT_MIME_TYPE_INT,
@@ -320,6 +309,7 @@ struct telebot_core_response
     size_t size;         /**< Telegam bot response size */
     char *data;          /**< Telegam bot response object */
     int retry_after;     /**< Seconds to wait after flood control (HTTP 429), otherwise 0 */
+    long long int migrate_to_chat_id; /**< New supergroup id when the group was migrated, otherwise 0 */
 };
 
 #endif /* __TELEBOT_PRIVATE_H__ */

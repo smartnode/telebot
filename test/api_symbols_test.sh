@@ -28,8 +28,8 @@ inc=$2
 # Exported, defined symbols; Mach-O prefixes C symbols with '_'
 defined=$(nm -g "$lib" | awk '$2 ~ /^[TDBS]$/ {print $3}' | sed 's/^_//')
 
-# Installed headers only: telebot-private.h and telebot-parser.h are internal
-headers=$(ls "$inc"/telebot*.h | grep -v -e telebot-private.h -e telebot-parser.h)
+# include/ holds only the public, installed headers
+headers=$(ls "$inc"/telebot*.h)
 
 declared=$(cat $headers |
     grep -E '^(telebot_error_e|telebot_core_response_t|const char \*|void|bool) \**telebot_[a-z0-9_]+\(' |

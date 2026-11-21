@@ -42,6 +42,11 @@ int telebot_core_get_response_retry_after(telebot_core_response_t response)
     return response ? response->retry_after : 0;
 }
 
+long long int telebot_core_get_response_migrate_to_chat_id(telebot_core_response_t response)
+{
+    return response ? response->migrate_to_chat_id : 0;
+}
+
 int telebot_core_get_retry_after(telebot_core_handler_t core_h)
 {
     return core_h ? core_h->last_retry_after : 0;
@@ -62,6 +67,13 @@ void telebot_core_put_response(telebot_core_response_t response)
         TELEBOT_SAFE_FZCNT(response->data, response->size);
         TELEBOT_SAFE_FREE(response);
     }
+}
+
+void telebot_set_json_allocator(void *(*malloc_fn)(size_t size), void (*free_fn)(void *ptr))
+{
+    /* NULL functions restore the C library defaults */
+    cJSON_Hooks hooks = {.malloc_fn = malloc_fn, .free_fn = free_fn};
+    cJSON_InitHooks(&hooks);
 }
 
 telebot_error_e
@@ -241,17 +253,19 @@ telebot_core_perform(telebot_core_handler_t core_h, const char *method, const te
     if ((resp->ret == TELEBOT_ERROR_NONE) && (status != 200L))
     {
         ERR("%s failed with HTTP %ld: %s", method, status, resp->data ? resp->data : "(no body)");
-        resp->ret = TELEBOT_ERROR_OPERATION_FAILED;
-        if (status == 429L)
+        resp->ret = (status == 429L) ? TELEBOT_ERROR_RATE_LIMITED : TELEBOT_ERROR_OPERATION_FAILED;
+
+        /* {"ok":false,"error_code":...,"parameters":{"retry_after":N,"migrate_to_chat_id":M}} */
+        cJSON *root = (resp->data && strstr(resp->data, "\"parameters\"")) ? cJSON_Parse(resp->data) : NULL;
+        cJSON *params = NULL, *value = NULL;
+        if (telebot_json_get_ex(root, "parameters", &params))
         {
-            /* {"ok":false,"error_code":429,"parameters":{"retry_after":N}} */
-            resp->ret = TELEBOT_ERROR_RATE_LIMITED;
-            cJSON *root = resp->data ? cJSON_Parse(resp->data) : NULL;
-            cJSON *params = NULL, *retry = NULL;
-            if (tb_json_get_ex(root, "parameters", &params) && tb_json_get_ex(params, "retry_after", &retry))
-                resp->retry_after = (int)tb_json_get_int(retry);
-            tb_json_put(root);
+            if (telebot_json_get_ex(params, "retry_after", &value))
+                resp->retry_after = (int)telebot_json_get_int(value);
+            if (telebot_json_get_ex(params, "migrate_to_chat_id", &value))
+                resp->migrate_to_chat_id = telebot_json_get_int(value);
         }
+        telebot_json_put(root);
     }
     else
     {
@@ -279,9 +293,9 @@ telebot_core_call(telebot_core_handler_t core_h, const char *method, const teleb
             return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
         }
         if (p->file != NULL)
-            tb_req_file(&req, p->name, p->file);
+            telebot_request_file(&req, p->name, p->file);
         else
-            tb_req_str(&req, p->name, p->value);
+            telebot_request_str(&req, p->name, p->value);
     }
     return telebot_core_request(core_h, method, &req);
 }
@@ -292,32 +306,20 @@ telebot_core_get_updates(telebot_core_handler_t core_h, int offset, int limit, i
     if (limit > TELEBOT_UPDATE_COUNT_MAX_LIMIT)
         limit = TELEBOT_UPDATE_COUNT_MAX_LIMIT;
 
-    size_t count = 0;
-    telebot_core_mime_t mimes[4]; // number of arguments
-    mimes[count].name = "offset";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = offset;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_int(&req, "offset", offset);
 
-    mimes[count].name = "limit";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = limit;
-    count++;
+    telebot_request_int(&req, "limit", limit);
 
-    mimes[count].name = "timeout";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = timeout;
-    count++;
+    telebot_request_int(&req, "timeout", timeout);
 
     if (allowed_updates)
     {
-        mimes[count].name = "allowed_updates";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = allowed_updates;
-        count++;
+        telebot_request_str(&req, "allowed_updates", allowed_updates);
     }
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_UPDATES, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_UPDATES, &req);
 }
 
 telebot_core_response_t telebot_core_error_response(telebot_error_e ret)
@@ -330,52 +332,29 @@ telebot_core_response_t telebot_core_error_response(telebot_error_e ret)
 }
 
 telebot_core_response_t telebot_core_request(telebot_core_handler_t core_h, const char *method,
-                                             const telebot_request_t *req)
+                                             telebot_request_t *req)
 {
-    if (req->error != TELEBOT_ERROR_NONE)
-        return telebot_core_error_response(req->error);
-    return telebot_core_perform(core_h, method, req->parts, req->count);
+    telebot_core_response_t response = (req->error != TELEBOT_ERROR_NONE)
+                                           ? telebot_core_error_response(req->error)
+                                           : telebot_core_perform(core_h, method, req->parts, req->count);
+    telebot_request_release(req);
+    return response;
 }
 
 telebot_core_response_t
-telebot_core_set_webhook(telebot_core_handler_t core_h, const char *url, const char *certificate, int max_connections,
-                         const char *allowed_updates)
+telebot_core_set_webhook(telebot_core_handler_t core_h, const char *url, const telebot_input_file_t *certificate,
+                         int max_connections, const char *allowed_updates, bool drop_pending_updates,
+                         const char *secret_token)
 {
-    CHECK_ARG_NULL(url);
-
-    size_t count = 0;
-    telebot_core_mime_t mimes[4]; // number of arguments
-    mimes[count].name = "url";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = url;
-    ++count;
-
-    if (certificate != NULL)
-    {
-        /* The public key certificate is an InputFile, so it is uploaded */
-        mimes[count].name = "certificate";
-        mimes[count].type = TELEBOT_MIME_TYPE_FILE;
-        mimes[count].data.s = certificate;
-        count++;
-    }
-
-    if (max_connections > 0)
-    {
-        mimes[count].name = "max_connections";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = max_connections;
-        count++;
-    }
-
-    if (allowed_updates != NULL)
-    {
-        mimes[count].name = "allowed_updates";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = allowed_updates;
-        count++;
-    }
-
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_WEBHOOK, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str_required(&req, "url", url);
+    telebot_request_upload(&req, "certificate", certificate); /* self-signed public key, always uploaded */
+    telebot_request_id(&req, "max_connections", max_connections);
+    telebot_request_str(&req, "allowed_updates", allowed_updates);
+    telebot_request_flag(&req, "drop_pending_updates", drop_pending_updates);
+    telebot_request_str(&req, "secret_token", secret_token);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_WEBHOOK, &req);
 }
 
 telebot_core_response_t
@@ -401,101 +380,72 @@ telebot_core_edit_message_live_location(telebot_core_handler_t core_h, long long
                                         const char *inline_message_id, float latitude, float longitude,
                                         const char *reply_markup)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[6]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    mimes[count].name = "latitude";
-    mimes[count].type = TELEBOT_MIME_TYPE_FLOAT;
-    mimes[count].data.f = latitude;
-    count++;
+    telebot_request_double(&req, "latitude", (double)(latitude));
 
-    mimes[count].name = "longitude";
-    mimes[count].type = TELEBOT_MIME_TYPE_FLOAT;
-    mimes[count].data.f = longitude;
-    count++;
+    telebot_request_double(&req, "longitude", (double)(longitude));
 
     if (message_id > 0)
     {
-        mimes[count].name = "message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = message_id;
-        count++;
+        telebot_request_int(&req, "message_id", message_id);
     }
 
     if (inline_message_id != NULL)
     {
-        mimes[count].name = "inline_message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = inline_message_id;
-        count++;
+        telebot_request_str(&req, "inline_message_id", inline_message_id);
     }
 
     if (reply_markup != NULL)
     {
-        mimes[count].name = "reply_markup";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = reply_markup;
-        count++;
+        telebot_request_str(&req, "reply_markup", reply_markup);
     }
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_LIVE_LOCATION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_EDIT_MESSAGE_LIVE_LOCATION, &req);
 }
 
 telebot_core_response_t
 telebot_core_stop_message_live_location(telebot_core_handler_t core_h, long long int chat_id, int message_id,
                                         char *inline_message_id, const char *reply_markup)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[4]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
     if (message_id > 0)
     {
-        mimes[count].name = "message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = message_id;
-        count++;
+        telebot_request_int(&req, "message_id", message_id);
     }
 
     if (inline_message_id != NULL)
     {
-        mimes[count].name = "inline_message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = inline_message_id;
-        count++;
+        telebot_request_str(&req, "inline_message_id", inline_message_id);
     }
 
     if (reply_markup != NULL)
     {
-        mimes[count].name = "reply_markup";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = reply_markup;
-        count++;
+        telebot_request_str(&req, "reply_markup", reply_markup);
     }
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_STOP_MESSAGE_LIVE_LOCATION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_STOP_MESSAGE_LIVE_LOCATION, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_file(telebot_core_handler_t core_h, const char *file_id)
 {
-    CHECK_ARG_NULL(file_id);
+    if (file_id == NULL)
+    {
+        ERR("Argument 'file_id' is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "file_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = file_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "file_id", file_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_FILE, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_FILE, &req);
 }
 
 telebot_error_e
@@ -540,255 +490,252 @@ telebot_core_download_file(telebot_core_handler_t core_h, const char *file_path,
 telebot_core_response_t
 telebot_core_export_chat_invite_link(telebot_core_handler_t core_h, long long int chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_EXPORT_CHAT_INVITE_LINK, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_EXPORT_CHAT_INVITE_LINK, &req);
 }
 
 telebot_core_response_t
 telebot_core_delete_chat_photo(telebot_core_handler_t core_h, long long int chat_id)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Invalid chat id");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_DELETE_CHAT_PHOTO, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_DELETE_CHAT_PHOTO, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_chat_title(telebot_core_handler_t core_h, long long int chat_id, const char *title)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
-    CHECK_ARG_CONDITION((title == NULL) || (strlen(title) > 255), "Valid title is required");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
+    if ((title == NULL) || (strlen(title) > 255))
+    {
+        ERR("Valid title is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[2]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    mimes[count].name = "title";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = title;
-    count++;
+    telebot_request_str(&req, "title", title);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_CHAT_TITLE, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_CHAT_TITLE, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_chat_description(telebot_core_handler_t core_h, long long int chat_id, const char *description)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
-    CHECK_ARG_CONDITION((description == NULL) || (strlen(description) > 255),
-                        "Valid description is required");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
+    if ((description == NULL) || (strlen(description) > 255))
+    {
+        ERR("Valid description is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[2]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    mimes[count].name = "description";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = description;
-    count++;
+    telebot_request_str(&req, "description", description);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_CHAT_DESCRIPTION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_CHAT_DESCRIPTION, &req);
 }
 
 telebot_core_response_t
 telebot_core_pin_chat_message(telebot_core_handler_t core_h, long long int chat_id, int message_id,
                               bool disable_notification)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
-    CHECK_ARG_CONDITION((message_id <= 0), "Valid message_id is required");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
+    if (message_id <= 0)
+    {
+        ERR("Valid message_id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[3]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    mimes[count].name = "message_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = message_id;
-    count++;
+    telebot_request_int(&req, "message_id", message_id);
 
-    mimes[count].name = "disable_notification";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = disable_notification ? "true" : "false";
-    count++;
+    telebot_request_bool(&req, "disable_notification", disable_notification);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_PIN_CHAT_MESSAGE, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_PIN_CHAT_MESSAGE, &req);
 }
 
 telebot_core_response_t
 telebot_core_unpin_chat_message(telebot_core_handler_t core_h, long long int chat_id)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_UNPIN_CHAT_MESSAGE, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_UNPIN_CHAT_MESSAGE, &req);
 }
 
 telebot_core_response_t
 telebot_core_leave_chat(telebot_core_handler_t core_h, long long int chat_id)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_LEAVE_CHAT, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_LEAVE_CHAT, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_chat(telebot_core_handler_t core_h, long long int chat_id)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_CHAT, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_CHAT, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_chat_members_count(telebot_core_handler_t core_h, long long int chat_id)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBERS_COUNT, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_CHAT_MEMBERS_COUNT, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_chat_sticker_set(telebot_core_handler_t core_h, long long int chat_id, const char *sticker_set_name)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
-    CHECK_ARG_NULL(sticker_set_name);
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
+    if (sticker_set_name == NULL)
+    {
+        ERR("Argument 'sticker_set_name' is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[2]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    mimes[count].name = "sticker_set_name";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = sticker_set_name;
-    count++;
+    telebot_request_str(&req, "sticker_set_name", sticker_set_name);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_CHAT_STICKER_SET, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_CHAT_STICKER_SET, &req);
 }
 
 telebot_core_response_t
 telebot_core_delete_chat_sticker_set(telebot_core_handler_t core_h, long long int chat_id)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0), "Valid chat id is required");
+    if (chat_id == 0)
+    {
+        ERR("A chat id is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_DEL_CHAT_STICKER_SET, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_DEL_CHAT_STICKER_SET, &req);
 }
 
 telebot_core_response_t
 telebot_core_answer_callback_query(telebot_core_handler_t core_h, const char *callback_query_id, const char *text,
                                    bool show_alert, const char *url, int cache_time)
 {
-    CHECK_ARG_NULL(callback_query_id);
+    if (callback_query_id == NULL)
+    {
+        ERR("Argument 'callback_query_id' is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[5]; // number of arguments
-    mimes[count].name = "callback_query_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = callback_query_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "callback_query_id", callback_query_id);
 
     if (text != NULL)
     {
-        mimes[count].name = "text";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text;
-        count++;
+        telebot_request_str(&req, "text", text);
     }
 
-    mimes[count].name = "show_alert";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = show_alert ? "true" : "false";
-    count++;
+    telebot_request_bool(&req, "show_alert", show_alert);
 
     if (url != NULL)
     {
-        mimes[count].name = "url";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = url;
-        count++;
+        telebot_request_str(&req, "url", url);
     }
 
     if (cache_time > 0)
     {
-        mimes[count].name = "cache_time";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = cache_time;
-        count++;
+        telebot_request_int(&req, "cache_time", cache_time);
     }
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_ANSWER_CALLBACK_QUERY, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_ANSWER_CALLBACK_QUERY, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_my_commands(telebot_core_handler_t core_h, const char *commands)
 {
-    CHECK_ARG_NULL(commands);
+    if (commands == NULL)
+    {
+        ERR("Argument 'commands' is required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[1]; // number of arguments
-    mimes[count].name = "commands";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = commands;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "commands", commands);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_MY_COMMANDS, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_MY_COMMANDS, &req);
 }
 
 telebot_core_response_t
@@ -808,51 +755,33 @@ telebot_core_edit_message_caption(telebot_core_handler_t core_h, long long int c
         return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
     }
 
-    int count = 0;
-    telebot_core_mime_t mimes[6]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
     if (message_id > 0)
     {
-        mimes[count].name = "message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = message_id;
-        count++;
+        telebot_request_int(&req, "message_id", message_id);
     }
 
     if (inline_message_id != NULL)
     {
-        mimes[count].name = "inline_message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = inline_message_id;
-        count++;
+        telebot_request_str(&req, "inline_message_id", inline_message_id);
     }
 
-    mimes[count].name = "caption";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = caption;
-    count++;
+    telebot_request_str(&req, "caption", caption);
 
     if (parse_mode != NULL)
     {
-        mimes[count].name = "parse_mode";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = parse_mode;
-        count++;
+        telebot_request_str(&req, "parse_mode", parse_mode);
     }
 
     if (reply_markup != NULL)
     {
-        mimes[count].name = "reply_markup";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = reply_markup;
-        count++;
+        telebot_request_str(&req, "reply_markup", reply_markup);
     }
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_CAPTION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_EDIT_MESSAGE_CAPTION, &req);
 }
 
 telebot_core_response_t
@@ -865,88 +794,67 @@ telebot_core_edit_message_reply_markup(telebot_core_handler_t core_h, long long 
         return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
     }
 
-    int count = 0;
-    telebot_core_mime_t mimes[4]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
     if (message_id > 0)
     {
-        mimes[count].name = "message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = message_id;
-        count++;
+        telebot_request_int(&req, "message_id", message_id);
     }
 
     if (inline_message_id != NULL)
     {
-        mimes[count].name = "inline_message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = inline_message_id;
-        count++;
+        telebot_request_str(&req, "inline_message_id", inline_message_id);
     }
 
     if (reply_markup != NULL)
     {
-        mimes[count].name = "reply_markup";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = reply_markup;
-        count++;
+        telebot_request_str(&req, "reply_markup", reply_markup);
     }
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_EDIT_MESSAGE_REPLY_MARKUP, &req);
 }
 
 telebot_core_response_t
 telebot_core_stop_poll(telebot_core_handler_t core_h, long long int chat_id, int message_id, const char *reply_markup)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0) || (message_id <= 0),
-                        "Valid chat_id and message_id required");
+    if ((chat_id == 0) || (message_id <= 0))
+    {
+        ERR("Valid chat_id and message_id required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[3]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    mimes[count].name = "message_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = message_id;
-    count++;
+    telebot_request_int(&req, "message_id", message_id);
 
     if (reply_markup != NULL)
     {
-        mimes[count].name = "reply_markup";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = reply_markup;
-        count++;
+        telebot_request_str(&req, "reply_markup", reply_markup);
     }
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_STOP_POLL, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_STOP_POLL, &req);
 }
 
 telebot_core_response_t
 telebot_core_delete_message(telebot_core_handler_t core_h, long long int chat_id, int message_id)
 {
-    CHECK_ARG_CONDITION((chat_id <= 0) || (message_id <= 0),
-                        "Valid chat_id and message_id required");
+    if ((chat_id == 0) || (message_id <= 0))
+    {
+        ERR("Valid chat_id and message_id required");
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
+    }
 
-    int count = 0;
-    telebot_core_mime_t mimes[2]; // number of arguments
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
 
-    mimes[count].name = "message_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = message_id;
-    count++;
+    telebot_request_int(&req, "message_id", message_id);
 
-    return telebot_core_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGE, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_DELETE_MESSAGE, &req);
 }
 
 telebot_core_response_t
@@ -964,457 +872,307 @@ telebot_core_close(telebot_core_handler_t core_h)
 telebot_core_response_t
 telebot_core_set_my_name(telebot_core_handler_t core_h, const char *name, const char *language_code)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (name)
     {
-        mimes[count].name = "name";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = name;
-        count++;
+        telebot_request_str(&req, "name", name);
     }
     if (language_code)
     {
-        mimes[count].name = "language_code";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = language_code;
-        count++;
+        telebot_request_str(&req, "language_code", language_code);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_MY_NAME, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_MY_NAME, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_my_name(telebot_core_handler_t core_h, const char *language_code)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (language_code)
     {
-        mimes[count].name = "language_code";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = language_code;
-        count++;
+        telebot_request_str(&req, "language_code", language_code);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_MY_NAME, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_MY_NAME, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_my_description(telebot_core_handler_t core_h, const char *description, const char *language_code)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (description)
     {
-        mimes[count].name = "description";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = description;
-        count++;
+        telebot_request_str(&req, "description", description);
     }
     if (language_code)
     {
-        mimes[count].name = "language_code";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = language_code;
-        count++;
+        telebot_request_str(&req, "language_code", language_code);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_MY_DESCRIPTION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_MY_DESCRIPTION, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_my_description(telebot_core_handler_t core_h, const char *language_code)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (language_code)
     {
-        mimes[count].name = "language_code";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = language_code;
-        count++;
+        telebot_request_str(&req, "language_code", language_code);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_MY_DESCRIPTION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_MY_DESCRIPTION, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_my_short_description(telebot_core_handler_t core_h, const char *short_description,
                                       const char *language_code)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (short_description)
     {
-        mimes[count].name = "short_description";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = short_description;
-        count++;
+        telebot_request_str(&req, "short_description", short_description);
     }
     if (language_code)
     {
-        mimes[count].name = "language_code";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = language_code;
-        count++;
+        telebot_request_str(&req, "language_code", language_code);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_MY_SHORT_DESCRIPTION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_MY_SHORT_DESCRIPTION, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_my_short_description(telebot_core_handler_t core_h, const char *language_code)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (language_code)
     {
-        mimes[count].name = "language_code";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = language_code;
-        count++;
+        telebot_request_str(&req, "language_code", language_code);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_MY_SHORT_DESCRIPTION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_MY_SHORT_DESCRIPTION, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_chat_menu_button(telebot_core_handler_t core_h, long long int chat_id, const char *menu_button)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (chat_id != 0)
     {
-        mimes[count].name = "chat_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-        mimes[count].data.lld = chat_id;
-        count++;
+        telebot_request_ll(&req, "chat_id", chat_id);
     }
     if (menu_button)
     {
-        mimes[count].name = "menu_button";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = menu_button;
-        count++;
+        telebot_request_str(&req, "menu_button", menu_button);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_CHAT_MENU_BUTTON, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_CHAT_MENU_BUTTON, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_chat_menu_button(telebot_core_handler_t core_h, long long int chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (chat_id != 0)
     {
-        mimes[count].name = "chat_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-        mimes[count].data.lld = chat_id;
-        count++;
+        telebot_request_ll(&req, "chat_id", chat_id);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_CHAT_MENU_BUTTON, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_CHAT_MENU_BUTTON, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_my_default_administrator_rights(telebot_core_handler_t core_h, const char *rights, bool for_channels)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (rights)
     {
-        mimes[count].name = "rights";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = rights;
-        count++;
+        telebot_request_str(&req, "rights", rights);
     }
-    mimes[count].name = "for_channels";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = for_channels ? "true" : "false";
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_MY_DEFAULT_ADMIN_RIGHTS, mimes, count);
+    telebot_request_bool(&req, "for_channels", for_channels);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_MY_DEFAULT_ADMIN_RIGHTS, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_my_default_administrator_rights(telebot_core_handler_t core_h, bool for_channels)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "for_channels";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = for_channels ? "true" : "false";
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_MY_DEFAULT_ADMIN_RIGHTS, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_bool(&req, "for_channels", for_channels);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_MY_DEFAULT_ADMIN_RIGHTS, &req);
 }
 
 telebot_core_response_t
 telebot_core_delete_my_commands(telebot_core_handler_t core_h, const char *scope, const char *language_code)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (scope)
     {
-        mimes[count].name = "scope";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = scope;
-        count++;
+        telebot_request_str(&req, "scope", scope);
     }
     if (language_code)
     {
-        mimes[count].name = "language_code";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = language_code;
-        count++;
+        telebot_request_str(&req, "language_code", language_code);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_DELETE_MY_COMMANDS, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_DELETE_MY_COMMANDS, &req);
 }
 
 telebot_core_response_t
 telebot_core_ban_chat_sender_chat(telebot_core_handler_t core_h, long long int chat_id, long long int sender_chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "sender_chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = sender_chat_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_BAN_CHAT_SENDER_CHAT, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_ll(&req, "sender_chat_id", sender_chat_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_BAN_CHAT_SENDER_CHAT, &req);
 }
 
 telebot_core_response_t
 telebot_core_unban_chat_sender_chat(telebot_core_handler_t core_h, long long int chat_id, long long int sender_chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "sender_chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = sender_chat_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_UNBAN_CHAT_SENDER_CHAT, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_ll(&req, "sender_chat_id", sender_chat_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_UNBAN_CHAT_SENDER_CHAT, &req);
 }
 
 telebot_core_response_t
 telebot_core_create_chat_invite_link(telebot_core_handler_t core_h, long long int chat_id, const char *name,
                                      long expire_date, int member_limit, bool creates_join_request)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[6];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
     if (name)
     {
-        mimes[count].name = "name";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = name;
-        count++;
+        telebot_request_str(&req, "name", name);
     }
     if (expire_date > 0)
     {
-        mimes[count].name = "expire_date";
-        mimes[count].type = TELEBOT_MIME_TYPE_LONG_INT;
-        mimes[count].data.ld = expire_date;
-        count++;
+        telebot_request_ll(&req, "expire_date", (long long)(expire_date));
     }
     if (member_limit > 0)
     {
-        mimes[count].name = "member_limit";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = member_limit;
-        count++;
+        telebot_request_int(&req, "member_limit", member_limit);
     }
-    mimes[count].name = "creates_join_request";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = creates_join_request ? "true" : "false";
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_CREATE_CHAT_INVITE_LINK, mimes, count);
+    telebot_request_bool(&req, "creates_join_request", creates_join_request);
+    return telebot_core_request(core_h, TELEBOT_METHOD_CREATE_CHAT_INVITE_LINK, &req);
 }
 
 telebot_core_response_t
 telebot_core_edit_chat_invite_link(telebot_core_handler_t core_h, long long int chat_id, const char *invite_link,
                                    const char *name, long expire_date, int member_limit, bool creates_join_request)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[7];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "invite_link";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = invite_link;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_str(&req, "invite_link", invite_link);
     if (name)
     {
-        mimes[count].name = "name";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = name;
-        count++;
+        telebot_request_str(&req, "name", name);
     }
     if (expire_date > 0)
     {
-        mimes[count].name = "expire_date";
-        mimes[count].type = TELEBOT_MIME_TYPE_LONG_INT;
-        mimes[count].data.ld = expire_date;
-        count++;
+        telebot_request_ll(&req, "expire_date", (long long)(expire_date));
     }
     if (member_limit > 0)
     {
-        mimes[count].name = "member_limit";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = member_limit;
-        count++;
+        telebot_request_int(&req, "member_limit", member_limit);
     }
-    mimes[count].name = "creates_join_request";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = creates_join_request ? "true" : "false";
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_EDIT_CHAT_INVITE_LINK, mimes, count);
+    telebot_request_bool(&req, "creates_join_request", creates_join_request);
+    return telebot_core_request(core_h, TELEBOT_METHOD_EDIT_CHAT_INVITE_LINK, &req);
 }
 
 telebot_core_response_t
 telebot_core_revoke_chat_invite_link(telebot_core_handler_t core_h, long long int chat_id, const char *invite_link)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "invite_link";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = invite_link;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_REVOKE_CHAT_INVITE_LINK, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_str(&req, "invite_link", invite_link);
+    return telebot_core_request(core_h, TELEBOT_METHOD_REVOKE_CHAT_INVITE_LINK, &req);
 }
 
 telebot_core_response_t
 telebot_core_create_forum_topic(telebot_core_handler_t core_h, long long int chat_id, const char *name,
                                 int icon_color, const char *icon_custom_emoji_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[5];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "name";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = name;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_str(&req, "name", name);
     if (icon_color > 0)
     {
-        mimes[count].name = "icon_color";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = icon_color;
-        count++;
+        telebot_request_int(&req, "icon_color", icon_color);
     }
     if (icon_custom_emoji_id)
     {
-        mimes[count].name = "icon_custom_emoji_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = icon_custom_emoji_id;
-        count++;
+        telebot_request_str(&req, "icon_custom_emoji_id", icon_custom_emoji_id);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_CREATE_FORUM_TOPIC, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_CREATE_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_edit_forum_topic(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id,
                               const char *name, const char *icon_custom_emoji_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[4];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "message_thread_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = message_thread_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_int(&req, "message_thread_id", message_thread_id);
     if (name)
     {
-        mimes[count].name = "name";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = name;
-        count++;
+        telebot_request_str(&req, "name", name);
     }
     if (icon_custom_emoji_id)
     {
-        mimes[count].name = "icon_custom_emoji_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = icon_custom_emoji_id;
-        count++;
+        telebot_request_str(&req, "icon_custom_emoji_id", icon_custom_emoji_id);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_EDIT_FORUM_TOPIC, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_EDIT_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_close_forum_topic(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "message_thread_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = message_thread_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_CLOSE_FORUM_TOPIC, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_int(&req, "message_thread_id", message_thread_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_CLOSE_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_reopen_forum_topic(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "message_thread_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = message_thread_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_REOPEN_FORUM_TOPIC, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_int(&req, "message_thread_id", message_thread_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_REOPEN_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_delete_forum_topic(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "message_thread_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = message_thread_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_DELETE_FORUM_TOPIC, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_int(&req, "message_thread_id", message_thread_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_DELETE_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_unpin_all_forum_topic_messages(telebot_core_handler_t core_h, long long int chat_id, int message_thread_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "message_thread_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = message_thread_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_UNPIN_ALL_FORUM_TOPIC_MESSAGES, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_int(&req, "message_thread_id", message_thread_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_UNPIN_ALL_FORUM_TOPIC_MESSAGES, &req);
 }
 
 telebot_core_response_t
@@ -1426,77 +1184,56 @@ telebot_core_get_forum_topic_icon_stickers(telebot_core_handler_t core_h)
 telebot_core_response_t
 telebot_core_edit_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id, const char *name)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "name";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = name;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_EDIT_GENERAL_FORUM_TOPIC, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_str(&req, "name", name);
+    return telebot_core_request(core_h, TELEBOT_METHOD_EDIT_GENERAL_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_close_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_CLOSE_GENERAL_FORUM_TOPIC, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_CLOSE_GENERAL_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_reopen_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_REOPEN_GENERAL_FORUM_TOPIC, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_REOPEN_GENERAL_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_hide_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_HIDE_GENERAL_FORUM_TOPIC, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_HIDE_GENERAL_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_unhide_general_forum_topic(telebot_core_handler_t core_h, long long int chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_UNHIDE_GENERAL_FORUM_TOPIC, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_UNHIDE_GENERAL_FORUM_TOPIC, &req);
 }
 
 telebot_core_response_t
 telebot_core_unpin_all_general_forum_topic_messages(telebot_core_handler_t core_h, long long int chat_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_UNPIN_ALL_GENERAL_FORUM_TOPIC_MESSAGES, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_UNPIN_ALL_GENERAL_FORUM_TOPIC_MESSAGES, &req);
 }
 
 telebot_core_response_t
@@ -1504,101 +1241,37 @@ telebot_core_get_sticker_set(telebot_core_handler_t core_h, const char *name)
 {
     telebot_request_t req;
     telebot_request_init(&req);
-    tb_req_str_required(&req, "name", name);
+    telebot_request_str_required(&req, "name", name);
     return telebot_core_request(core_h, TELEBOT_METHOD_GET_STICKER_SET, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_custom_emoji_stickers(telebot_core_handler_t core_h, const char *custom_emoji_ids)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "custom_emoji_ids";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = custom_emoji_ids;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_CUSTOM_EMOJI_STICKERS, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "custom_emoji_ids", custom_emoji_ids);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_CUSTOM_EMOJI_STICKERS, &req);
 }
 
 telebot_core_response_t
 telebot_core_answer_web_app_query(telebot_core_handler_t core_h, const char *web_app_query_id, const char *result)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "web_app_query_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = web_app_query_id;
-    count++;
-    mimes[count].name = "result";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = result;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_ANSWER_WEB_APP_QUERY, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "web_app_query_id", web_app_query_id);
+    telebot_request_str(&req, "result", result);
+    return telebot_core_request(core_h, TELEBOT_METHOD_ANSWER_WEB_APP_QUERY, &req);
 }
 
 telebot_core_response_t
 telebot_core_delete_messages(telebot_core_handler_t core_h, long long int chat_id, const char *message_ids)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "message_ids";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = message_ids;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_DELETE_MESSAGES, mimes, count);
-}
-
-telebot_core_response_t
-telebot_core_edit_message_media(telebot_core_handler_t core_h, long long int chat_id, int message_id,
-                                const char *inline_message_id, const char *media, const char *reply_markup)
-{
-    if (((chat_id == 0) || (message_id <= 0)) && (inline_message_id == NULL))
-    {
-        ERR("Either valid chat_id & message_id or inline_message_id required");
-        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
-    }
-
-    int count = 0;
-    telebot_core_mime_t mimes[5];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-
-    if (message_id > 0)
-    {
-        mimes[count].name = "message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = message_id;
-        count++;
-    }
-
-    if (inline_message_id != NULL)
-    {
-        mimes[count].name = "inline_message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = inline_message_id;
-        count++;
-    }
-
-    mimes[count].name = "media";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = media;
-    count++;
-
-    if (reply_markup != NULL)
-    {
-        mimes[count].name = "reply_markup";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = reply_markup;
-        count++;
-    }
-
-    return telebot_core_perform(core_h, TELEBOT_METHOD_EDIT_MESSAGE_MEDIA, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_str(&req, "message_ids", message_ids);
+    return telebot_core_request(core_h, TELEBOT_METHOD_DELETE_MESSAGES, &req);
 }
 
 telebot_core_response_t
@@ -1607,113 +1280,62 @@ telebot_core_send_paid_media(telebot_core_handler_t core_h, long long int chat_i
                              bool show_caption_above_media, bool disable_notification, bool protect_content,
                              const char *reply_parameters, const char *reply_markup)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[12];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "star_count";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = star_count;
-    count++;
-    mimes[count].name = "media";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = media;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_int(&req, "star_count", star_count);
+    telebot_request_str(&req, "media", media);
     if (caption)
     {
-        mimes[count].name = "caption";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = caption;
-        count++;
+        telebot_request_str(&req, "caption", caption);
     }
     if (parse_mode)
     {
-        mimes[count].name = "parse_mode";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = parse_mode;
-        count++;
+        telebot_request_str(&req, "parse_mode", parse_mode);
     }
     if (caption_entities)
     {
-        mimes[count].name = "caption_entities";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = caption_entities;
-        count++;
+        telebot_request_str(&req, "caption_entities", caption_entities);
     }
-    mimes[count].name = "show_caption_above_media";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = show_caption_above_media ? "true" : "false";
-    count++;
-    mimes[count].name = "disable_notification";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = disable_notification ? "true" : "false";
-    count++;
-    mimes[count].name = "protect_content";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = protect_content ? "true" : "false";
-    count++;
+    telebot_request_bool(&req, "show_caption_above_media", show_caption_above_media);
+    telebot_request_bool(&req, "disable_notification", disable_notification);
+    telebot_request_bool(&req, "protect_content", protect_content);
     if (reply_parameters)
     {
-        mimes[count].name = "reply_parameters";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = reply_parameters;
-        count++;
+        telebot_request_str(&req, "reply_parameters", reply_parameters);
     }
     if (reply_markup)
     {
-        mimes[count].name = "reply_markup";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = reply_markup;
-        count++;
+        telebot_request_str(&req, "reply_markup", reply_markup);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SEND_PAID_MEDIA, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SEND_PAID_MEDIA, &req);
 }
 
 telebot_core_response_t
 telebot_core_answer_inline_query(telebot_core_handler_t core_h, const char *inline_query_id, const char *results,
                                  int cache_time, bool is_personal, const char *next_offset, const char *button)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[6];
-    mimes[count].name = "inline_query_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = inline_query_id;
-    count++;
-    mimes[count].name = "results";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = results;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "inline_query_id", inline_query_id);
+    telebot_request_str(&req, "results", results);
     if (cache_time > 0)
     {
-        mimes[count].name = "cache_time";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = cache_time;
-        count++;
+        telebot_request_int(&req, "cache_time", cache_time);
     }
     if (is_personal)
     {
-        mimes[count].name = "is_personal";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = "true";
-        count++;
+        telebot_request_str(&req, "is_personal", "true");
     }
     if (next_offset)
     {
-        mimes[count].name = "next_offset";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = next_offset;
-        count++;
+        telebot_request_str(&req, "next_offset", next_offset);
     }
     if (button)
     {
-        mimes[count].name = "button";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = button;
-        count++;
+        telebot_request_str(&req, "button", button);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_ANSWER_INLINE_QUERY, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_ANSWER_INLINE_QUERY, &req);
 }
 
 telebot_core_response_t
@@ -1721,45 +1343,27 @@ telebot_core_save_prepared_inline_message(telebot_core_handler_t core_h, long lo
                                           bool allow_user_chats, bool allow_bot_chats, bool allow_group_chats,
                                           bool allow_channel_chats)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[6];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
-    mimes[count].name = "result";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = result;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
+    telebot_request_str(&req, "result", result);
     if (allow_user_chats)
     {
-        mimes[count].name = "allow_user_chats";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = "true";
-        count++;
+        telebot_request_str(&req, "allow_user_chats", "true");
     }
     if (allow_bot_chats)
     {
-        mimes[count].name = "allow_bot_chats";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = "true";
-        count++;
+        telebot_request_str(&req, "allow_bot_chats", "true");
     }
     if (allow_group_chats)
     {
-        mimes[count].name = "allow_group_chats";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = "true";
-        count++;
+        telebot_request_str(&req, "allow_group_chats", "true");
     }
     if (allow_channel_chats)
     {
-        mimes[count].name = "allow_channel_chats";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = "true";
-        count++;
+        telebot_request_str(&req, "allow_channel_chats", "true");
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SAVE_PREPARED_INLINE_MESSAGE, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SAVE_PREPARED_INLINE_MESSAGE, &req);
 }
 
 telebot_core_response_t
@@ -1767,52 +1371,31 @@ telebot_core_send_gift(telebot_core_handler_t core_h, long long int user_id, lon
                        bool pay_for_upgrade, const char *text, const char *text_parse_mode,
                        const char *text_entities)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[7];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (user_id > 0)
     {
-        mimes[count].name = "user_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-        mimes[count].data.lld = user_id;
-        count++;
+        telebot_request_ll(&req, "user_id", user_id);
     }
     if (chat_id != 0)
     {
-        mimes[count].name = "chat_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-        mimes[count].data.lld = chat_id;
-        count++;
+        telebot_request_ll(&req, "chat_id", chat_id);
     }
-    mimes[count].name = "gift_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = gift_id;
-    count++;
-    mimes[count].name = "pay_for_upgrade";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = pay_for_upgrade ? "true" : "false";
-    count++;
+    telebot_request_str(&req, "gift_id", gift_id);
+    telebot_request_bool(&req, "pay_for_upgrade", pay_for_upgrade);
     if (text)
     {
-        mimes[count].name = "text";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text;
-        count++;
+        telebot_request_str(&req, "text", text);
     }
     if (text_parse_mode)
     {
-        mimes[count].name = "text_parse_mode";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text_parse_mode;
-        count++;
+        telebot_request_str(&req, "text_parse_mode", text_parse_mode);
     }
     if (text_entities)
     {
-        mimes[count].name = "text_entities";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text_entities;
-        count++;
+        telebot_request_str(&req, "text_entities", text_entities);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SEND_GIFT, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SEND_GIFT, &req);
 }
 
 telebot_core_response_t
@@ -1820,42 +1403,24 @@ telebot_core_gift_premium_subscription(telebot_core_handler_t core_h, long long 
                                        int star_count, const char *text, const char *text_parse_mode,
                                        const char *text_entities)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[7];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
-    mimes[count].name = "month_count";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = month_count;
-    count++;
-    mimes[count].name = "star_count";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = star_count;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
+    telebot_request_int(&req, "month_count", month_count);
+    telebot_request_int(&req, "star_count", star_count);
     if (text)
     {
-        mimes[count].name = "text";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text;
-        count++;
+        telebot_request_str(&req, "text", text);
     }
     if (text_parse_mode)
     {
-        mimes[count].name = "text_parse_mode";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text_parse_mode;
-        count++;
+        telebot_request_str(&req, "text_parse_mode", text_parse_mode);
     }
     if (text_entities)
     {
-        mimes[count].name = "text_entities";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text_entities;
-        count++;
+        telebot_request_str(&req, "text_entities", text_entities);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GIFT_PREMIUM_SUBSCRIPTION, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GIFT_PREMIUM_SUBSCRIPTION, &req);
 }
 
 telebot_core_response_t
@@ -1867,40 +1432,28 @@ telebot_core_get_my_star_balance(telebot_core_handler_t core_h)
 telebot_core_response_t
 telebot_core_get_star_transactions(telebot_core_handler_t core_h, int offset, int limit)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
+    telebot_request_t req;
+    telebot_request_init(&req);
     if (offset > 0)
     {
-        mimes[count].name = "offset";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = offset;
-        count++;
+        telebot_request_int(&req, "offset", offset);
     }
     if (limit > 0)
     {
-        mimes[count].name = "limit";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = limit;
-        count++;
+        telebot_request_int(&req, "limit", limit);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_STAR_TRANSACTIONS, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_STAR_TRANSACTIONS, &req);
 }
 
 telebot_core_response_t
 telebot_core_refund_star_payment(telebot_core_handler_t core_h, long long int user_id,
                                  const char *telegram_payment_charge_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
-    mimes[count].name = "telegram_payment_charge_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = telegram_payment_charge_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_REFUND_STAR_PAYMENT, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
+    telebot_request_str(&req, "telegram_payment_charge_id", telegram_payment_charge_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_REFUND_STAR_PAYMENT, &req);
 }
 
 telebot_core_response_t
@@ -1912,202 +1465,137 @@ telebot_core_get_available_gifts(telebot_core_handler_t core_h)
 telebot_core_response_t
 telebot_core_get_user_gifts(telebot_core_handler_t core_h, long long int user_id, int offset, int limit)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[3];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
     if (offset > 0)
     {
-        mimes[count].name = "offset";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = offset;
-        count++;
+        telebot_request_int(&req, "offset", offset);
     }
     if (limit > 0)
     {
-        mimes[count].name = "limit";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = limit;
-        count++;
+        telebot_request_int(&req, "limit", limit);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_USER_GIFTS, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_USER_GIFTS, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_chat_gifts(telebot_core_handler_t core_h, long long int chat_id, int offset, int limit)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[3];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
     if (offset > 0)
     {
-        mimes[count].name = "offset";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = offset;
-        count++;
+        telebot_request_int(&req, "offset", offset);
     }
     if (limit > 0)
     {
-        mimes[count].name = "limit";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = limit;
-        count++;
+        telebot_request_int(&req, "limit", limit);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_CHAT_GIFTS, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_CHAT_GIFTS, &req);
 }
 
 telebot_core_response_t
 telebot_core_upgrade_gift(telebot_core_handler_t core_h, const char *gift_id, bool pay_for_upgrade, const char *text,
                           const char *text_parse_mode, const char *text_entities)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[5];
-    mimes[count].name = "gift_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = gift_id;
-    count++;
-    mimes[count].name = "pay_for_upgrade";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = pay_for_upgrade ? "true" : "false";
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "gift_id", gift_id);
+    telebot_request_bool(&req, "pay_for_upgrade", pay_for_upgrade);
     if (text)
     {
-        mimes[count].name = "text";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text;
-        count++;
+        telebot_request_str(&req, "text", text);
     }
     if (text_parse_mode)
     {
-        mimes[count].name = "text_parse_mode";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text_parse_mode;
-        count++;
+        telebot_request_str(&req, "text_parse_mode", text_parse_mode);
     }
     if (text_entities)
     {
-        mimes[count].name = "text_entities";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = text_entities;
-        count++;
+        telebot_request_str(&req, "text_entities", text_entities);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_UPGRADE_GIFT, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_UPGRADE_GIFT, &req);
 }
 
 telebot_core_response_t
 telebot_core_transfer_gift(telebot_core_handler_t core_h, long long int user_id, long long int chat_id,
                            const char *gift_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[3];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "gift_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = gift_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_TRANSFER_GIFT, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_str(&req, "gift_id", gift_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_TRANSFER_GIFT, &req);
 }
 
 telebot_core_response_t
 telebot_core_convert_gift_to_stars(telebot_core_handler_t core_h, const char *gift_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "gift_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = gift_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_CONVERT_GIFT_TO_STARS, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "gift_id", gift_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_CONVERT_GIFT_TO_STARS, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_user_profile_audios(telebot_core_handler_t core_h, long long int user_id, int offset, int limit)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[3];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
     if (offset > 0)
     {
-        mimes[count].name = "offset";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = offset;
-        count++;
+        telebot_request_int(&req, "offset", offset);
     }
     if (limit > 0)
     {
-        mimes[count].name = "limit";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = limit;
-        count++;
+        telebot_request_int(&req, "limit", limit);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_USER_AUDIOS, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_USER_AUDIOS, &req);
 }
 
 telebot_core_response_t
-telebot_core_set_my_profile_photo(telebot_core_handler_t core_h, const char *photo)
+telebot_core_set_my_profile_photo(telebot_core_handler_t core_h, const telebot_input_file_t *photo)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "photo";
-    mimes[count].type = TELEBOT_MIME_TYPE_FILE;
-    mimes[count].data.s = photo;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_MY_PROFILE_PHOTO, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    if (photo == NULL)
+        telebot_request_str_required(&req, "photo", NULL);
+    /* InputProfilePhotoStatic: the image is attached as a separate part */
+    telebot_request_str(&req, "photo", "{\"type\":\"static\",\"photo\":\"attach://file0\"}");
+    telebot_request_upload(&req, "file0", photo);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_MY_PROFILE_PHOTO, &req);
 }
 
 telebot_core_response_t
 telebot_core_remove_my_profile_photo(telebot_core_handler_t core_h, const char *photo_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "photo_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = photo_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_REMOVE_MY_PROFILE_PHOTO, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "photo_id", photo_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_REMOVE_MY_PROFILE_PHOTO, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_business_connection(telebot_core_handler_t core_h, const char *business_connection_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[1];
-    mimes[count].name = "business_connection_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = business_connection_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_BUSINESS_CONNECTION, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "business_connection_id", business_connection_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_BUSINESS_CONNECTION, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_user_chat_boosts(telebot_core_handler_t core_h, long long int chat_id, long long int user_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "chat_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = chat_id;
-    count++;
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_USER_CHAT_BOOSTS, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "chat_id", chat_id);
+    telebot_request_ll(&req, "user_id", user_id);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_USER_CHAT_BOOSTS, &req);
 }
 
 telebot_core_response_t
@@ -2115,149 +1603,89 @@ telebot_core_set_game_score(telebot_core_handler_t core_h, long long int user_id
                             bool disable_edit_message, long long int chat_id, int message_id,
                             const char *inline_message_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[7];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
-    mimes[count].name = "score";
-    mimes[count].type = TELEBOT_MIME_TYPE_INT;
-    mimes[count].data.d = score;
-    count++;
-    mimes[count].name = "force";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = force ? "true" : "false";
-    count++;
-    mimes[count].name = "disable_edit_message";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = disable_edit_message ? "true" : "false";
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
+    telebot_request_int(&req, "score", score);
+    telebot_request_bool(&req, "force", force);
+    telebot_request_bool(&req, "disable_edit_message", disable_edit_message);
     if (chat_id != 0)
     {
-        mimes[count].name = "chat_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-        mimes[count].data.lld = chat_id;
-        count++;
+        telebot_request_ll(&req, "chat_id", chat_id);
     }
     if (message_id > 0)
     {
-        mimes[count].name = "message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = message_id;
-        count++;
+        telebot_request_int(&req, "message_id", message_id);
     }
     if (inline_message_id)
     {
-        mimes[count].name = "inline_message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = inline_message_id;
-        count++;
+        telebot_request_str(&req, "inline_message_id", inline_message_id);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_GAME_SCORE, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_GAME_SCORE, &req);
 }
 
 telebot_core_response_t
 telebot_core_get_game_high_scores(telebot_core_handler_t core_h, long long int user_id, long long int chat_id,
                                   int message_id, const char *inline_message_id)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[4];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
     if (chat_id != 0)
     {
-        mimes[count].name = "chat_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-        mimes[count].data.lld = chat_id;
-        count++;
+        telebot_request_ll(&req, "chat_id", chat_id);
     }
     if (message_id > 0)
     {
-        mimes[count].name = "message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_INT;
-        mimes[count].data.d = message_id;
-        count++;
+        telebot_request_int(&req, "message_id", message_id);
     }
     if (inline_message_id)
     {
-        mimes[count].name = "inline_message_id";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = inline_message_id;
-        count++;
+        telebot_request_str(&req, "inline_message_id", inline_message_id);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_GET_GAME_HIGH_SCORES, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_GET_GAME_HIGH_SCORES, &req);
 }
 
 telebot_core_response_t
 telebot_core_set_passport_data_errors(telebot_core_handler_t core_h, long long int user_id, const char *errors)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[2];
-    mimes[count].name = "user_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_LONG_LONG_INT;
-    mimes[count].data.lld = user_id;
-    count++;
-    mimes[count].name = "errors";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = errors;
-    count++;
-    return telebot_core_perform(core_h, TELEBOT_METHOD_SET_PASSPORT_DATA_ERRORS, mimes, count);
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_ll(&req, "user_id", user_id);
+    telebot_request_str(&req, "errors", errors);
+    return telebot_core_request(core_h, TELEBOT_METHOD_SET_PASSPORT_DATA_ERRORS, &req);
 }
 
 telebot_core_response_t
 telebot_core_answer_shipping_query(telebot_core_handler_t core_h, const char *shipping_query_id, bool ok,
                                    const char *shipping_options, const char *error_message)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[4];
-    mimes[count].name = "shipping_query_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = shipping_query_id;
-    count++;
-    mimes[count].name = "ok";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = ok ? "true" : "false";
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "shipping_query_id", shipping_query_id);
+    telebot_request_bool(&req, "ok", ok);
     if (shipping_options)
     {
-        mimes[count].name = "shipping_options";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = shipping_options;
-        count++;
+        telebot_request_str(&req, "shipping_options", shipping_options);
     }
     if (error_message)
     {
-        mimes[count].name = "error_message";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = error_message;
-        count++;
+        telebot_request_str(&req, "error_message", error_message);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_ANSWER_SHIPPING_QUERY, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_ANSWER_SHIPPING_QUERY, &req);
 }
 
 telebot_core_response_t
 telebot_core_answer_pre_checkout_query(telebot_core_handler_t core_h, const char *pre_checkout_query_id, bool ok,
                                        const char *error_message)
 {
-    int count = 0;
-    telebot_core_mime_t mimes[3];
-    mimes[count].name = "pre_checkout_query_id";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = pre_checkout_query_id;
-    count++;
-    mimes[count].name = "ok";
-    mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-    mimes[count].data.s = ok ? "true" : "false";
-    count++;
+    telebot_request_t req;
+    telebot_request_init(&req);
+    telebot_request_str(&req, "pre_checkout_query_id", pre_checkout_query_id);
+    telebot_request_bool(&req, "ok", ok);
     if (error_message)
     {
-        mimes[count].name = "error_message";
-        mimes[count].type = TELEBOT_MIME_TYPE_STRING;
-        mimes[count].data.s = error_message;
-        count++;
+        telebot_request_str(&req, "error_message", error_message);
     }
-    return telebot_core_perform(core_h, TELEBOT_METHOD_ANSWER_PRE_CHECKOUT_QUERY, mimes, count);
+    return telebot_core_request(core_h, TELEBOT_METHOD_ANSWER_PRE_CHECKOUT_QUERY, &req);
 }

@@ -45,14 +45,14 @@ telebot_error_e telebot_send_game(telebot_handler_t handle, long long int chat_i
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *result = NULL;
-    if (!tb_json_get_ex(obj, "result", &result))
+    if (!telebot_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -62,7 +62,7 @@ telebot_error_e telebot_send_game(telebot_handler_t handle, long long int chat_i
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -93,14 +93,14 @@ telebot_error_e telebot_set_game_score(telebot_handler_t handle,
         }
 
         struct cJSON *ok = NULL;
-        if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+        if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
             goto finish;
         }
 
         struct cJSON *result = NULL;
-        if (tb_json_get_ex(obj, "result", &result))
+        if (telebot_json_get_ex(obj, "result", &result))
         {
             if (cJSON_IsObject(result))
                 ret = telebot_parser_get_message(result, message);
@@ -109,7 +109,7 @@ telebot_error_e telebot_set_game_score(telebot_handler_t handle,
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -138,20 +138,20 @@ telebot_error_e telebot_get_game_high_scores(telebot_handler_t handle,
     }
 
     struct cJSON *ok = NULL;
-    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
+    if (!telebot_json_get_ex(obj, "ok", &ok) || !telebot_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
     struct cJSON *result = NULL;
-    if (!tb_json_get_ex(obj, "result", &result))
+    if (!telebot_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    int array_len = tb_json_array_length(result);
+    int array_len = telebot_json_array_length(result);
     if (array_len <= 0)
     {
         *count = 0;
@@ -169,12 +169,12 @@ telebot_error_e telebot_get_game_high_scores(telebot_handler_t handle,
 
     for (int i = 0; i < array_len; i++)
     {
-        telebot_parser_get_game_high_score(tb_json_array_get_idx(result, i), &((*high_scores)[i]));
+        telebot_parser_get_game_high_score(telebot_json_array_get_idx(result, i), &((*high_scores)[i]));
     }
 
 finish:
     if (obj)
-        tb_json_put(obj);
+        telebot_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }

@@ -32,6 +32,15 @@ menu "Telebot (Telegram Bot API)"
         help
             Must be longer than the long-polling timeout passed to getUpdates.
 
+    config TELEBOT_ARENA_BLOCK_SIZE
+        int "Update arena block size (bytes)"
+        default 2048
+        range 256 65536
+        help
+            Each batch of updates is parsed into blocks of this size, released
+            together by telebot_put_updates(). Larger blocks mean fewer
+            allocations; smaller blocks waste less memory for small updates.
+
     config TELEBOT_URL_SIZE
         int "Request URL buffer size (bytes)"
         default 384
@@ -62,6 +71,10 @@ menu "Telebot (Telegram Bot API)"
 
         config TELEBOT_FEATURE_PASSPORT
             bool "Telegram Passport data"
+            default n
+
+        config TELEBOT_FEATURE_WIDGETS
+            bool "Widget queries (TON wallets, Mini App widgets)"
             default n
     endmenu
 

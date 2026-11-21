@@ -102,4 +102,33 @@ static inline bool *telebot_bool_field_ptr(void *object, const telebot_bool_fiel
     return (bool *)((char *)object + field->offset);
 }
 
+/*
+ * Scalar JSON fields parsed by table: one loop replaces a block of code per
+ * field. Offsets are 16-bit; every parsed struct is far smaller than 64 KiB.
+ */
+typedef enum telebot_field_kind
+{
+    TELEBOT_FIELD_STRING,    /* char *, duplicated */
+    TELEBOT_FIELD_BOOL,      /* bool */
+    TELEBOT_FIELD_INT,       /* int */
+    TELEBOT_FIELD_LONG,      /* long */
+    TELEBOT_FIELD_LONG_LONG, /* long long */
+} telebot_field_kind_e;
+
+typedef struct telebot_json_field
+{
+    const char *key;
+    unsigned short offset;
+    unsigned char kind;
+} telebot_json_field_t;
+
+#define TELEBOT_JSON_FIELD(key, type, field, kind) {key, (unsigned short)offsetof(type, field), kind}
+
+TELEBOT_STATIC_ASSERT(sizeof(telebot_message_t) < 65536, "field offsets must fit in 16 bits");
+
+struct cJSON;
+
+/* Copies every listed field present in `obj` into the struct at `target` */
+void telebot_parse_fields(const struct cJSON *obj, void *target, const telebot_json_field_t *fields, size_t count);
+
 #endif /* __TELEBOT_FIELDS_H__ */

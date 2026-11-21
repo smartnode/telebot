@@ -40,5 +40,6 @@ var searchData=
   ['provider_5fpayment_5fcharge_5fid_37',['provider_payment_charge_id',['../structtelebot__successful__payment.html#af019c5dcd005dceb182b94434b82644b',1,'telebot_successful_payment::provider_payment_charge_id'],['../structtelebot__refunded__payment.html#ac75ae3e388925fc25a2bf4c6f56ccb99',1,'telebot_refunded_payment::provider_payment_charge_id']]],
   ['provider_5ftoken_38',['provider_token',['../structtelebot__invoice__params.html#a6a4cef48c8abb5296421cdcead2dcb78',1,'telebot_invoice_params']]],
   ['proximity_5falert_5ftriggered_39',['proximity_alert_triggered',['../structtelebot__message.html#a49941ef0d11dc88c636b0d20b8346abc',1,'telebot_message']]],
-  ['purchased_5fpaid_5fmedia_40',['purchased_paid_media',['../uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html#af572d87d5b1a90f98c84c15b8d4c026d',1,'telebot_update::[union].__unnamed0__']]]
+  ['public_5fkey_40',['public_key',['../structtelebot__widget__query__wallet.html#a3f14e30448b8a6ac67298dacdeb1881b',1,'telebot_widget_query_wallet']]],
+  ['purchased_5fpaid_5fmedia_41',['purchased_paid_media',['../uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html#af572d87d5b1a90f98c84c15b8d4c026d',1,'telebot_update::[union].__unnamed0__']]]
 ];
