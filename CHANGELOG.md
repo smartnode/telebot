@@ -2,8 +2,8 @@
 
 ## 10.4.0 (unreleased)
 
-Follows Telegram Bot API 10.4. This is a breaking release; see "Migrating from 9.x to 10.x" in
-[README.md](README.md) for the signature changes.
+Follows Telegram Bot API 10.4. This is a breaking release; see
+[MIGRATION.md](MIGRATION.md) for the signature changes.
 
 ### Platforms
 
@@ -69,3 +69,5 @@ Follows Telegram Bot API 10.4. This is a breaking release; see "Migrating from 9
 - GoogleTest unit tests that need no network, using a fake transport.
 - A check that every function declared in a public header is defined.
 - Doxygen builds without warnings, enforced in CI.
+- The API reference uses the doxygen-awesome theme (sidebar navigation, dark mode) and is
+  built and published to GitHub Pages by CI instead of being committed under `docs/`.

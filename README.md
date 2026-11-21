@@ -73,31 +73,6 @@ telebot_param_t params[] = {{"chat_id", "-1001234567890", NULL}, {"user_id", "42
 telebot_core_response_t r = telebot_core_call(core_h, "getChatMember", params, 2);
 ```
 
-## Migrating from 9.x to 10.x
-
-Version 10 follows Bot API 10.4 and changes many signatures. The compiler points out every call that
-needs updating; the patterns are:
-
-| 9.x | 10.x |
-|---|---|
-| `const char *photo, bool is_file` (all media) | `const telebot_input_file_t *photo`, built with `TELEBOT_FILE_REMOTE()`, `TELEBOT_FILE_PATH()` or `TELEBOT_FILE_MEMORY()` (or the `telebot_input_file_*()` functions in C++) |
-| `bool disable_notification, int reply_to_message_id, const char *reply_markup` | one `const telebot_send_options_t *options` (or `NULL`), which also covers forum topics, protected content and message effects |
-| `bool disable_web_page_preview` | `bool disable_link_preview` |
-| `const char *thumb` | `const telebot_input_file_t *thumbnail` (uploaded from a path or memory) |
-| `int user_id` | `long long int user_id` |
-| positional `can_*` booleans in restrict/promote/set_chat_permissions | `telebot_chat_permissions_t` / `telebot_chat_administrator_rights_t` |
-| `send_poll(..., const char **options, ..., int correct_option_id, ...)` | `send_poll(..., const char *const answers[], ..., const int correct_option_ids[], int count_correct, ...)` |
-| `send_media_group(char *media_paths[], ...)` | `send_media_group(const telebot_input_media_t media[], ...)` |
-| 25 positional invoice arguments | `const telebot_invoice_params_t *invoice` |
-| `float latitude, float longitude` | `double latitude, double longitude` |
-| `telebot_kick_chat_member()` | `telebot_ban_chat_member()` |
-| `thumb` members of media structs | `thumbnail` |
-
-Unrecognised updates now arrive as `TELEBOT_UPDATE_TYPE_UNKNOWN`, and an empty long poll returns
-`TELEBOT_ERROR_NONE` with `count == 0`.
-
-For Bot API methods the library does not wrap, use `telebot_core_call()` with name/value parameters.
-
 ## ESP32 (ESP-IDF)
 
 The repository root is an ESP-IDF component (ESP-IDF 5.1 or newer, tested with v6.1.1).
@@ -113,7 +88,7 @@ dependencies:
     path: /path/to/telebot   # or a git: dependency
 ```
 
-A complete echo bot lives in [examples/esp32_echo](examples/esp32_echo):
+A complete echo bot lives in [examples/esp32_echo](https://github.com/smartnode/telebot/tree/master/examples/esp32_echo):
 
 ```sh
 cd examples/esp32_echo
@@ -184,8 +159,8 @@ Pass `-DTELEBOT_BUILD_TESTS=OFF` to cmake to skip them.
 
 | Example | Platform | What it shows |
 |---|---|---|
-| [host_demo_bot](examples/host_demo_bot) | Linux / macOS | Many API calls driven by chat commands: media, polls, keyboards |
-| [esp32_echo](examples/esp32_echo) | ESP32 (ESP-IDF) | Minimal long-polling echo bot with memory logging |
+| [host_demo_bot](https://github.com/smartnode/telebot/tree/master/examples/host_demo_bot) | Linux / macOS | Many API calls driven by chat commands: media, polls, keyboards |
+| [esp32_echo](https://github.com/smartnode/telebot/tree/master/examples/esp32_echo) | ESP32 (ESP-IDF) | Minimal long-polling echo bot with memory logging |
 
 To run the host demo, put your bot token in a `.token` file in the current directory:
 ```sh
@@ -197,7 +172,7 @@ Pass `-DTELEBOT_BUILD_EXAMPLES=OFF` to cmake to skip building it.
 <summary>Sample</summary>
 
 Following sample creates a simple dummy bot which echoes back the messages sent to it.
-A more comprehensive [demo bot](examples/host_demo_bot/demo_bot.c) is built as `demo_bot` under `build/examples/host_demo_bot`.
+A more comprehensive [demo bot](https://github.com/smartnode/telebot/blob/master/examples/host_demo_bot/demo_bot.c) is built as `demo_bot` under `build/examples/host_demo_bot`.
 It supports various commands to test APIs, polls, custom keyboards, and multimedia sending.
 The executable expects and reads bot token from `.token` file on the same location.
 
@@ -310,3 +285,17 @@ int main(void)
 ```
 
 </details>
+
+## Documentation
+
+The API reference is published at **https://smartnode.github.io/telebot/** and rebuilt from
+`master` on every push. Start with the
+[Telebot API](https://smartnode.github.io/telebot/group__TELEBOT__API.html) (parsed results)
+or the [core API](https://smartnode.github.io/telebot/group__TELEBOT__CORE__API.html) (raw
+JSON responses).
+
+To build it locally with [Doxygen](https://www.doxygen.nl) 1.18:
+
+```sh
+doxygen Doxyconf     # output in build/doxygen/html/index.html
+```

@@ -1,0 +1,50 @@
+name: API docs
+
+# Builds the API reference with Doxygen and the doxygen-awesome theme
+# (doxygen/awesome) and publishes it to GitHub Pages.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  DOXYGEN_VERSION: 1.18.0
+  DOXYGEN_SHA256: 14fa81bdc34171edb5f1f02b1d60e74802f0439b77fa44e592565d517d72df90
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: install doxygen
+      run: |
+        curl -fsSL -o "$RUNNER_TEMP/doxygen.tar.gz" \
+          "https://github.com/doxygen/doxygen/releases/download/Release_${DOXYGEN_VERSION//./_}/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"
+        echo "$DOXYGEN_SHA256  $RUNNER_TEMP/doxygen.tar.gz" | sha256sum -c -
+        tar xzf "$RUNNER_TEMP/doxygen.tar.gz" -C "$RUNNER_TEMP"
+        echo "$RUNNER_TEMP/doxygen-${DOXYGEN_VERSION}/bin" >> "$GITHUB_PATH"
+    - name: build (any warning fails the build)
+      run: ( cat Doxyconf; echo "WARN_AS_ERROR=FAIL_ON_WARNINGS" ) | doxygen -
+    - uses: actions/configure-pages@v5
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: build/doxygen/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - id: deployment
+      uses: actions/deploy-pages@v4
