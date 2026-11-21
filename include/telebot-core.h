@@ -20,8 +20,11 @@
 #define __TELEBOT_CORE_API_H__
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <pthread.h>
 #include "telebot-common.h"
+#include "telebot-types.h"
+#include "telebot-payments.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -64,6 +67,24 @@ typedef struct telebot_core_response *telebot_core_response_t;
 telebot_error_e telebot_core_get_response_code(telebot_core_response_t response);
 
 /**
+ * @brief Seconds Telegram asks to wait before repeating a rate-limited request.
+ *
+ * Non-zero only when the response code is #TELEBOT_ERROR_RATE_LIMITED.
+ *
+ * @param[in] response Response returned by a core function.
+ * @return Seconds to wait, or 0.
+ */
+int telebot_core_get_response_retry_after(telebot_core_response_t response);
+
+/**
+ * @brief Seconds to wait after the most recent request made with a core handler.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @return The retry_after value of the last request, or 0 if it was not rate-limited.
+ */
+int telebot_core_get_retry_after(telebot_core_handler_t core_h);
+
+/**
  * @brief Get response data.
  * @param[in] response Response to get its data.
  * @return on For successful responses null terminated string is returned,
@@ -83,10 +104,11 @@ void telebot_core_put_response(telebot_core_response_t response);
  * This function must be used first to call, and it creates handler that is used
  * as input to other functions in telebot core interface. This call MUST have
  * corresponding call to #telebot_core_destroy when operation is complete.
- * @param core_h[out] A pointer to a handler, which will be allocated and created.
- * Obtained handler MUST be released with #telebot_core_destroy()
- * @param token[in] Telegram bot token to use.
- * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
+ *
+ * @param[out] core_h Receives the new core handler; release it with #telebot_core_destroy().
+ * @param[in] token Bot token from \@BotFather, e.g. "123456:ABC-DEF..."; it is copied.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_error_e telebot_core_create(telebot_core_handler_t *core_h, const char *token);
 
@@ -140,7 +162,7 @@ telebot_error_e telebot_core_get_proxy(telebot_core_handler_t core_h, char **add
  * Specify an empty list to receive all updates regardless of type (default).
  * @return #telebot_core_response_t response that contains updates,
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_get_updates(telebot_core_handler_t core_h,
@@ -164,7 +186,7 @@ telebot_core_response_t telebot_core_get_updates(telebot_core_handler_t core_h,
  * "callback_query"] to only receive updates of these types.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_set_webhook(telebot_core_handler_t core_h,
@@ -176,7 +198,7 @@ telebot_core_response_t telebot_core_set_webhook(telebot_core_handler_t core_h,
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_delete_webhook(telebot_core_handler_t core_h);
@@ -186,329 +208,294 @@ telebot_core_response_t telebot_core_delete_webhook(telebot_core_handler_t core_
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
  * @return #telebot_core_response_t response that contains webhook information,
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_get_webhook_info(telebot_core_handler_t core_h);
 
 /**
  * @brief Get basic information about the bot.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[out] response Response data, MUST be freed with #telebot_core_put_response().
- * @return #telebot_core_response_t response that contains bot information,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_get_me(telebot_core_handler_t core_h);
 
 /**
- * @brief Send text messages.
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] text Text of the message to be sent, 1-4096 characters after entities parsing.
- * @param[in] parse_mode Send Markdown or HTML, if you want Telegram apps to show bold,
- * italic, fixed-width or inline URLs in your bot's message.
- * @param[in] disable_web_page_preview Disables link previews for links in this message.
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom
- * reply keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_send_message(telebot_core_handler_t core_h,
-        long long int chat_id, const char *text, const char *parse_mode,
-        bool disable_web_page_preview, bool disable_notification,
-        int reply_to_message_id, const char *reply_markup);
-
-/**
- * @brief Forward messages of any kind.
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] from_chat_id Unique identifier for the chat where the original
- * message was sent (or channel username in the format \@channelusername).
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] message_id Unique message identifier.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_forward_message(telebot_core_handler_t core_h,
-        long long int chat_id, long long int from_chat_id, bool disable_notification,
-        int message_id);
-
-/**
- * @brief Send photos.
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] photo Photo to send. It is either file_id as String to resend a photo
- * that is already on the Telegram servers, or a path to photo file.
- * @param[in] is_file False if photo is file_id, true, if photo is a file path.
- * @param[in] caption Photo caption. (may also be used when resending photos).
- * @param[in] parse_mode Send Markdown or HTML, if you want Telegram apps to show bold,
- * italic, fixed-width or inline URLs in your bot's message.
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom
- * reply keyboard, instructions to hide keyboard or to force a reply from
- * the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_send_photo(telebot_core_handler_t core_h,
-        long long int chat_id, const char *photo, bool is_file, const char *caption,
-        const char *parse_mode, bool disable_notification, int reply_to_message_id,
-        const char *reply_markup);
-
-/**
- * @brief Send audio files. if you want Telegram clients to display them in the
- * music player. Your audio must be in the .mp3 format. Bots can currently send
- * audio files of up to 50 MB in size. For backward compatibility, when the fields
- * title and performer are both empty and the mime-type of the file to be sent is
- * not audio/mpeg, the file will be sent as a playable voice message. For this to
- * work, the audio must be in an .ogg file encoded with OPUS. For sending voice
- * messages, use the telegram_core_send_voice() function instead.
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] audio Audio file to send. It is either a file_id as String to resend an
- * audio that is already on the Telegram servers, or a path to audio file.
- * @param[in] is_file False if audio is file_id, true, if audio is a file path.
- * @param[in] caption Audio caption. (may also be used when resending audios).
- * @param[in] parse_mode Send Markdown or HTML, if you want Telegram apps to show bold,
- * italic, fixed-width or inline URLs in your bot's message.
- * @param[in] duration Duration of sent audio in seconds.
- * @param[in] performer The performer of the audio.
- * @param[in] title The track name of the audio.
- * @param[in] thumb Thumbnail file path of the file sent; can be ignored if thumbnail
- * generation for the file is supported server-side. The thumbnail should be in
- * JPEG format and less than 200 kB in size. A thumbnail's width and height should not
- * exceed 320. Optional. Set to NULL to ignore.
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom reply
- * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_send_audio(telebot_core_handler_t core_h,
-        long long int chat_id, const char *audio, bool is_file, const char *caption,
-        const char *parse_mode, int duration, const char *performer, const char *title,
-        const char *thumb, bool disable_notification, int reply_to_message_id,
-        const char *reply_markup);
-
-/**
- * @brief Send general files.
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] document Document file to send. It is either a file_id as String to
- * resend a file that is already on the Telegram servers, or a path to file.
- * @param[in] is_file False if document is file_id, true, if document is a file path.
- * @param[in] thumb Thumbnail file path of the file sent; can be ignored if thumbnail
- * generation for the file is supported server-side. The thumbnail should be in
- * JPEG format and less than 200 kB in size. A thumbnail's width and height should not
- * exceed 320. Optional. Set to NULL to ignore.
- * @param[in] caption Document caption. (may also be used when resending documents).
- * @param[in] parse_mode Send Markdown or HTML, if you want Telegram apps to show bold,
- * italic, fixed-width or inline URLs in your bot's message.
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom reply
- * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_send_document(telebot_core_handler_t core_h,
-        long long int chat_id, const char *document, bool is_file, const char *thumb,
-        const char *caption, const char *parse_mode, bool disable_notification,
-        int reply_to_message_id, const char *reply_markup);
-
-/**
- * @brief Send video files, Telegram clients support mp4 videos (other formats
- * may be sent as Document).
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] video Video file to send. It is either a file_id as String to resend
- * a video that is already on the Telegram servers, or a path to video file.
- * @param[in] is_file False if video is file_id, true, if video is a file path.
- * @param[in] duration Duration of sent video in seconds. Optional, set 0 for ignoring.
- * @param[in] width Video width. Optional, set 0 for ignoring.
- * @param[in] height Video heigh. Optional, set 0 for ignoring.
- * @param[in] thumb Thumbnail file path of the file sent; can be ignored if thumbnail
- * generation for the file is supported server-side. The thumbnail should be in
- * JPEG format and less than 200 kB in size. A thumbnail's width and height should not
- * exceed 320. Optional. Set to NULL to ignore.
- * @param[in] caption Video caption. (may also be used when resending videos).
- * @param[in] parse_mode Send Markdown or HTML, if you want Telegram apps to show bold,
- * italic, fixed-width or inline URLs in your bot's message.
- * @param[in] supports_streaming Pass True, if the uploaded video is suitable for streaming.
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom reply
- * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_send_video(telebot_core_handler_t core_h,
-        long long int chat_id, const char *video, bool is_file, int duration,
-        int width, int height, const char *thumb, const char *caption,
-        const char *parse_mode, bool supports_streaming, bool disable_notification,
-        int reply_to_message_id, const char *reply_markup);
-
-/**
- * @brief Send animation files (GIF or H.264/MPEG-4 AVC without sound).
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] animation Animation file to send. It is either a file_id to resend
- * an animation that exists on the Telegram servers, or a path to animation file.
- * @param[in] is_file False if animation is file_id, true, if animation is a file path.
- * @param[in] duration Duration of sent animation in seconds.
- * @param[in] width Animation width
- * @param[in] height Animation height
- * @param[in] thumb Thumbnail file path of the file sent; can be ignored if thumbnail
- * generation for the file is supported server-side. The thumbnail should be in
- * JPEG format and less than 200 kB in size. A thumbnail's width and height should not
- * exceed 320. Optional. Set to NULL to ignore.
- * @param[in] caption Animation caption. (may also be used when resending animations).
- * @param[in] parse_mode Send Markdown or HTML, if you want Telegram apps to show bold,
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom reply
- * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_send_animation(telebot_core_handler_t core_h,
-        long long int chat_id, const char *animation, bool is_file, int duration,
-        int width, int height, const char *thumb, const char *caption,
-        const char *parse_mode, bool disable_notification, int reply_to_message_id,
-        const char *reply_markup);
-
-/**
- * @brief Send audio files, if you want Telegram clients to display the file as
- * a playable voice message. For this to work, your audio must be in an .ogg file
- * encoded with OPUS (other formats may be sent as Audio or Document).
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] voice Audio file to send. It is either a file_id as String to resend
- * a audio that is already on the Telegram servers, or a path to audio file.
- * @param[in] is_file False if voice is file_id, true, if voice is a file path.
- * @param[in] caption Voice message caption. (may also be used when resending).
- * @param[in] parse_mode Send Markdown or HTML, if you want Telegram apps to show bold,
- * @param[in] duration Duration of sent voice/audio in seconds.
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom reply
- * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_send_voice(telebot_core_handler_t core_h,
-        long long int chat_id, const char *voice, bool is_file, const char *caption,
-        const char *parse_mode, int duration, bool disable_notification,
-        int reply_to_message_id, const char *reply_markup);
-
-/**
- * @brief Send video messages. As of v.4.0, Telegram clients support rounded square
- * mp4 videos of up to 1 minute long.
- * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] video_not Video note to send. It is either a file_id to resend
- * a video note that exists on the Telegram servers, or a path to video note file.
- * @param[in] is_file False if video note is file_id, true, if video note is a file path.
- * @param[in] duration Duration of sent video in seconds.
- * @param[in] length Video width and height, i.e. diameter of the video message.
- * @param[in] thumb Thumbnail file path of the file sent; can be ignored if thumbnail
- * generation for the file is supported server-side. The thumbnail should be in
- * JPEG format and less than 200 kB in size. A thumbnail's width and height should not
- * exceed 320. Optional. Set to NULL to ignore.
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom reply
- * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
- */
-telebot_core_response_t telebot_core_send_video_note(telebot_core_handler_t core_h,
-        long long int chat_id, char *video_note, bool is_file, int duration, int length,
-        const char *thumb, bool disable_notification, int reply_to_message_id,
-        const char *reply_markup);
-
-/**
- * @brief Send a group of photos as an album.
+ * @brief Sends a text message.
+ *
+ * Bot API method: sendMessage.
  *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the target channel.
- * @param[in] media_paths Array of file paths to photos to send.
- * @param[in] count Number of photos in the array (2–10).
- * @param[in] disable_notification Sends the message silently. Users will receive a notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] text Text of the message, 1-4096 characters after entity parsing.
+ * @param[in] parse_mode Optional formatting: "MarkdownV2", "HTML" or "Markdown"; NULL for plain
+ *     text.
+ * @param[in] disable_link_preview Do not show a preview for links in the text.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_send_media_group(telebot_core_handler_t core_h,
-    long long int chat_id, char *media_paths[], int count, bool disable_notification,
-    int reply_to_message_id);
+telebot_core_response_t telebot_core_send_message(telebot_core_handler_t core_h, long long int chat_id,
+        const char *text, const char *parse_mode, bool disable_link_preview,
+        const telebot_send_options_t *options);
 
 /**
- * @brief Send point on the map.
+ * @brief Forwards a message of any kind.
+ *
+ * Only message_thread_id, disable_notification, protect_content and message_effect_id are taken
+ *     from @p options.
+ *
+ * Bot API method: forwardMessage.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] latitude Latitude of location.
- * @param[in] longitude Longitude of location.
- * @param[in] live_period Period in secnods for which the location will be updated.
- * Should be between 60 and 86400.
- * @param[in] disable_notification Sends the message silently. Users will receive a
- * notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. An object for a custom reply
- * keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains the sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] from_chat_id Chat where the original message was sent.
+ * @param[in] message_id Identifier of the message in @p from_chat_id.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_send_location(telebot_core_handler_t core_h,
-        long long int chat_id, float latitude, float longitude, int live_period,
-        bool disable_notification, int reply_to_message_id, const char *reply_markup);
+telebot_core_response_t telebot_core_forward_message(telebot_core_handler_t core_h, long long int chat_id,
+        long long int from_chat_id, int message_id, const telebot_send_options_t *options);
+
+/**
+ * @brief Sends a photo.
+ *
+ * Upload limit is 10 MB; width plus height must not exceed 10000 and the aspect ratio must be at
+ *     most 20.
+ *
+ * Bot API method: sendPhoto.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] photo Photo to send: a file_id or HTTP URL, a local file, or bytes in memory; see
+ *     #telebot_input_file_t.
+ * @param[in] caption Optional caption, 0-1024 characters after entity parsing, or NULL.
+ * @param[in] parse_mode Optional formatting of the caption: "MarkdownV2", "HTML" or "Markdown";
+ *     NULL for plain text.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_photo(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *photo, const char *caption, const char *parse_mode,
+        const telebot_send_options_t *options);
+
+/**
+ * @brief Sends an audio file to be shown in the music player.
+ *
+ * Use MP3 or M4A, up to 50 MB. For voice messages use #telebot_send_voice().
+ *
+ * Bot API method: sendAudio.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] audio Audio file to send: a file_id or HTTP URL, a local file, or bytes in memory; see
+ *     #telebot_input_file_t.
+ * @param[in] caption Optional caption, 0-1024 characters after entity parsing, or NULL.
+ * @param[in] parse_mode Optional formatting of the caption: "MarkdownV2", "HTML" or "Markdown";
+ *     NULL for plain text.
+ * @param[in] duration Duration in seconds, or 0 if unknown.
+ * @param[in] performer Optional performer, or NULL.
+ * @param[in] title Optional track name, or NULL.
+ * @param[in] thumbnail Optional thumbnail (JPEG, under 200 kB, at most 320x320), uploaded from a
+ *     path or memory, or NULL. A file_id or URL is rejected because Telegram never reuses
+ *     thumbnails.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_audio(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *audio, const char *caption, const char *parse_mode, int duration,
+        const char *performer, const char *title, const telebot_input_file_t *thumbnail,
+        const telebot_send_options_t *options);
+
+/**
+ * @brief Sends a general file.
+ *
+ * Files of any type, up to 50 MB.
+ *
+ * Bot API method: sendDocument.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] document File to send: a file_id or HTTP URL, a local file, or bytes in memory; see
+ *     #telebot_input_file_t.
+ * @param[in] thumbnail Optional thumbnail (JPEG, under 200 kB, at most 320x320), uploaded from a
+ *     path or memory, or NULL. A file_id or URL is rejected because Telegram never reuses
+ *     thumbnails.
+ * @param[in] caption Optional caption, 0-1024 characters after entity parsing, or NULL.
+ * @param[in] parse_mode Optional formatting of the caption: "MarkdownV2", "HTML" or "Markdown";
+ *     NULL for plain text.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_document(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *document, const telebot_input_file_t *thumbnail, const char *caption,
+        const char *parse_mode, const telebot_send_options_t *options);
+
+/**
+ * @brief Sends an MPEG4 video.
+ *
+ * Bot API method: sendVideo.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] video Video to send: a file_id or HTTP URL, a local file, or bytes in memory; see
+ *     #telebot_input_file_t.
+ * @param[in] duration Duration in seconds, or 0 if unknown.
+ * @param[in] width Width in pixels, or 0 if unknown.
+ * @param[in] height Height in pixels, or 0 if unknown.
+ * @param[in] thumbnail Optional thumbnail (JPEG, under 200 kB, at most 320x320), uploaded from a
+ *     path or memory, or NULL. A file_id or URL is rejected because Telegram never reuses
+ *     thumbnails.
+ * @param[in] caption Optional caption, 0-1024 characters after entity parsing, or NULL.
+ * @param[in] parse_mode Optional formatting of the caption: "MarkdownV2", "HTML" or "Markdown";
+ *     NULL for plain text.
+ * @param[in] supports_streaming The video is suitable for streaming.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_video(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *video, int duration, int width, int height,
+        const telebot_input_file_t *thumbnail, const char *caption, const char *parse_mode,
+        bool supports_streaming, const telebot_send_options_t *options);
+
+/**
+ * @brief Sends a GIF or an H.264/MPEG-4 AVC video without sound.
+ *
+ * Bot API method: sendAnimation.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] animation Animation to send: a file_id or HTTP URL, a local file, or bytes in memory;
+ *     see #telebot_input_file_t.
+ * @param[in] duration Duration in seconds, or 0 if unknown.
+ * @param[in] width Width in pixels, or 0 if unknown.
+ * @param[in] height Height in pixels, or 0 if unknown.
+ * @param[in] thumbnail Optional thumbnail (JPEG, under 200 kB, at most 320x320), uploaded from a
+ *     path or memory, or NULL. A file_id or URL is rejected because Telegram never reuses
+ *     thumbnails.
+ * @param[in] caption Optional caption, 0-1024 characters after entity parsing, or NULL.
+ * @param[in] parse_mode Optional formatting of the caption: "MarkdownV2", "HTML" or "Markdown";
+ *     NULL for plain text.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_animation(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *animation, int duration, int width, int height,
+        const telebot_input_file_t *thumbnail, const char *caption, const char *parse_mode,
+        const telebot_send_options_t *options);
+
+/**
+ * @brief Sends a voice message.
+ *
+ * Use OGG encoded with OPUS, MP3 or M4A, up to 50 MB.
+ *
+ * Bot API method: sendVoice.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] voice Audio file to send: a file_id or HTTP URL, a local file, or bytes in memory; see
+ *     #telebot_input_file_t.
+ * @param[in] caption Optional caption, 0-1024 characters after entity parsing, or NULL.
+ * @param[in] parse_mode Optional formatting of the caption: "MarkdownV2", "HTML" or "Markdown";
+ *     NULL for plain text.
+ * @param[in] duration Duration in seconds, or 0 if unknown.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_voice(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *voice, const char *caption, const char *parse_mode, int duration,
+        const telebot_send_options_t *options);
+
+/**
+ * @brief Sends a rounded square video message of up to 1 minute.
+ *
+ * Sending video notes by URL is not supported by Telegram.
+ *
+ * Bot API method: sendVideoNote.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] video_note Video note to send: a file_id or HTTP URL, a local file, or bytes in
+ *     memory; see #telebot_input_file_t.
+ * @param[in] duration Duration in seconds, or 0 if unknown.
+ * @param[in] length Video width and height (the diameter), or 0 if unknown.
+ * @param[in] thumbnail Optional thumbnail (JPEG, under 200 kB, at most 320x320), uploaded from a
+ *     path or memory, or NULL. A file_id or URL is rejected because Telegram never reuses
+ *     thumbnails.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_video_note(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *video_note, int duration, int length,
+        const telebot_input_file_t *thumbnail, const telebot_send_options_t *options);
+
+/**
+ * @brief Sends 2-10 photos, videos, documents or audios as an album.
+ *
+ * Documents and audios can only be grouped with items of the same type. reply_markup in @p options
+ *     is ignored, because albums cannot carry a keyboard.
+ *
+ * Bot API method: sendMediaGroup.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] media Album items, see #telebot_input_media_t.
+ * @param[in] count Number of items in @p media, 2-10.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_media_group(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_media_t media[], int count, const telebot_send_options_t *options);
+
+/**
+ * @brief Sends a point on the map.
+ *
+ * Bot API method: sendLocation.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] latitude Latitude of the location.
+ * @param[in] longitude Longitude of the location.
+ * @param[in] live_period Seconds the live location updates (60-86400), or 0 for a static location.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_location(telebot_core_handler_t core_h, long long int chat_id,
+        double latitude, double longitude, int live_period, const telebot_send_options_t *options);
 
 /**
  * @brief Edit live location messages sent by the bot or via the bot (for inline
@@ -526,7 +513,7 @@ telebot_core_response_t telebot_core_send_location(telebot_core_handler_t core_h
  * @param[in] reply_markup A JSON-serialized object for a new inline keyboard.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_edit_message_live_location(telebot_core_handler_t core_h,
@@ -546,7 +533,7 @@ telebot_core_response_t telebot_core_edit_message_live_location(telebot_core_han
  * @param[in] reply_markup A JSON-serialized object for a new inline keyboard.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_stop_message_live_location(telebot_core_handler_t core_h,
@@ -554,150 +541,126 @@ telebot_core_response_t telebot_core_stop_message_live_location(telebot_core_han
         const char *reply_markup);
 
 /**
- * @brief Send information about a venue.
+ * @brief Sends information about a venue.
+ *
+ * Bot API method: sendVenue.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] latitude Latitude of venue.
- * @param[in] longitude Longitude of venue.
- * @param[in] title Name of the venue
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] latitude Latitude of the venue.
+ * @param[in] longitude Longitude of the venue.
+ * @param[in] title Name of the venue.
  * @param[in] address Address of the venue.
- * @param[in] foursquare_id Foursquare identifier of the venue.
- * @param[in] foursquare_type Foursquare type of the venue, if known.
- * @param[in] disable_notification Sends the message silently. Users will receive
- * a notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. A JSON-serialized
- * object for an inline keyboard, custom reply keyboard, instructions to remove
- * reply keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains sent messageß,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] foursquare_id Optional Foursquare identifier, or NULL.
+ * @param[in] foursquare_type Optional Foursquare type, e.g. "food/icecream", or NULL.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_send_venue(telebot_core_handler_t core_h,
-        long long int chat_id, float latitude, float longitude, const char *title,
-        const char *address, const char *foursquare_id, const char *foursquare_type,
-        bool disable_notification, int reply_to_message_id, const char *reply_markup);
+telebot_core_response_t telebot_core_send_venue(telebot_core_handler_t core_h, long long int chat_id,
+        double latitude, double longitude, const char *title, const char *address, const char *foursquare_id,
+        const char *foursquare_type, const telebot_send_options_t *options);
 
 /**
- * @brief Send phone contacts.
+ * @brief Sends a phone contact.
+ *
+ * Bot API method: sendContact.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] phone_number Contact's phone numbers.
- * @param[in] first_name Contact's first name.
- * @param[in] last_name Contact's last name.
- * @param[in] vcard Additional data about the contact in the form of a vCard, 0-2048 bytes.
- * @param[in] disable_notification Sends the message silently. Users will receive
- * a notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. A JSON-serialized
- * object for an inline keyboard, custom reply keyboard, instructions to remove
- * reply keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] phone_number Contact phone number.
+ * @param[in] first_name Contact first name.
+ * @param[in] last_name Optional contact last name, or NULL.
+ * @param[in] vcard Optional vCard data, 0-2048 bytes, or NULL.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_send_contact(telebot_core_handler_t core_h,
-        long long int chat_id, const char *phone_number, const char *first_name,
-        const char *last_name, const char *vcard, bool disable_notification,
-        int reply_to_message_id, const char *reply_markup);
+telebot_core_response_t telebot_core_send_contact(telebot_core_handler_t core_h, long long int chat_id,
+        const char *phone_number, const char *first_name, const char *last_name, const char *vcard,
+        const telebot_send_options_t *options);
 
 /**
- * @brief Send a native poll.
+ * @brief Sends a native poll or quiz.
+ *
+ * Bot API method: sendPoll.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] question Poll question, 1-255 characters.
- * @param[in] options A JSON-serialized list of answer options, 2-10 strings 1-100
- * characters each.
- * @param[in] is_anonymous True, if the poll needs to be anonymous, defaults to True.
- * @param[in] type Poll type, “quiz” or “regular”, defaults to “regular”.
- * @param[in] allows_multiple_answers True, if the poll allows multiple answers,
- * ignored for polls in quiz mode, defaults to False
- * @param[in] correct_option_id 0-based identifier of the correct answer option,
- * required for polls in quiz mode.
- * @param[in] is_closed Pass True, if the poll needs to be immediately closed.
- * This can be useful for poll preview.
- * @param[in] disable_notification Sends the message silently. Users will receive
- * a notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. A JSON-serialized
- * object for an inline keyboard, custom reply keyboard, instructions to remove
- * reply keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] question Poll question, 1-300 characters.
+ * @param[in] answers Answer options, 1-100 characters each.
+ * @param[in] count_answers Number of answer options, 1-12.
+ * @param[in] is_anonymous The poll is anonymous (Telegram's default is true, so pass it
+ *     explicitly).
+ * @param[in] type "regular" or "quiz"; NULL for "regular".
+ * @param[in] allows_multiple_answers Voters may choose several answers.
+ * @param[in] correct_option_ids Quiz only: zero-based indexes of the correct answers, or NULL.
+ * @param[in] count_correct Number of entries in @p correct_option_ids, 0 for none.
+ * @param[in] is_closed Send the poll already closed.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_send_poll(telebot_core_handler_t core_h,
-        long long int chat_id, const char *question, const char *options,
-        bool is_anonymous, const char *type, bool allows_multiple_answers,
-        int correct_option_id, bool is_closed, bool disable_notification,
-        int reply_to_message_id, const char *reply_markup);
+telebot_core_response_t telebot_core_send_poll(telebot_core_handler_t core_h, long long int chat_id,
+        const char *question, const char *const answers[], int count_answers, bool is_anonymous,
+        const char *type, bool allows_multiple_answers, const int correct_option_ids[], int count_correct,
+        bool is_closed, const telebot_send_options_t *options);
 
 /**
- * @brief Send a dice, which will have a random value from 1 to 6.
+ * @brief Sends an animated emoji showing a random value.
+ *
+ * Bot API method: sendDice.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername)
- * @param[in] disable_notification Sends the message silently. Users will receive
- * a notification with no sound.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] reply_markup Additional interface options. A JSON-serialized
- * object for an inline keyboard, custom reply keyboard, instructions to remove
- * reply keyboard or to force a reply from the user.
- * @return #telebot_core_response_t response that contains sent message,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] emoji One of the supported emoji ("🎲", "🎯", "🏀", "⚽", "🎳", "🎰"), or NULL for the die.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_send_dice(telebot_core_handler_t core_h,
-        long long int chat_id, bool disable_notification,
-        int reply_to_message_id, const char *reply_markup);
+telebot_core_response_t telebot_core_send_dice(telebot_core_handler_t core_h, long long int chat_id,
+        const char *emoji, const telebot_send_options_t *options);
 
 /**
-* @brief Tell the user that something is happening on the bot's side. The status
-* is set for 5 seconds or less (when a message arrives from your bot, Telegram
-* clients clear its typing status). Example: The ImageBot needs some time to process
-* a request and upload the image. Instead of sending a text message along the lines
-* of "Retrieving image, please wait…", the bot may use #telebot_core_send_chat_action()
-* with action = upload_photo. The user will see a "sending photo" status for the bot.
-* It is only recommended to use when a response from the bot will take a noticeable
-* amount of time to arrive.
-* @param[in] core_h The telebot core handler created with #telebot_core_create().
-* @param[in] chat_id Unique identifier for the target chat or username of the
-* target channel (in the format \@channelusername)
-* @param[in] action Type of action to broadcast. Choose one, depending on what the
-* user is about to receive: typing for text messages, upload_photo for photos,
-* record_video or upload_video for videos, record_audio or upload_audio for
-* audio files, upload_document for general files, find_location for location
-* data.
-* @return #telebot_core_response_t response that contains sent message,
-* which MUST be released with #telebot_core_put_response(), or null if allocation fails.
-* Response code should be checked with #teleobot_core_get_response_code(),
-* before getting data with #telebot_core_get_response_data().
-*/
-telebot_core_response_t telebot_core_send_chat_action(telebot_core_handler_t core_h,
-        long long int chat_id, const char *action);
+ * @brief Shows a status such as "typing" or "uploading photo" for 5 seconds.
+ *
+ * Bot API method: sendChatAction.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_thread_id Forum topic or private-chat topic, or 0.
+ * @param[in] action One of "typing", "upload_photo", "record_video", "upload_video",
+ *     "record_voice", "upload_voice", "upload_document", "choose_sticker", "find_location",
+ *     "record_video_note" or "upload_video_note".
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_chat_action(telebot_core_handler_t core_h, long long int chat_id,
+        int message_thread_id, const char *action);
 
 /**
-* @brief Get user profile pictures object
-* @param[in] core_h The telebot core handler created with #telebot_core_create().
-* @param[in] user_id Unique identifier of the target user.
-* @param[in] offset Sequential number of the first photo to be returned. By default,
-* all photos are returned.
-* @param[in] limit Limits the number of photos to be retrieved. Values between
-* 1—100 are accepted. Defaults to 100.
-* @return #telebot_core_response_t response that contains user profile photos,
-* which MUST be released with #telebot_core_put_response(), or null if allocation fails.
-* Response code should be checked with #teleobot_core_get_response_code(),
-* before getting data with #telebot_core_get_response_data().
-*/
+ * @brief Gets a list of profile pictures of a user.
+ *
+ * Bot API method: getUserProfilePhotos.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] offset Number of the first photo to return; 0 for the newest.
+ * @param[in] limit Number of photos to return, 1-100.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
 telebot_core_response_t telebot_core_get_user_profile_photos(telebot_core_handler_t core_h,
-        int user_id, int offset, int limit);
+        long long int user_id, int offset, int limit);
 
 /**
 * @brief Get basic info about a file and prepare it for
@@ -706,7 +669,7 @@ telebot_core_response_t telebot_core_get_user_profile_photos(telebot_core_handle
 * @param[in] file_id File identifier to get info about.
 * @return #telebot_core_response_t response that contains file object,
 * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
-* Response code should be checked with #teleobot_core_get_response_code(),
+* Response code should be checked with #telebot_core_get_response_code(),
 * before getting data with #telebot_core_get_response_data().
 */
 telebot_core_response_t telebot_core_get_file(telebot_core_handler_t core_h, const char *file_id);
@@ -717,7 +680,7 @@ telebot_core_response_t telebot_core_get_file(telebot_core_handler_t core_h, con
 * at least 1 hour. When the link expires, a new one can be requested by
 * calling telebot_core_get_file() again.
 * @param[in] core_h The telebot core handler created with #telebot_core_create().
-* @param[in] file_path A file path take from the response of telebot_core_get_file()
+* @param[in] file_path Value of the file_path field returned by #telebot_core_get_file().
 * @param[in] out_file Full path to download and save file.
 * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative
 * error value. No response, i.e., core_h->resp_data contains nothing.
@@ -726,168 +689,96 @@ telebot_error_e telebot_core_download_file(telebot_core_handler_t core_h,
         const char *file_path, const char *out_file);
 
 /**
-* @brief Kick a user from a group, a supergroup or a channel. In the case of
-* supergroups and channels, the user will not be able to return to the group on
-* their own using invite links, etc., unless unbanned first. The bot must be an
-* administrator in the chat for this to work and must have the appropriate admin
-* rights.
-* @param[in] core_h The telebot core handler created with #telebot_core_create().
-* @param[in] chat_id Unique identifier for the target chat or username of the
-* target channel (in the format \@channelusername)
-* @param[in] user_id Unique identifier of the target user
-* @param[in] until_date Date when the user will be unbanned, unix time. If user is
-* banned for more than 366 days or less than 30 seconds from the current time
-* they are considered to be banned forever.
-* @return #telebot_core_response_t response that contains the result (true/false),
-* which MUST be released with #telebot_core_put_response(), or null if allocation fails.
-* Response code should be checked with #teleobot_core_get_response_code(),
-* before getting data with #telebot_core_get_response_data().
-*/
-telebot_core_response_t telebot_core_kick_chat_member(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id, long until_date);
-
-/**
-* @brief Unban a previously kicked user in a supergroup or channel. The user will
-* not return to the group or channel automatically, but will be able to join via
-* link, etc. The bot must be an administrator for this to work.
-* @param[in] core_h The telebot core handler created with #telebot_core_create().
-* @param[in] chat_id Unique identifier for the target chat or username of the
-* target channel (in the format \@channelusername)
-* @param[in] user_id Unique identifier of the target user
-* @return #telebot_core_response_t response that contains the result (true/false),
-* which MUST be released with #telebot_core_put_response(), or null if allocation fails.
-* Response code should be checked with #teleobot_core_get_response_code(),
-* before getting data with #telebot_core_get_response_data().
-*/
-telebot_core_response_t telebot_core_unban_chat_member(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id);
-
-/**
-* @brief Restrict a user in a supergroup. The bot must be an administrator in
-* the supergroup for this to work and must have the appropriate admin rights.
-* Pass true for all boolean parameters to lift restrictions from a user.
-* @param[in] core_h The telebot core handler created with #telebot_core_create().
-* @param[in] chat_id Unique identifier for the target chat or username of the
-* target channel (in the format \@channelusername)
-* @param[in] user_id Unique identifier of the target user.
-* @param[in] until_date Date when restrictions will be lifted for the user, unix
-* time. If user is restricted for more than 366 days or less than 30 seconds
-* from the current time, they are considered to be restricted forever.
-* @param[in] can_send_messages Pass true, if the user is allowed to send text
-* messages, contacts, locations and venues
-* @param[in] can_send_media_messages Pass true, if the user is allowed to send
-* audios, documents, photos, videos, video notes and voice notes,
-* implies can_send_messages
-* @param[in can_send_polls Pass true, if the user is allowed to send polls,
-* implies can_send_messages
-* @param[in] can_send_other_messages Pass true, if the user can send animations,
-* games, stickers and use inline bots, implies can_send_media_messages
-* @param[in] can_add_web_page_previews Pass true, if the user may add web page
-* previews to their messages, implies can_send_media_messages.
-* @param[in] can_change_info Pass true, if the user is allowed to change the
-* chat title, photo and other settings. Ignored in public supergroups.
-* @param[in] can_invite_users 	Pass true, if the user is allowed to invite
-* new users to the chat.
-* @param[in] can_pin_messages Pass true, if the user is allowed to pin messages.
-* Ignored in public supergroups
-* @return #telebot_core_response_t response that contains the result (true/false),
-* which MUST be released with #telebot_core_put_response(), or null if allocation fails.
-* Response code should be checked with #teleobot_core_get_response_code(),
-* before getting data with #telebot_core_get_response_data().
-*/
-telebot_core_response_t telebot_core_restrict_chat_member(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id, long until_date, bool can_send_messages,
-        bool can_send_media_messages, bool can_send_polls, bool can_send_other_messages,
-        bool can_add_web_page_previews, bool can_change_info, bool can_invite_users,
-        bool can_pin_messages);
-
-/**
- * @brief Promote or demote a user in a supergroup or a channel. The bot must be
- * an administrator in the chat for this to work and must have the appropriate
- * admin rights. Pass False for all boolean parameters to demote a user.
+ * @brief Unbans a previously banned user.
+ *
+ * Bot API method: unbanChatMember.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
  * @param[in] user_id Unique identifier of the target user.
- * @param[in] can_change_info Pass true, if the administrator can change chat
- * title, photo and other settings.
- * @param[in] can_post_messages Pass true, if the administrator can create channel
- * posts, channels only.
- * @param[in] can_edit_messages Pass true, if the administrator can edit messages
- * of other users and can pin messages, channels only.
- * @param[in] can_delete_messages Pass true, if the administrator can delete
- * messages of other users.
- * @param[in] can_invite_users Pass true, if the administrator can invite new users
- * to the chat.
- * @param[in] can_restrict_members Pass true, if the administrator can restrict,
- * ban or unban chat members.
- * @param[in] can_pin_messages Pass true, if the administrator can pin messages,
- * supergroups only.
- * @param[in] can_promote_members Pass true, if the administrator can add new
- * administrators with a subset of his own privileges or demote administrators
- * that he has promoted, directly or indirectly (promoted by administrators
- * that were appointed by him).
- * @return #telebot_core_response_t response that contains the result (true/false),
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] only_if_banned Do nothing if the user is not banned; otherwise an unban also removes a
+ *     member from the chat.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_unban_chat_member(telebot_core_handler_t core_h, long long int chat_id,
+        long long int user_id, bool only_if_banned);
+
+/**
+ * @brief Restricts a user in a supergroup.
+ *
+ * Pass all permissions as true to lift restrictions.
+ *
+ * Bot API method: restrictChatMember.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] permissions Permissions the user keeps; anything left false is denied.
+ * @param[in] use_independent_chat_permissions Apply each permission exactly as given, instead of
+ *     letting some imply others.
+ * @param[in] until_date Unix time when the measure ends; 0 (or more than 366 days ahead) means
+ *     forever.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_restrict_chat_member(telebot_core_handler_t core_h,
+        long long int chat_id, long long int user_id, const telebot_chat_permissions_t *permissions,
+        bool use_independent_chat_permissions, long until_date);
+
+/**
+ * @brief Promotes or demotes a user in a supergroup or channel.
+ *
+ * Pass NULL or all rights false to demote the user.
+ *
+ * Bot API method: promoteChatMember.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] rights Rights to grant, or NULL to demote.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_promote_chat_member(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id, bool can_change_info, bool can_post_messages,
-        bool can_edit_messages, bool can_delete_messages, bool can_invite_users,
-        bool can_restrict_members, bool can_pin_messages, bool can_promote_members);
+        long long int chat_id, long long int user_id, const telebot_chat_administrator_rights_t *rights);
 
 /**
- * @brief Export an invite link to a supergroup or a channel. The bot must be
- * an administrator in the chat for this to work and must have the appropriate
- * admin rights.
+ * @brief Sets a custom title for an administrator the bot promoted.
+ *
+ * Bot API method: setChatAdministratorCustomTitle.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
  * @param[in] user_id Unique identifier of the target user.
- * @param[in] custom_title New custom title for the administrator; 0-16 characters,
- * emoji are not allowed.
- * @return #telebot_core_response_t response that contains the result (true/false),
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] custom_title New title, 0-16 characters, emoji are not allowed.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_set_chat_admin_custom_title(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id, const char *custom_title);
+        long long int chat_id, long long int user_id, const char *custom_title);
 
 /**
- * @brief Set default chat permissions for all members. The bot must be an administrator
- * in the group or a supergroup for this to work and must have the 'can_restrict_members'
- * admin rights.
+ * @brief Sets the default permissions of all members of a group or supergroup.
+ *
+ * Bot API method: setChatPermissions.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername)
- * @param[in] can_send_messages Pass true, if the user is allowed to send text
- * messages, contacts, locations and venues
- * @param[in] can_send_media_messages Pass true, if the user is allowed to send
- * audios, documents, photos, videos, video notes and voice notes,
- * implies can_send_messages
- * @param[in can_send_polls Pass true, if the user is allowed to send polls,
- * implies can_send_messages
- * @param[in] can_send_other_messages Pass true, if the user can send animations,
- * games, stickers and use inline bots, implies can_send_media_messages
- * @param[in] can_add_web_page_previews Pass true, if the user may add web page
- * previews to their messages, implies can_send_media_messages.
- * @param[in] can_change_info Pass true, if the user is allowed to change the
- * chat title, photo and other settings. Ignored in public supergroups.
- * @param[in] can_invite_users 	Pass true, if the user is allowed to invite
- * new users to the chat.
- * @param[in] can_pin_messages Pass true, if the user is allowed to pin messages.
- * Ignored in public supergroups
- * @return #telebot_core_response_t response that contains the result (true/false),
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] permissions New default permissions; anything left false is denied.
+ * @param[in] use_independent_chat_permissions Apply each permission exactly as given, instead of
+ *     letting some imply others.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_set_chat_permissions(telebot_core_handler_t core_h,
-        long long int chat_id, bool can_send_messages, bool can_send_media_messages,
-        bool can_send_polls, bool can_send_other_messages, bool can_add_web_page_previews,
-        bool can_change_info, bool can_invite_users, bool can_pin_messages);
+        long long int chat_id, const telebot_chat_permissions_t *permissions,
+        bool use_independent_chat_permissions);
 
 /**
  * @brief Generate a new invite link for a chat; any previously generated link is
@@ -898,27 +789,26 @@ telebot_core_response_t telebot_core_set_chat_permissions(telebot_core_handler_t
  * target channel (in the format \@channelusername).
  * @return #telebot_core_response_t response that contains new invite link,
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_export_chat_invite_link(telebot_core_handler_t core_h,
         long long int chat_id);
 
 /**
- * @brief Set a new profile photo for the chat. Photos can't be changed for private
- * chats. The bot must be an administrator in the chat for this to work and must
- * have the appropriate admin rights.
+ * @brief Sets a new profile photo for a group, supergroup or channel.
+ *
+ * Bot API method: setChatPhoto.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @param[in] photo New chat photo file path.
- * @return #telebot_core_response_t response that contains the result (true/false),
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] photo New chat photo, uploaded from a path or memory. A file_id or URL is rejected.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_set_chat_photo(telebot_core_handler_t core_h,
-        long long int chat_id, const char *photo);
+telebot_core_response_t telebot_core_set_chat_photo(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *photo);
 
 /**
  * @brief Delete a chat photo. Photos can't be changed for private chats. The bot
@@ -929,7 +819,7 @@ telebot_core_response_t telebot_core_set_chat_photo(telebot_core_handler_t core_
  * target channel (in the format \@channelusername).
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_delete_chat_photo(telebot_core_handler_t core_h,
@@ -945,7 +835,7 @@ telebot_core_response_t telebot_core_delete_chat_photo(telebot_core_handler_t co
  * @param[in] title New chat title, 1-255 characters.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_set_chat_title(telebot_core_handler_t core_h,
@@ -961,7 +851,7 @@ telebot_core_response_t telebot_core_set_chat_title(telebot_core_handler_t core_
  * @param[in] description New chat description, 0-255 characters.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_set_chat_description(telebot_core_handler_t core_h,
@@ -980,7 +870,7 @@ telebot_core_response_t telebot_core_set_chat_description(telebot_core_handler_t
  * Notifications are always disabled in channels.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_pin_chat_message(telebot_core_handler_t core_h,
@@ -995,7 +885,7 @@ telebot_core_response_t telebot_core_pin_chat_message(telebot_core_handler_t cor
  * target channel (in the format \@channelusername).
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_unpin_chat_message(telebot_core_handler_t core_h,
@@ -1008,7 +898,7 @@ telebot_core_response_t telebot_core_unpin_chat_message(telebot_core_handler_t c
  * target channel (in the format \@channelusername).
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_leave_chat(telebot_core_handler_t core_h, long long int chat_id);
@@ -1021,27 +911,26 @@ telebot_core_response_t telebot_core_leave_chat(telebot_core_handler_t core_h, l
  * target channel (in the format \@channelusername).
  * @return #telebot_core_response_t response that contains chat object,
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_get_chat(telebot_core_handler_t core_h,
         long long int chat_id);
 
 /**
- * @brief Get a list of administrators in a chat. Response contains an array of
- * objects that contains information about all chat administrators except other
- * bots. If the chat is a group or a supergroup and no administrators were
- * appointed, only the creator will be returned.
+ * @brief Gets the administrators of a chat.
+ *
+ * Bot API method: getChatAdministrators.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
- * @return #telebot_core_response_t response that contains an array of chat members,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] return_bots Also return other bots that are administrators.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_get_chat_admins(telebot_core_handler_t core_h,
-        long long int chat_id);
+telebot_core_response_t telebot_core_get_chat_admins(telebot_core_handler_t core_h, long long int chat_id,
+        bool return_bots);
 
 /**
  * @brief Get the number of members in a chat.
@@ -1050,25 +939,26 @@ telebot_core_response_t telebot_core_get_chat_admins(telebot_core_handler_t core
  * target channel (in the format \@channelusername).
  * @return #telebot_core_response_t response that contains the number of chat members,
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_get_chat_members_count(telebot_core_handler_t core_h,
         long long int chat_id);
 
 /**
- * @brief Get information about a member of a chat.
+ * @brief Gets information about a member of a chat.
+ *
+ * Bot API method: getChatMember.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername).
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
  * @param[in] user_id Unique identifier of the target user.
- * @return #telebot_core_response_t response that contains a chat member,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_get_chat_member(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id);
+telebot_core_response_t telebot_core_get_chat_member(telebot_core_handler_t core_h, long long int chat_id,
+        long long int user_id);
 
 /**
  * @brief Set a new group sticker set for a supergroup. The bot must be an administrator
@@ -1082,7 +972,7 @@ telebot_core_response_t telebot_core_get_chat_member(telebot_core_handler_t core
  * sticker set.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_set_chat_sticker_set(telebot_core_handler_t core_h,
@@ -1098,7 +988,7 @@ telebot_core_response_t telebot_core_set_chat_sticker_set(telebot_core_handler_t
  * target channel (in the format \@channelusername).
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_delete_chat_sticker_set(telebot_core_handler_t core_h,
@@ -1115,7 +1005,7 @@ telebot_core_response_t telebot_core_delete_chat_sticker_set(telebot_core_handle
  * @param[in] show_alert If true, an alert will be shown by the client instead of
  * a notification at the top of the chat screen. Defaults to false.
  * @param[in] url URL that will be opened by the user's client. If you have created
- * a Game and accepted the conditions via @Botfather, specify the URL that opens
+ * a Game and accepted the conditions via \@BotFather, specify the URL that opens
  * your game - note that this will only work if the query comes from a
  * callback_game button.
  * @param[in] cache_time The maximum amount of time in seconds that the result of
@@ -1123,7 +1013,7 @@ telebot_core_response_t telebot_core_delete_chat_sticker_set(telebot_core_handle
  * caching starting in version 3.14.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_answer_callback_query(telebot_core_handler_t core_h,
@@ -1137,7 +1027,7 @@ telebot_core_response_t telebot_core_answer_callback_query(telebot_core_handler_
  * list of the bot's commands. At most 100 commands can be specified.
  * @return #telebot_core_response_t response that contains the result (true/false),
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_set_my_commands(telebot_core_handler_t core_h,
@@ -1148,50 +1038,50 @@ telebot_core_response_t telebot_core_set_my_commands(telebot_core_handler_t core
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
  * @return #telebot_core_response_t response that contains an array of bot commands,
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_get_my_commands(telebot_core_handler_t core_h);
 
 /**
- * @brief Edit text and game messages sent by the bot or via the bot (for inline bots).
+ * @brief Edits the text of a message.
+ *
+ * Identify the message either by @p chat_id and @p message_id, or by @p inline_message_id.
+ *
+ * Bot API method: editMessageText.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Required if inline_message_id. Unique identifier for the target
- * chat or username of the target channel (in the format \@channelusername).
- * @param[in] message_id Required if inline_message_id is not specified.
- * Identifier of the sent message.
- * @param[in] inline_message_id Required if chat_id and message_id are not
- * specified. Identifier of the inline message.
- * @param[in] text New text of the message.
- * @param[in] parse_mode Send Markdown or HTML, if you want Telegram apps to show
- * bold, italic, fixed-width text or inline URLs in your bot's message.
- * @param[in] disable_web_page_priview Disables link previews for links in this message.
- * @param[in] reply_markup A JSON-serialized object for an inline keyboard.
- * @return #telebot_core_response_t response that contains the message edited,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_id Identifier of the message to edit, or 0 when using @p inline_message_id.
+ * @param[in] inline_message_id Identifier of an inline message, or NULL.
+ * @param[in] text New text, 1-4096 characters after entity parsing.
+ * @param[in] parse_mode Optional formatting: "MarkdownV2", "HTML" or "Markdown"; NULL for plain
+ *     text.
+ * @param[in] disable_link_preview Do not show a preview for links in the text.
+ * @param[in] reply_markup Optional JSON inline keyboard, or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_edit_message_text(telebot_core_handler_t core_h,
-        long long int chat_id, int message_id, const char *inline_message_id,
-        const char *text, const char *parse_mode, bool disable_web_page_preview,
-        const char *reply_markup);
+telebot_core_response_t telebot_core_edit_message_text(telebot_core_handler_t core_h, long long int chat_id,
+        int message_id, const char *inline_message_id, const char *text, const char *parse_mode,
+        bool disable_link_preview, const char *reply_markup);
 
 /**
  * @brief Edit captions of messages sent by the bot or via the bot (for inline bots).
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Required if inline_message_id. Unique identifier for the target
- * chat or username of the target channel (in the format \@channelusername).
- * @param[in] message_id Required if inline_message_id is not specified.
- * Identifier of the sent message.
- * @param[in] inline_message_id Required if chat_id and message_id are not
- * specified. Identifier of the inline message.
- * @param[in] caption New caption of the message.
- * @param[in] reply_markup A JSON-serialized object for an inline keyboard.
- * @return #telebot_core_response_t response that contains the message edited,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_id Identifier of the message, or 0 when using @p inline_message_id.
+ * @param[in] inline_message_id Identifier of an inline message, or NULL when using @p chat_id and
+ *     @p message_id.
+ * @param[in] caption New caption, 0-1024 characters after entity parsing, or NULL to remove it.
+ * @param[in] parse_mode Optional formatting: "MarkdownV2", "HTML" or "Markdown"; NULL for plain
+ *     text.
+ * @param[in] reply_markup Optional JSON inline keyboard, or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_edit_message_caption(telebot_core_handler_t core_h,
         long long int chat_id, int message_id, const char *inline_message_id,
@@ -1210,7 +1100,7 @@ telebot_core_response_t telebot_core_edit_message_caption(telebot_core_handler_t
  * @param[in] reply_markup A JSON-serialized object for an inline keyboard.
  * @return #telebot_core_response_t response that contains the message edited,
  * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
+ * Response code should be checked with #telebot_core_get_response_code(),
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_edit_message_reply_markup(telebot_core_handler_t core_h,
@@ -1235,40 +1125,36 @@ telebot_core_response_t telebot_core_edit_message_media(telebot_core_handler_t c
 
 /**
  * @brief Stop a poll which was sent by the bot.
+ *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
- * @param[in] chat_id Required if inline_message_id. Unique identifier for the target
- * chat or username of the target channel (in the format \@channelusername).
- * @param[in] message_id Required if inline_message_id is not specified.
- * Identifier of the sent message.
- * @param[in] inline_message_id Required if chat_id and message_id are not
- * specified. Identifier of the inline message.
- * @param[in] reply_markup A JSON-serialized object for an inline keyboard.
- * @return #telebot_core_response_t response that contains the stopped poll,
- * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
- * Response code should be checked with #teleobot_core_get_response_code(),
- * before getting data with #telebot_core_get_response_data().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_id Identifier of the message with the poll.
+ * @param[in] reply_markup Optional JSON inline keyboard, or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_stop_poll(telebot_core_handler_t core_h,
         long long int chat_id, int message_id, const char *reply_markup);
 
 /**
  * @brief Delete a message, including service messages, with the following
- limitations:
-        *  - A message can only be deleted if it was sent less than 48 hours ago.
-        *  - Bots can delete outgoing messages in groups and supergroups.
-        *  - Bots granted can_post_messages permissions can delete outgoing messages
-        *    in channels.
-        *  - If the bot is an administrator of a group, it can delete any message there.
-        *  - If the bot has can_delete_messages permission in a supergroup or a channel,
-        *    it can delete any message there.
-        * @param[in] core_h The telebot core handler created with #telebot_core_create().
-        * @param[in] chat_id Unique identifier for the target chat or username of the
-        * target message_id Message identifier to be deleted.
-        * @return #telebot_core_response_t response that contains the result (true/false),
-        * which MUST be released with #telebot_core_put_response(), or null if allocation fails.
-        * Response code should be checked with #teleobot_core_get_response_code(),
-        * before getting data with #telebot_core_get_response_data().
-        */
+ *  limitations:
+ *  - A message can only be deleted if it was sent less than 48 hours ago.
+ *  - Bots can delete outgoing messages in groups and supergroups.
+ *  - Bots granted can_post_messages permissions can delete outgoing messages
+ *    in channels.
+ *  - If the bot is an administrator of a group, it can delete any message there.
+ *  - If the bot has can_delete_messages permission in a supergroup or a channel,
+ *    it can delete any message there.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_id Identifier of the message, or 0 when using @p inline_message_id.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
 telebot_core_response_t telebot_core_delete_message(telebot_core_handler_t core_h,
         long long int chat_id, int message_id);
 
@@ -1394,57 +1280,70 @@ telebot_core_response_t telebot_core_delete_my_commands(telebot_core_handler_t c
         const char *scope, const char *language_code);
 
 /**
- * @brief Use this method to copy messages of any kind.
- * @param[in] core_h The telebot core handler.
- * @param[in] chat_id Unique identifier for the target chat.
- * @param[in] from_chat_id Unique identifier for the chat where the original message was sent.
- * @param[in] message_id Message identifier in the chat specified by from_chat_id.
- * @param[in] caption New caption for media, 0-1024 characters after entities parsing.
- * @param[in] parse_mode Mode for parsing entities in the new caption.
- * @param[in] caption_entities A JSON-serialized list of special entities that appear in the new caption.
- * @param[in] disable_notification Sends the message silently.
- * @param[in] protect_content Protects the contents of the sent message from forwarding and saving.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original message.
- * @param[in] allow_sending_without_reply Pass True if the message should be sent even if the specified replied-to message is not found.
- * @param[in] reply_markup Additional interface options.
- * @return #telebot_core_response_t response that contains MessageId.
+ * @brief Copies a message without a link to the original.
+ *
+ * Bot API method: copyMessage.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] from_chat_id Chat where the original message was sent.
+ * @param[in] message_id Identifier of the message in @p from_chat_id.
+ * @param[in] caption Optional new caption for media, or NULL to keep the original.
+ * @param[in] parse_mode Optional formatting of the caption: "MarkdownV2", "HTML" or "Markdown";
+ *     NULL for plain text.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_copy_message(telebot_core_handler_t core_h,
-        long long int chat_id, long long int from_chat_id, int message_id,
-        const char *caption, const char *parse_mode, const char *caption_entities,
-        bool disable_notification, bool protect_content, int reply_to_message_id,
-        bool allow_sending_without_reply, const char *reply_markup);
+telebot_core_response_t telebot_core_copy_message(telebot_core_handler_t core_h, long long int chat_id,
+        long long int from_chat_id, int message_id, const char *caption, const char *parse_mode,
+        const telebot_send_options_t *options);
 
 /**
- * @brief Use this method to copy messages of any kind. Service messages,
- * giveaway messages, giveaway winners messages, and invoice messages can't
- * be copied.
- * @param[in] core_h The telebot core handler.
- * @param[in] chat_id Unique identifier for the target chat.
- * @param[in] from_chat_id Unique identifier for the chat where the original messages were sent.
- * @param[in] message_ids A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to copy.
- * @param[in] disable_notification Sends the messages silently.
- * @param[in] protect_content Protects the contents of the sent messages from forwarding and saving.
- * @param[in] remove_caption Pass True to copy the messages without their captions.
- * @return #telebot_core_response_t response that contains an array of MessageId.
+ * @brief Copies several messages without links to the originals.
+ *
+ * Only message_thread_id, disable_notification and protect_content are taken from @p options.
+ *
+ * Bot API method: copyMessages.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] from_chat_id Chat where the original messages were sent.
+ * @param[in] message_ids Identifiers of 1-100 messages in @p from_chat_id, in increasing order.
+ * @param[in] count Number of identifiers in @p message_ids.
+ * @param[in] remove_caption Copy media without their captions.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_copy_messages(telebot_core_handler_t core_h,
-        long long int chat_id, long long int from_chat_id, const char *message_ids,
-        bool disable_notification, bool protect_content, bool remove_caption);
+telebot_core_response_t telebot_core_copy_messages(telebot_core_handler_t core_h, long long int chat_id,
+        long long int from_chat_id, const int message_ids[], int count, bool remove_caption,
+        const telebot_send_options_t *options);
 
 /**
- * @brief Use this method to forward multiple messages of any kind.
- * @param[in] core_h The telebot core handler.
- * @param[in] chat_id Unique identifier for the target chat.
- * @param[in] from_chat_id Unique identifier for the chat where the original messages were sent.
- * @param[in] message_ids A JSON-serialized list of 1-100 identifiers of messages in the chat from_chat_id to forward.
- * @param[in] disable_notification Sends the messages silently.
- * @param[in] protect_content Protects the contents of the sent messages from forwarding and saving.
- * @return #telebot_core_response_t response that contains an array of MessageId.
+ * @brief Forwards several messages at once, keeping album grouping.
+ *
+ * Only message_thread_id, disable_notification and protect_content are taken from @p options.
+ *
+ * Bot API method: forwardMessages.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] from_chat_id Chat where the original messages were sent.
+ * @param[in] message_ids Identifiers of 1-100 messages in @p from_chat_id, in increasing order.
+ * @param[in] count Number of identifiers in @p message_ids.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_forward_messages(telebot_core_handler_t core_h,
-        long long int chat_id, long long int from_chat_id, const char *message_ids,
-        bool disable_notification, bool protect_content);
+telebot_core_response_t telebot_core_forward_messages(telebot_core_handler_t core_h, long long int chat_id,
+        long long int from_chat_id, const int message_ids[], int count, const telebot_send_options_t *options);
 
 /**
  * @brief Use this method to delete multiple messages in a chat.
@@ -1457,16 +1356,24 @@ telebot_core_response_t telebot_core_delete_messages(telebot_core_handler_t core
         long long int chat_id, const char *message_ids);
 
 /**
- * @brief Use this method to ban a user in a group, a supergroup or a channel.
- * @param[in] core_h The telebot core handler.
- * @param[in] chat_id Unique identifier for the target chat.
+ * @brief Bans a user from a group, supergroup or channel.
+ *
+ * The bot must be an administrator with the right to restrict members.
+ *
+ * Bot API method: banChatMember.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
  * @param[in] user_id Unique identifier of the target user.
- * @param[in] until_date Date when the user will be unbanned, unix time.
- * @param[in] revoke_messages Pass True to delete all messages from the chat for the user that is being banned.
- * @return #telebot_core_response_t response that contains the result (true/false).
+ * @param[in] until_date Unix time when the measure ends; 0 (or more than 366 days ahead) means
+ *     forever.
+ * @param[in] revoke_messages Delete all messages from the chat for the user.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_ban_chat_member(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id, long until_date, bool revoke_messages);
+telebot_core_response_t telebot_core_ban_chat_member(telebot_core_handler_t core_h, long long int chat_id,
+        long long int user_id, long until_date, bool revoke_messages);
 
 /**
  * @brief Use this method to ban a channel chat in a supergroup or a channel.
@@ -1528,36 +1435,51 @@ telebot_core_response_t telebot_core_revoke_chat_invite_link(telebot_core_handle
         long long int chat_id, const char *invite_link);
 
 /**
- * @brief Use this method to approve a chat join request.
- * @param[in] core_h The telebot core handler.
- * @param[in] chat_id Unique identifier for the target chat.
+ * @brief Approves a request to join a chat.
+ *
+ * Bot API method: approveChatJoinRequest.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
  * @param[in] user_id Unique identifier of the target user.
- * @return #telebot_core_response_t response that contains the result (true/false).
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_approve_chat_join_request(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id);
+        long long int chat_id, long long int user_id);
 
 /**
- * @brief Use this method to decline a chat join request.
- * @param[in] core_h The telebot core handler.
- * @param[in] chat_id Unique identifier for the target chat.
+ * @brief Declines a request to join a chat.
+ *
+ * Bot API method: declineChatJoinRequest.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
  * @param[in] user_id Unique identifier of the target user.
- * @return #telebot_core_response_t response that contains the result (true/false).
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_decline_chat_join_request(telebot_core_handler_t core_h,
-        long long int chat_id, int user_id);
+        long long int chat_id, long long int user_id);
 
 /**
- * @brief Use this method to set a new message reaction.
- * @param[in] core_h The telebot core handler.
- * @param[in] chat_id Unique identifier for the target chat.
- * @param[in] message_id Unique identifier of the target message.
- * @param[in] reaction A JSON-serialized list of reaction types to set on the message.
- * @param[in] is_big Pass True to set the reaction with a big animation.
- * @return #telebot_core_response_t response that contains the result (true/false).
+ * @brief Sets or removes the bot's reaction to a message.
+ *
+ * Bot API method: setMessageReaction.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_id Identifier of the message to react to.
+ * @param[in] emoji Reaction emoji such as "👍", or NULL to remove the bot's reaction.
+ * @param[in] is_big Show the reaction with a big animation.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_set_message_reaction(telebot_core_handler_t core_h,
-        long long int chat_id, int message_id, const char *reaction, bool is_big);
+        long long int chat_id, int message_id, const char *emoji, bool is_big);
 
 /**
  * @brief Use this method to create a topic in a forum supergroup chat.
@@ -1932,6 +1854,18 @@ telebot_core_response_t telebot_core_get_user_chat_boosts(telebot_core_handler_t
 
 /**
  * @brief Use this method to set the score of the specified user in a game.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] score New score; must be non-negative.
+ * @param[in] force Allow the score to decrease, e.g. to fix a mistake or ban a cheater.
+ * @param[in] disable_edit_message Do not edit the game message to show the new scoreboard.
+ * @param[in] chat_id Chat of the game message, or 0 when using @p inline_message_id.
+ * @param[in] message_id Identifier of the message, or 0 when using @p inline_message_id.
+ * @param[in] inline_message_id Identifier of an inline message, or NULL when using @p chat_id and
+ *     @p message_id.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_set_game_score(telebot_core_handler_t core_h,
         long long int user_id, int score, bool force, bool disable_edit_message,
@@ -1939,51 +1873,90 @@ telebot_core_response_t telebot_core_set_game_score(telebot_core_handler_t core_
 
 /**
  * @brief Use this method to get data for high score tables.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] chat_id Chat of the game message, or 0 when using @p inline_message_id.
+ * @param[in] message_id Identifier of the message, or 0 when using @p inline_message_id.
+ * @param[in] inline_message_id Identifier of an inline message, or NULL when using @p chat_id and
+ *     @p message_id.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_get_game_high_scores(telebot_core_handler_t core_h,
         long long int user_id, long long int chat_id, int message_id, const char *inline_message_id);
 
 /**
- * @brief Use this method to send a game.
+ * @brief Sends a game.
+ *
+ * Bot API method: sendGame.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] game_short_name Short name of the game, set up via \@BotFather.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_send_game(telebot_core_handler_t core_h,
-        long long int chat_id, int message_thread_id, const char *game_short_name,
-        bool disable_notification, bool protect_content, const char *reply_parameters,
-        const char *reply_markup);
+telebot_core_response_t telebot_core_send_game(telebot_core_handler_t core_h, long long int chat_id,
+        const char *game_short_name, const telebot_send_options_t *options);
 
 /**
  * @brief Use this method to set passport data errors.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] errors JSON array of PassportElementError describing the problems.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_set_passport_data_errors(telebot_core_handler_t core_h,
         long long int user_id, const char *errors);
 
 /**
- * @brief Use this method to send an invoice.
+ * @brief Sends an invoice.
+ *
+ * Bot API method: sendInvoice.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] invoice What is being sold and how to pay; see #telebot_invoice_params_t.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
-telebot_core_response_t telebot_core_send_invoice(telebot_core_handler_t core_h,
-        long long int chat_id, int message_thread_id, const char *title,
-        const char *description, const char *payload, const char *provider_token,
-        const char *currency, const char *prices, int max_tip_amount,
-        const char *suggested_tip_amounts, const char *start_parameter,
-        const char *provider_data, const char *photo_url, int photo_size,
-        int photo_width, int photo_height, bool need_name, bool need_phone_number,
-        bool need_email, bool need_shipping_address, bool send_phone_number_to_provider,
-        bool send_email_to_provider, bool is_flexible, bool disable_notification,
-        bool protect_content, const char *reply_parameters, const char *reply_markup);
+telebot_core_response_t telebot_core_send_invoice(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_invoice_params_t *invoice, const telebot_send_options_t *options);
 
 /**
- * @brief Use this method to create a link for an invoice.
+ * @brief Creates a link for an invoice that can be shared anywhere.
+ *
+ * start_parameter in @p invoice is ignored.
+ *
+ * Bot API method: createInvoiceLink.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] invoice What is being sold and how to pay; see #telebot_invoice_params_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_create_invoice_link(telebot_core_handler_t core_h,
-        const char *title, const char *description, const char *payload,
-        const char *provider_token, const char *currency, const char *prices,
-        int max_tip_amount, const char *suggested_tip_amounts, const char *provider_data,
-        const char *photo_url, int photo_size, int photo_width, int photo_height,
-        bool need_name, bool need_phone_number, bool need_email, bool need_shipping_address,
-        bool send_phone_number_to_provider, bool send_email_to_provider, bool is_flexible);
+        const telebot_invoice_params_t *invoice);
 
 /**
  * @brief Use this method to reply to shipping queries.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] shipping_query_id Identifier of the shipping query to answer.
+ * @param[in] ok True if the order can be processed; false to reject it with @p error_message.
+ * @param[in] shipping_options JSON array of available ShippingOption when @p ok is true, or NULL.
+ * @param[in] error_message Reason shown to the user when @p ok is false, or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_answer_shipping_query(telebot_core_handler_t core_h,
         const char *shipping_query_id, bool ok, const char *shipping_options,
@@ -1991,9 +1964,231 @@ telebot_core_response_t telebot_core_answer_shipping_query(telebot_core_handler_
 
 /**
  * @brief Use this method to respond to pre-checkout queries.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] pre_checkout_query_id Identifier of the pre-checkout query to answer.
+ * @param[in] ok True if the order can be processed; false to reject it with @p error_message.
+ * @param[in] error_message Reason shown to the user when @p ok is false, or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
  */
 telebot_core_response_t telebot_core_answer_pre_checkout_query(telebot_core_handler_t core_h,
         const char *pre_checkout_query_id, bool ok, const char *error_message);
+
+/**
+ * @brief Sends a static .WEBP, animated .TGS or video .WEBM sticker.
+ *
+ * Bot API method: sendSticker.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] sticker Sticker to send: a file_id or HTTP URL, a local file, or bytes in memory; see
+ *     #telebot_input_file_t.
+ * @param[in] emoji Optional emoji associated with an uploaded sticker, or NULL.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_sticker(telebot_core_handler_t core_h, long long int chat_id,
+        const telebot_input_file_t *sticker, const char *emoji, const telebot_send_options_t *options);
+
+/**
+ * @brief Gets a sticker set by name.
+ *
+ * Bot API method: getStickerSet.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] name Name of the sticker set, as used in t.me/addstickers/ links.
+ * @return A response; read it with #telebot_core_get_response_code() and #telebot_core_get_response_data(),
+ *     then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_get_sticker_set(telebot_core_handler_t core_h, const char *name);
+
+/**
+ * @brief Calls any Bot API method by name.
+ *
+ * Use it for methods this library does not wrap. Nothing is validated except
+ * the parameter list itself; the response carries Telegram's raw JSON reply.
+ * @code
+ * telebot_param_t params[] = {
+ *     {"chat_id", "-1001234567890", NULL},
+ *     {"user_id", "123456789", NULL},
+ *     {"tag", "moderator", NULL},
+ * };
+ * telebot_core_response_t r = telebot_core_call(core_h, "setChatMemberTag", params, 3);
+ * @endcode
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] method Bot API method name, e.g. "setChatMemberTag".
+ * @param[in] params Parameters; each sets exactly one of value or file. May be NULL when @p count is 0.
+ * @param[in] count Number of entries in @p params.
+ * @return A response; read it with #telebot_core_get_response_code() and #telebot_core_get_response_data(),
+ *     then release it with #telebot_core_put_response(). #TELEBOT_ERROR_INVALID_PARAMETER is returned for
+ *     a malformed parameter list without contacting Telegram.
+ */
+telebot_core_response_t telebot_core_call(telebot_core_handler_t core_h, const char *method,
+        const telebot_param_t params[], size_t count);
+
+/**
+ * @brief Streams a partial message to a private chat while it is being generated.
+ *
+ * The draft is a temporary preview that disappears after about 30 seconds or when the bot sends a
+ *     message. Call it repeatedly with the same @p draft_id to update the text with an animation,
+ *     then send the final text with #telebot_send_message(). With @p can_stop, a stop button is
+ *     shown and pressing it delivers a #TELEBOT_UPDATE_TYPE_STOPPED_MESSAGE_GENERATION update.
+ *
+ * Bot API method: sendMessageDraft.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target private chat.
+ * @param[in] message_thread_id Topic in the private chat, or 0.
+ * @param[in] draft_id Non-zero identifier of the draft; reuse it for every update of the same
+ *     draft.
+ * @param[in] text Current text, 0-4096 characters after entity parsing; NULL or "" shows a
+ *     "Thinking" placeholder.
+ * @param[in] parse_mode Optional formatting: "MarkdownV2", "HTML" or "Markdown"; NULL for plain
+ *     text.
+ * @param[in] can_stop Show the user a button that stops further drafts.
+ * @param[in] keep_on_stop Keep the draft visible for a while after the stop button is pressed.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_send_message_draft(telebot_core_handler_t core_h, long long int chat_id,
+        int message_thread_id, int draft_id, const char *text, const char *parse_mode, bool can_stop,
+        bool keep_on_stop);
+
+/**
+ * @brief Unpins all pinned messages in a chat.
+ *
+ * In groups and channels the bot needs the can_pin_messages or can_edit_messages right.
+ *
+ * Bot API method: unpinAllChatMessages.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_unpin_all_chat_messages(telebot_core_handler_t core_h,
+        long long int chat_id);
+
+/**
+ * @brief Removes the reaction a user or chat added to a message.
+ *
+ * Pass exactly one of @p user_id and @p actor_chat_id. The bot needs the can_delete_messages right.
+ *
+ * Bot API method: deleteMessageReaction.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] message_id Identifier of the message.
+ * @param[in] user_id User whose reaction is removed, or 0.
+ * @param[in] actor_chat_id Chat whose reaction is removed, or 0.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_delete_message_reaction(telebot_core_handler_t core_h,
+        long long int chat_id, int message_id, long long int user_id, long long int actor_chat_id);
+
+/**
+ * @brief Removes up to 10000 recent reactions added by a user or chat.
+ *
+ * Pass exactly one of @p user_id and @p actor_chat_id. The bot needs the can_delete_messages right.
+ *
+ * Bot API method: deleteAllMessageReactions.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] user_id User whose reactions are removed, or 0.
+ * @param[in] actor_chat_id Chat whose reactions are removed, or 0.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_delete_all_message_reactions(telebot_core_handler_t core_h,
+        long long int chat_id, long long int user_id, long long int actor_chat_id);
+
+/**
+ * @brief Sets or removes the tag of a member of a group or supergroup.
+ *
+ * The bot needs the can_manage_tags right.
+ *
+ * Bot API method: setChatMemberTag.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] tag New tag, 0-16 characters without emoji, or NULL to remove the tag.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_set_chat_member_tag(telebot_core_handler_t core_h,
+        long long int chat_id, long long int user_id, const char *tag);
+
+/**
+ * @brief Verifies a user on behalf of the organization the bot represents.
+ *
+ * Bot API method: verifyUser.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] custom_description Optional verification description, 0-70 characters, or NULL.
+ * @param[in] parse_mode Optional formatting of @p custom_description (only text links are
+ *     supported), or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_verify_user(telebot_core_handler_t core_h, long long int user_id,
+        const char *custom_description, const char *parse_mode);
+
+/**
+ * @brief Verifies a chat on behalf of the organization the bot represents.
+ *
+ * Bot API method: verifyChat.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] custom_description Optional verification description, 0-70 characters, or NULL.
+ * @param[in] parse_mode Optional formatting of @p custom_description (only text links are
+ *     supported), or NULL.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_verify_chat(telebot_core_handler_t core_h, long long int chat_id,
+        const char *custom_description, const char *parse_mode);
+
+/**
+ * @brief Removes the verification of a user that the organization added.
+ *
+ * Bot API method: removeUserVerification.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] user_id Unique identifier of the target user.
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_remove_user_verification(telebot_core_handler_t core_h,
+        long long int user_id);
+
+/**
+ * @brief Removes the verification of a chat that the organization added.
+ *
+ * Bot API method: removeChatVerification.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @return A response; read it with #telebot_core_get_response_code() and
+ *     #telebot_core_get_response_data(), then release it with #telebot_core_put_response().
+ */
+telebot_core_response_t telebot_core_remove_chat_verification(telebot_core_handler_t core_h,
+        long long int chat_id);
 
 /**
  * @} // end of APIs

@@ -41,6 +41,11 @@ extern "C" {
 
 /**
  * @brief Use this method to set passport data errors.
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] user_id Unique identifier of the target user.
+ * @param[in] errors JSON array of PassportElementError describing the problems.
+ * @return #TELEBOT_ERROR_NONE on success, otherwise a negative #telebot_error_e value.
  */
 telebot_error_e telebot_set_passport_data_errors(telebot_handler_t handle,
     long long int user_id, const char *errors);

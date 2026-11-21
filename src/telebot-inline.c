@@ -1,4 +1,4 @@
-#include <json.h>
+#include "telebot-json.h"
 #include <telebot-core.h>
 #include <telebot-methods.h>
 #include <telebot-parser.h>
@@ -29,7 +29,7 @@ telebot_error_e telebot_save_prepared_inline_message(telebot_handler_t handle,
     if (prepared_message == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_save_prepared_inline_message(handle->core_h, user_id, result,
                                                                                   allow_user_chats, allow_bot_chats,
                                                                                   allow_group_chats, allow_channel_chats);
@@ -45,15 +45,15 @@ telebot_error_e telebot_save_prepared_inline_message(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *res_obj = NULL;
-    if (!json_object_object_get_ex(obj, "result", &res_obj))
+    struct cJSON *res_obj = NULL;
+    if (!tb_json_get_ex(obj, "result", &res_obj))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -63,7 +63,7 @@ telebot_error_e telebot_save_prepared_inline_message(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -82,7 +82,7 @@ telebot_error_e telebot_answer_web_app_query(telebot_handler_t handle, const cha
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_answer_web_app_query(handle->core_h, web_app_query_id, result);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -98,27 +98,27 @@ telebot_error_e telebot_answer_web_app_query(telebot_handler_t handle, const cha
             goto finish;
         }
 
-        struct json_object *ok = NULL;
-        if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+        struct cJSON *ok = NULL;
+        if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
             goto finish;
         }
 
-        struct json_object *result_obj = NULL;
-        if (json_object_object_get_ex(obj, "result", &result_obj))
+        struct cJSON *result_obj = NULL;
+        if (tb_json_get_ex(obj, "result", &result_obj))
         {
-            struct json_object *imid_obj = NULL;
-            if (json_object_object_get_ex(result_obj, "inline_message_id", &imid_obj))
+            struct cJSON *imid_obj = NULL;
+            if (tb_json_get_ex(result_obj, "inline_message_id", &imid_obj))
             {
-                *inline_message_id = TELEBOT_SAFE_STRDUP(json_object_get_string(imid_obj));
+                *inline_message_id = TELEBOT_SAFE_STRDUP(tb_json_get_string(imid_obj));
             }
         }
     }
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }

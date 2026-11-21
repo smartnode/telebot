@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['game_0',['game',['../structtelebot__message.html#a32a2db9b8a412e2c1a59b6ed1d9be175',1,'telebot_message::game'],['../structtelebot__external__reply__info.html#a138a4eee7153ce9e45355710aa2d8f2f',1,'telebot_external_reply_info::game']]],
+  ['game_0',['game',['../structtelebot__external__reply__info.html#a138a4eee7153ce9e45355710aa2d8f2f',1,'telebot_external_reply_info::game'],['../structtelebot__message.html#a32a2db9b8a412e2c1a59b6ed1d9be175',1,'telebot_message::game']]],
   ['game_5fshort_5fname_1',['game_short_name',['../structtelebot__callback__query.html#ac5fa98507a9c4dcb3ac68246b950a8f4',1,'telebot_callback_query']]],
   ['general_5fforum_5ftopic_5fhidden_2',['general_forum_topic_hidden',['../structtelebot__message.html#a87780d9d64ddf869df597b0c29701c49',1,'telebot_message']]],
   ['general_5fforum_5ftopic_5funhidden_3',['general_forum_topic_unhidden',['../structtelebot__message.html#a7035a23e2391934d7340903850a7f10a',1,'telebot_message']]],
@@ -13,5 +13,6 @@ var searchData=
   ['giveaway_5fmessage_10',['giveaway_message',['../structtelebot__giveaway__completed.html#a9bb667a7e95661fafcff801a6b534e04',1,'telebot_giveaway_completed']]],
   ['giveaway_5fmessage_5fid_11',['giveaway_message_id',['../structtelebot__giveaway__winners.html#a1ca83d0e25ed233de1c48849bb07e3a9',1,'telebot_giveaway_winners']]],
   ['giveaway_5fwinners_12',['giveaway_winners',['../structtelebot__external__reply__info.html#afa48d02ee287312395fdaebff589b77d',1,'telebot_external_reply_info']]],
-  ['group_5fchat_5fcreated_13',['group_chat_created',['../structtelebot__message.html#a01edaccfe2966d14c8d6991e9c89464e',1,'telebot_message']]]
+  ['group_5fchat_5fcreated_13',['group_chat_created',['../structtelebot__message.html#a01edaccfe2966d14c8d6991e9c89464e',1,'telebot_message']]],
+  ['guest_5fmessage_14',['guest_message',['../uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html#a5b7fcea8ec44f7c14095951485c85e60',1,'telebot_update::[union].__unnamed0__']]]
 ];

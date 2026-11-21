@@ -50,3 +50,9 @@ build
 # CLion projects
 .idea
 
+
+# ESP-IDF example artifacts
+examples/*/managed_components/
+examples/*/dependencies.lock
+examples/*/sdkconfig
+examples/*/sdkconfig.old

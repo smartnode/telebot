@@ -22,15 +22,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#ifdef ESP_PLATFORM
+#include "sdkconfig.h"
+#endif
 #include "telebot-common.h"
 #include "telebot-types.h"
 #include "telebot-core.h"
 
 #define TELEBOT_API_URL                      "https://api.telegram.org"
+/* Stack buffer for request URLs ("https://api.telegram.org/bot<token>/<method>") */
+#ifndef TELEBOT_URL_SIZE
+#ifdef CONFIG_TELEBOT_URL_SIZE
+#define TELEBOT_URL_SIZE                     CONFIG_TELEBOT_URL_SIZE
+#else
 #define TELEBOT_URL_SIZE                     1024
-#define TELEBOT_BUFFER_SECTOR                512
-#define TELEBOT_BUFFER_BLOCK                 1024
-#define TELEBOT_BUFFER_PAGE                  4096
+#endif
+#endif
 #define TELEBOT_UPDATE_COUNT_MAX_LIMIT       100
 #define TELEBOT_USER_PROFILE_PHOTOS_LIMIT    100
 #define TELEBOT_SAFE_FREE(addr)              if (addr) { free(addr); addr = NULL; }
@@ -78,6 +86,7 @@
 #define TELEBOT_METHOD_SEND_POLL                                "sendPoll"
 #define TELEBOT_METHOD_SEND_CHECKLIST                           "sendChecklist"
 #define TELEBOT_METHOD_SEND_DICE                                "sendDice"
+#define TELEBOT_METHOD_SEND_STICKER                             "sendSticker"
 #define TELEBOT_METHOD_SEND_CHAT_ACTION                         "sendChatAction"
 #define TELEBOT_METHOD_SEND_MESSAGE_DRAFT                       "sendMessageDraft"
 #define TELEBOT_METHOD_GET_USER_PHOTOS                          "getUserProfilePhotos"
@@ -135,6 +144,9 @@
 #define TELEBOT_METHOD_DELETE_MY_COMMANDS                        "deleteMyCommands"
 #define TELEBOT_METHOD_GET_MY_COMMANDS                           "getMyCommands"
 #define TELEBOT_METHOD_SET_MESSAGE_REACTION                      "setMessageReaction"
+#define TELEBOT_METHOD_DELETE_MESSAGE_REACTION                   "deleteMessageReaction"
+#define TELEBOT_METHOD_DELETE_ALL_MESSAGE_REACTIONS              "deleteAllMessageReactions"
+#define TELEBOT_METHOD_SET_CHAT_MEMBER_TAG                       "setChatMemberTag"
 #define TELEBOT_METHOD_EDIT_MESSAGE_TEXT                         "editMessageText"
 #define TELEBOT_METHOD_EDIT_MESSAGE_CAPTION                      "editMessageCaption"
 #define TELEBOT_METHOD_EDIT_MESSAGE_MEDIA                        "editMessageMedia"
@@ -210,54 +222,62 @@
 #define DBG(x, ...)
 #endif
 
+/* A response carrying only an error code; used when a request fails validation */
+telebot_core_response_t telebot_core_error_response(telebot_error_e error);
+
 #define CHECK_ARG_NULL(PARAM)                                                    \
     if (PARAM == NULL)                                                           \
     {                                                                            \
         ERR("Argument '%s' is null)", #PARAM);                                   \
-        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
     }
 
 #define CHECK_ARG_CONDITION(CONDITION, MESSAGE)                                  \
     if (CONDITION)                                                               \
     {                                                                            \
         ERR(MESSAGE);                                                            \
-        return telebot_core_get_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
+        return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER); \
     }
 
+/**
+ * @brief Kind of value carried by one multipart form field.
+ */
 typedef enum
 {
-    TELEBOT_MIME_TYPE_CHAR,
     TELEBOT_MIME_TYPE_INT,
-    TELEBOT_MIME_TYPE_U_INT,
     TELEBOT_MIME_TYPE_LONG_INT,
-    TELEBOT_MIME_TYPE_U_LONG_INT,
     TELEBOT_MIME_TYPE_LONG_LONG_INT,
-    TELEBOT_MIME_TYPE_U_LONG_LONG_INT,
     TELEBOT_MIME_TYPE_FLOAT,
     TELEBOT_MIME_TYPE_DOUBLE,
-    TELEBOT_MIME_TYPE_LONG_DOUBLE,
-    TELEBOT_MIME_TYPE_STRING,
-    TELEBOT_MIME_TYPE_FILE,
+    TELEBOT_MIME_TYPE_BOOL,
+    TELEBOT_MIME_TYPE_STRING, /**< NUL-terminated text, sent as-is */
+    TELEBOT_MIME_TYPE_FILE,   /**< Path of a local file, streamed from disk */
+    TELEBOT_MIME_TYPE_BUFFER, /**< In-memory bytes, sent as a file upload */
     TELEBOT_MIME_TYPE_MAX,
 } telebot_core_mime_e;
 
+/**
+ * @brief One multipart form field. All pointers are borrowed, never owned.
+ */
 typedef struct telebot_core_mime_s
 {
     telebot_core_mime_e type;
     const char *name;
     union
     {
-        char c;
         int d;
-        unsigned int u;
         long int ld;
-        unsigned long int lu;
         long long lld;
-        unsigned long long llu;
         float f;
         double lf;
-        long double llf;
+        bool b;
         const char *s;
+        struct
+        {
+            const void *ptr;
+            size_t len;
+            const char *filename;
+        } buf;
     } data;
 
 } telebot_core_mime_t;
@@ -265,12 +285,22 @@ typedef struct telebot_core_mime_s
 /**
  * @brief This object represents core handler.
  */
+struct telebot_transport;
+
 struct telebot_core_handler
 {
-    char *token;      /**< Telegam bot token */
-    char *proxy_addr; /**< Proxy address (optional) */
-    char *proxy_auth; /**< Proxy authentication (optional) */
+    char *token;                         /**< Telegam bot token */
+    char *proxy_addr;                    /**< Proxy address (optional) */
+    char *proxy_auth;                    /**< Proxy authentication (optional) */
+    struct telebot_transport *transport; /**< HTTP backend, owned by the handler */
+    int last_retry_after;                /**< retry_after of the most recent request, 0 if none */
 };
+
+/**
+ * @brief Replaces the HTTP backend of a core handler (takes ownership).
+ * Used by unit tests to inject a fake transport.
+ */
+void telebot_core_set_transport(telebot_core_handler_t core_h, struct telebot_transport *transport);
 
 /**
  * @brief This object represents handler.
@@ -289,6 +319,7 @@ struct telebot_core_response
     telebot_error_e ret; /**< Telegram bot response code */
     size_t size;         /**< Telegam bot response size */
     char *data;          /**< Telegam bot response object */
+    int retry_after;     /**< Seconds to wait after flood control (HTTP 429), otherwise 0 */
 };
 
 #endif /* __TELEBOT_PRIVATE_H__ */

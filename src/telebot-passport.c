@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-#include <json.h>
+#include "telebot-json.h"
 #include <telebot-core.h>
 #include <telebot-methods.h>
 #include <telebot-parser.h>

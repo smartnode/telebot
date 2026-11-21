@@ -12,11 +12,11 @@ var searchData=
   ['bot_5fadministrator_5frights_9',['bot_administrator_rights',['../structtelebot__keyboard__button__request__chat.html#af5dcbf5dee0f9807a08157dcf21f7084',1,'telebot_keyboard_button_request_chat']]],
   ['bot_5fis_5fmember_10',['bot_is_member',['../structtelebot__keyboard__button__request__chat.html#a76826a9474978950f6eb19c0d5eb1309',1,'telebot_keyboard_button_request_chat']]],
   ['bot_5fusername_11',['bot_username',['../structtelebot__login__url.html#a5d8f04037316543414eca122d46e5aad',1,'telebot_login_url']]],
-  ['business_5fconnection_12',['business_connection',['../structtelebot__update.html#a38c19303be78f5fd663bfbf1cb8d6564',1,'telebot_update']]],
-  ['business_5fconnection_5fid_13',['business_connection_id',['../structtelebot__message.html#a1e1ddc44a80245ae976ccb503b7f3612',1,'telebot_message']]],
+  ['business_5fconnection_12',['business_connection',['../uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html#a4cc7f88bf8c2271d60a1cf5256de8b65',1,'telebot_update::[union].__unnamed0__']]],
+  ['business_5fconnection_5fid_13',['business_connection_id',['../structtelebot__send__options.html#aa70097bc439aa1b5dd9658e039fa1f9a',1,'telebot_send_options::business_connection_id'],['../structtelebot__business__messages__deleted.html#a8a1cc1d23fa909bf9688354783d211a7',1,'telebot_business_messages_deleted::business_connection_id'],['../structtelebot__message.html#a1e1ddc44a80245ae976ccb503b7f3612',1,'telebot_message::business_connection_id']]],
   ['business_5fintro_14',['business_intro',['../structtelebot__chat.html#af9366dacdd836a19e8e1a82d8afb8ccb',1,'telebot_chat']]],
   ['business_5flocation_15',['business_location',['../structtelebot__chat.html#a7a80ffa1a39c85ebf36fb815ecf4fbaf',1,'telebot_chat']]],
-  ['business_5fmessage_16',['business_message',['../structtelebot__update.html#a17890d1a4778c1004f09d243e278bf38',1,'telebot_update']]],
+  ['business_5fmessage_16',['business_message',['../uniontelebot__update_1_1_0funion_0e_8____unnamed0____.html#ab20ca4624c13405e8e08519236de7dd9',1,'telebot_update::[union].__unnamed0__']]],
   ['business_5fopening_5fhours_17',['business_opening_hours',['../structtelebot__chat.html#aaa4e3623333f8fe109c31d68d8ca00f1',1,'telebot_chat']]],
   ['button_5ftext_18',['button_text',['../structtelebot__web__app__data.html#ab0cfd0c5f644acdfd51c285ac89f6b7b',1,'telebot_web_app_data']]]
 ];

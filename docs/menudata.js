@@ -91,4 +91,6 @@ var menudata={children:[
 {text:"Typedefs",url:"globals_type.html",children:[
 {text:"t",url:"globals_type.html#index_t"}]},
 {text:"Enumerations",url:"globals_enum.html"},
-{text:"Enumerator",url:"globals_eval.html"}]}]}]}
+{text:"Enumerator",url:"globals_eval.html",children:[
+{text:"t",url:"globals_eval.html#index_t"}]},
+{text:"Macros",url:"globals_defs.html"}]}]}]}

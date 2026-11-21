@@ -1,0 +1,68 @@
+menu "Telebot (Telegram Bot API)"
+
+    config TELEBOT_MAX_RESPONSE_SIZE
+        int "Maximum HTTP response size (bytes)"
+        default 32768
+        range 0 4194304
+        help
+            Responses larger than this are rejected with TELEBOT_ERROR_OUT_OF_MEMORY
+            instead of exhausting the heap. 0 disables the limit. File downloads
+            stream to the filesystem and are not affected.
+
+    config TELEBOT_DEFAULT_UPDATE_LIMIT
+        int "Default number of updates per getUpdates call"
+        default 5
+        range 1 100
+        help
+            Used when telebot_get_updates() is called with limit <= 0. Each update
+            is parsed into heap memory, so small values keep peak usage low.
+
+    config TELEBOT_IO_CHUNK_SIZE
+        int "Network I/O chunk size (bytes)"
+        default 1024
+        range 128 16384
+        help
+            Size of the single heap buffer used per request to stream file uploads
+            and read responses.
+
+    config TELEBOT_HTTP_TIMEOUT_MS
+        int "HTTP request timeout (ms)"
+        default 70000
+        range 5000 600000
+        help
+            Must be longer than the long-polling timeout passed to getUpdates.
+
+    config TELEBOT_URL_SIZE
+        int "Request URL buffer size (bytes)"
+        default 384
+        range 128 2048
+        help
+            Stack buffer holding "https://api.telegram.org/bot<token>/<method>" or a
+            file download URL. 384 bytes fits the token plus typical file paths.
+
+    menu "Parsed features"
+        comment "Disabled groups are not parsed: their message fields stay NULL"
+        comment "and their updates arrive as TELEBOT_UPDATE_TYPE_UNKNOWN."
+
+        config TELEBOT_FEATURE_CHAT_EXTRAS
+            bool "Chat events: forum topics, video chats, boosts, reactions, shared users/chats"
+            default y
+
+        config TELEBOT_FEATURE_PAYMENTS
+            bool "Payments: invoices, successful/refunded payments, paid media, checkout queries"
+            default n
+
+        config TELEBOT_FEATURE_BUSINESS
+            bool "Telegram Business: business connections and business messages"
+            default n
+
+        config TELEBOT_FEATURE_GIFTS
+            bool "Gifts and giveaways"
+            default n
+
+        config TELEBOT_FEATURE_PASSPORT
+            bool "Telegram Passport data"
+            default n
+    endmenu
+
+endmenu

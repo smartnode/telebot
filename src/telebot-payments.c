@@ -16,39 +16,24 @@
  * limitations under the License.
  */
 
-#include <json.h>
+#include "telebot-json.h"
 #include <telebot-core.h>
 #include <telebot-methods.h>
 #include <telebot-parser.h>
 #include <telebot-payments.h>
 #include <telebot-private.h>
 
-telebot_error_e telebot_send_invoice(telebot_handler_t handle,
-                                     long long int chat_id, int message_thread_id, const char *title,
-                                     const char *description, const char *payload, const char *provider_token,
-                                     const char *currency, const char *prices, int max_tip_amount,
-                                     const char *suggested_tip_amounts, const char *start_parameter,
-                                     const char *provider_data, const char *photo_url, int photo_size,
-                                     int photo_width, int photo_height, bool need_name, bool need_phone_number,
-                                     bool need_email, bool need_shipping_address, bool send_phone_number_to_provider,
-                                     bool send_email_to_provider, bool is_flexible, bool disable_notification,
-                                     bool protect_content, const char *reply_parameters, const char *reply_markup,
-                                     telebot_message_t *message)
+telebot_error_e telebot_send_invoice(telebot_handler_t handle, long long int chat_id,
+        const telebot_invoice_params_t *invoice, const telebot_send_options_t *options,
+        telebot_message_t *message)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
     if (message == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
-    telebot_core_response_t response = telebot_core_send_invoice(handle->core_h, chat_id, message_thread_id,
-                                                                  title, description, payload, provider_token,
-                                                                  currency, prices, max_tip_amount, suggested_tip_amounts,
-                                                                  start_parameter, provider_data, photo_url, photo_size,
-                                                                  photo_width, photo_height, need_name, need_phone_number,
-                                                                  need_email, need_shipping_address, send_phone_number_to_provider,
-                                                                  send_email_to_provider, is_flexible, disable_notification,
-                                                                  protect_content, reply_parameters, reply_markup);
+    struct cJSON *obj = NULL;
+    telebot_core_response_t response = telebot_core_send_invoice(handle->core_h, chat_id, invoice, options);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
         goto finish;
@@ -61,15 +46,15 @@ telebot_error_e telebot_send_invoice(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -79,33 +64,21 @@ telebot_error_e telebot_send_invoice(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
 
 telebot_error_e telebot_create_invoice_link(telebot_handler_t handle,
-                                            const char *title, const char *description, const char *payload,
-                                            const char *provider_token, const char *currency, const char *prices,
-                                            int max_tip_amount, const char *suggested_tip_amounts, const char *provider_data,
-                                            const char *photo_url, int photo_size, int photo_width, int photo_height,
-                                            bool need_name, bool need_phone_number, bool need_email, bool need_shipping_address,
-                                            bool send_phone_number_to_provider, bool send_email_to_provider, bool is_flexible,
-                                            char **invoice_link)
+        const telebot_invoice_params_t *invoice, char **invoice_link)
 {
     if (handle == NULL)
         return TELEBOT_ERROR_NOT_SUPPORTED;
     if (invoice_link == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
-    telebot_core_response_t response = telebot_core_create_invoice_link(handle->core_h, title, description, payload,
-                                                                        provider_token, currency, prices, max_tip_amount,
-                                                                        suggested_tip_amounts, provider_data, photo_url,
-                                                                        photo_size, photo_width, photo_height, need_name,
-                                                                        need_phone_number, need_email, need_shipping_address,
-                                                                        send_phone_number_to_provider, send_email_to_provider,
-                                                                        is_flexible);
+    struct cJSON *obj = NULL;
+    telebot_core_response_t response = telebot_core_create_invoice_link(handle->core_h, invoice);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
         goto finish;
@@ -118,17 +91,17 @@ telebot_error_e telebot_create_invoice_link(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
     {
-        *invoice_link = TELEBOT_SAFE_STRDUP(json_object_get_string(result));
+        *invoice_link = TELEBOT_SAFE_STRDUP(tb_json_get_string(result));
     }
     else
     {
@@ -137,7 +110,7 @@ telebot_error_e telebot_create_invoice_link(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -174,7 +147,7 @@ telebot_error_e telebot_get_my_star_balance(telebot_handler_t handle, long long 
     if (balance == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_my_star_balance(handle->core_h);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -188,26 +161,26 @@ telebot_error_e telebot_get_my_star_balance(telebot_handler_t handle, long long 
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (tb_json_get_ex(obj, "result", &result))
     {
-        struct json_object *balance_obj = NULL;
-        if (json_object_object_get_ex(result, "balance", &balance_obj))
+        struct cJSON *balance_obj = NULL;
+        if (tb_json_get_ex(result, "balance", &balance_obj))
         {
-            *balance = json_object_get_int64(balance_obj);
+            *balance = tb_json_get_int(balance_obj);
         }
     }
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -220,7 +193,7 @@ telebot_error_e telebot_get_star_transactions(telebot_handler_t handle,
     if (transactions == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
-    struct json_object *obj = NULL;
+    struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_get_star_transactions(handle->core_h, offset, limit);
     int ret = telebot_core_get_response_code(response);
     if (ret != TELEBOT_ERROR_NONE)
@@ -234,15 +207,15 @@ telebot_error_e telebot_get_star_transactions(telebot_handler_t handle,
         goto finish;
     }
 
-    struct json_object *ok = NULL;
-    if (!json_object_object_get_ex(obj, "ok", &ok) || !json_object_get_boolean(ok))
+    struct cJSON *ok = NULL;
+    if (!tb_json_get_ex(obj, "ok", &ok) || !tb_json_get_bool(ok))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
     }
 
-    struct json_object *result = NULL;
-    if (!json_object_object_get_ex(obj, "result", &result))
+    struct cJSON *result = NULL;
+    if (!tb_json_get_ex(obj, "result", &result))
     {
         ret = TELEBOT_ERROR_OPERATION_FAILED;
         goto finish;
@@ -252,7 +225,7 @@ telebot_error_e telebot_get_star_transactions(telebot_handler_t handle,
 
 finish:
     if (obj)
-        json_object_put(obj);
+        tb_json_put(obj);
     telebot_core_put_response(response);
     return ret;
 }
@@ -297,7 +270,7 @@ telebot_error_e telebot_get_available_gifts(telebot_handler_t handle,
     int ret = telebot_core_get_response_code(response);
     if (ret == TELEBOT_ERROR_NONE)
     {
-        struct json_object *obj = telebot_parser_str_to_obj(telebot_core_get_response_data(response));
+        struct cJSON *obj = telebot_parser_str_to_obj(telebot_core_get_response_data(response));
         if (obj == NULL)
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
@@ -305,7 +278,7 @@ telebot_error_e telebot_get_available_gifts(telebot_handler_t handle,
         else
         {
             ret = telebot_parser_get_gifts(obj, gifts);
-            json_object_put(obj);
+            tb_json_put(obj);
         }
     }
     telebot_core_put_response(response);
@@ -337,7 +310,7 @@ telebot_error_e telebot_get_user_gifts(telebot_handler_t handle,
     int ret = telebot_core_get_response_code(response);
     if (ret == TELEBOT_ERROR_NONE)
     {
-        struct json_object *obj = telebot_parser_str_to_obj(telebot_core_get_response_data(response));
+        struct cJSON *obj = telebot_parser_str_to_obj(telebot_core_get_response_data(response));
         if (obj == NULL)
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
@@ -345,7 +318,7 @@ telebot_error_e telebot_get_user_gifts(telebot_handler_t handle,
         else
         {
             ret = telebot_parser_get_user_gifts(obj, gifts);
-            json_object_put(obj);
+            tb_json_put(obj);
         }
     }
     telebot_core_put_response(response);
@@ -378,7 +351,7 @@ telebot_error_e telebot_get_chat_gifts(telebot_handler_t handle,
     int ret = telebot_core_get_response_code(response);
     if (ret == TELEBOT_ERROR_NONE)
     {
-        struct json_object *obj = telebot_parser_str_to_obj(telebot_core_get_response_data(response));
+        struct cJSON *obj = telebot_parser_str_to_obj(telebot_core_get_response_data(response));
         if (obj == NULL)
         {
             ret = TELEBOT_ERROR_OPERATION_FAILED;
@@ -386,7 +359,7 @@ telebot_error_e telebot_get_chat_gifts(telebot_handler_t handle,
         else
         {
             ret = telebot_parser_get_user_gifts(obj, gifts);
-            json_object_put(obj);
+            tb_json_put(obj);
         }
     }
     telebot_core_put_response(response);

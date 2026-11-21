@@ -43,48 +43,42 @@ extern "C" {
  * @brief This object represents a sticker set.
  */
 typedef struct telebot_sticker_set {
-    /** Sticker set name */
+    /** Sticker set name, as used in t.me/addstickers/ links */
     char *name;
 
     /** Sticker set title */
     char *title;
 
-    /** True, if the sticker is animated */
-    bool is_animated;
-
-    /** True, if the sticker set contains masks */
-    bool contains_masks;
+    /** Type of stickers in the set: "regular", "mask" or "custom_emoji" */
+    char *sticker_type;
 
     /** List of all set stickers */
     telebot_sticker_t *stickers;
 
-    /* Number of stickers */
+    /** Number of entries in stickers */
     int count_stickers;
 
-    /** Optional. Sticker set thumbnail in .webp or .jpg format */
-    struct telebot_photo *thumb;
-
+    /** Optional. Sticker set thumbnail in .WEBP, .TGS or .WEBM format */
+    struct telebot_photo *thumbnail;
 } telebot_sticker_set_t;
 
 /**
- * @brief Send static .WEBP or animated .TGS stickers.
+ * @brief Sends a static .WEBP, animated .TGS or video .WEBM sticker.
+ *
+ * Bot API method: sendSticker.
  *
  * @param[in] handle The telebot handler created with #telebot_create().
- * @param[in] chat_id Unique identifier for the target chat or username of the
- * target channel (in the format \@channelusername)
- * @param[in] sticker Sticker file to send. It is either a file_id to resend
- * a sticker that is already on the Telegram servers, or a path to file.
- * @param[in] is_file False if sticker is file_id, true, if sticker is a file path.
- * @param[in] reply_to_message_id If the message is a reply, ID of the original
- * message.
- * @param[in] reply_markup Additional interface options. An object for a custom
- * reply keyboard, instructions to hide keyboard or to force a reply from the user.
- * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
- * error value.
+ * @param[in] chat_id Unique identifier of the target chat (negative for groups, supergroups and
+ *     channels).
+ * @param[in] sticker Sticker to send: a file_id or HTTP URL, a local file, or bytes in memory; see
+ *     #telebot_input_file_t.
+ * @param[in] emoji Optional emoji associated with an uploaded sticker, or NULL.
+ * @param[in] options Shared send options (reply, forum topic, keyboard, silent delivery...), or
+ *     NULL for defaults; see #telebot_send_options_t.
+ * @return #TELEBOT_ERROR_NONE on success, otherwise a negative #telebot_error_e value.
  */
 telebot_error_e telebot_send_sticker(telebot_handler_t handle, long long int chat_id,
-        const char *sticker, bool is_file, bool disable_notification,
-        int reply_to_message_id, char *reply_markup);
+        const telebot_input_file_t *sticker, const char *emoji, const telebot_send_options_t *options);
 
 /**
  * @brief Get a sticker set.
@@ -116,6 +110,16 @@ telebot_error_e telebot_put_sticker_set(telebot_sticker_set_t *stickers);
  * error value.
  */
 telebot_error_e telebot_put_sticker(telebot_sticker_t *sticker);
+
+/**
+ * @brief Releases an array of stickers, such as the one returned by
+ * #telebot_get_forum_topic_icon_stickers(), including the array itself.
+ *
+ * @param[in] stickers Array to release.
+ * @param[in] count Number of entries in @p stickers.
+ * @return #TELEBOT_ERROR_NONE on success, #TELEBOT_ERROR_INVALID_PARAMETER if @p stickers is NULL.
+ */
+telebot_error_e telebot_put_stickers(telebot_sticker_t *stickers, int count);
 
 /**
  * @} // end of APIs
