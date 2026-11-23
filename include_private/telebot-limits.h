@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-#ifndef __TELEBOT_CONFIG_H__
-#define __TELEBOT_CONFIG_H__
+#ifndef __TELEBOT_LIMITS_H__
+#define __TELEBOT_LIMITS_H__
 
 /*
  * Build-time tunables. Every value can be overridden with -D on the compiler
@@ -183,4 +183,4 @@ TELEBOT_STATIC_ASSERT(TELEBOT_IO_CHUNK_SIZE >= 128, "TELEBOT_IO_CHUNK_SIZE is to
 TELEBOT_STATIC_ASSERT(TELEBOT_DEFAULT_UPDATE_LIMIT >= 1 && TELEBOT_DEFAULT_UPDATE_LIMIT <= 100,
                "TELEBOT_DEFAULT_UPDATE_LIMIT must be within 1..100");
 
-#endif /* __TELEBOT_CONFIG_H__ */
+#endif /* __TELEBOT_LIMITS_H__ */

@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "telebot-arena.h"
-#include "telebot-config.h"
+#include "telebot-limits.h"
 
 #define ARENA_ALIGN (sizeof(max_align_t))
 #define ALIGN_UP(n) (((n) + ARENA_ALIGN - 1) & ~(ARENA_ALIGN - 1))

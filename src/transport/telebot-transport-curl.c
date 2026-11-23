@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
-#include "telebot-config.h"
+#include "telebot-limits.h"
 #include "telebot-transport.h"
 
 typedef struct curl_transport

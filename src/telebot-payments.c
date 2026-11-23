@@ -28,7 +28,7 @@ telebot_error_e telebot_send_invoice(telebot_handler_t handle, long long int cha
         telebot_message_t *message)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if (message == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -79,7 +79,7 @@ telebot_error_e telebot_create_invoice_link(telebot_handler_t handle,
         const telebot_invoice_params_t *invoice, char **invoice_link)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if (invoice_link == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -126,7 +126,7 @@ telebot_error_e telebot_answer_shipping_query(telebot_handler_t handle,
                                               const char *error_message)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_answer_shipping_query(handle->core_h, shipping_query_id, ok, shipping_options, error_message);
     int ret = telebot_core_get_response_code(response);
@@ -138,7 +138,7 @@ telebot_error_e telebot_answer_pre_checkout_query(telebot_handler_t handle,
                                                   const char *pre_checkout_query_id, bool ok, const char *error_message)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_answer_pre_checkout_query(handle->core_h, pre_checkout_query_id, ok, error_message);
     int ret = telebot_core_get_response_code(response);
@@ -149,7 +149,7 @@ telebot_error_e telebot_answer_pre_checkout_query(telebot_handler_t handle,
 telebot_error_e telebot_get_my_star_balance(telebot_handler_t handle, long long int *balance)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if (balance == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -195,7 +195,7 @@ telebot_error_e telebot_get_star_transactions(telebot_handler_t handle,
                                                int offset, int limit, telebot_star_transactions_t *transactions)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if (transactions == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 

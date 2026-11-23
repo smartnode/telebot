@@ -367,7 +367,7 @@ TEST_F(RawCall, SendsAnyMethodWithTextAndFileParameters)
         {"tag", "moderator", nullptr},
         {"photo", nullptr, &photo},
     };
-    Response r(telebot_core_call(core_, "setChatMemberTag", params, 3));
+    Response r(telebot_core_call_method(core_, "setChatMemberTag", params, 3));
     ASSERT_EQ(r.code(), TELEBOT_ERROR_NONE);
     EXPECT_EQ(fake_->last().method(), "setChatMemberTag");
     EXPECT_EQ(fake_->last().at("tag"), "moderator");
@@ -381,18 +381,28 @@ TEST_F(RawCall, MalformedParametersAreRejectedLocally)
     const telebot_param_t ambiguous[] = {{"x", "1", &f}};
     const telebot_param_t unnamed[] = {{nullptr, "1", nullptr}};
 
-    Response ok(telebot_core_call(core_, "getMe", nullptr, 0));
+    Response ok(telebot_core_call_method(core_, "getMe", nullptr, 0));
     EXPECT_EQ(ok.code(), TELEBOT_ERROR_NONE);
     size_t sent = fake_->requests().size();
-    Response a(telebot_core_call(core_, "x", ambiguous, 1));
-    Response b(telebot_core_call(core_, "x", unnamed, 1));
-    Response c(telebot_core_call(core_, "", both, 1));
-    Response d(telebot_core_call(core_, "x", nullptr, 2));
+    Response a(telebot_core_call_method(core_, "x", ambiguous, 1));
+    Response b(telebot_core_call_method(core_, "x", unnamed, 1));
+    Response c(telebot_core_call_method(core_, "", both, 1));
+    Response d(telebot_core_call_method(core_, "x", nullptr, 2));
     EXPECT_EQ(a.code(), TELEBOT_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(b.code(), TELEBOT_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(c.code(), TELEBOT_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(d.code(), TELEBOT_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(fake_->requests().size(), sent);
+}
+
+TEST_F(RawCall, DeprecatedNameStillSendsTheMethod)
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    Response r(telebot_core_call(core_, "getMe", nullptr, 0));
+#pragma GCC diagnostic pop
+    EXPECT_EQ(r.code(), TELEBOT_ERROR_NONE);
+    EXPECT_EQ(fake_->last().method(), "getMe");
 }
 
 } // namespace

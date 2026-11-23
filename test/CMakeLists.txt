@@ -39,3 +39,18 @@ GTEST_DISCOVER_TESTS(telebot_unit_tests)
 # Every function declared in a public header must exist in the library
 ADD_TEST(NAME api_symbols
     COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/api_symbols_test.sh $<TARGET_FILE:${PROJECT_NAME}> ${CMAKE_SOURCE_DIR}/include)
+
+# Every public header must compile on its own, from both C and C++
+FILE(GLOB TELEBOT_PUBLIC_HEADERS RELATIVE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/include/telebot*.h)
+SET(TELEBOT_HEADER_CHECKS)
+FOREACH(header ${TELEBOT_PUBLIC_HEADERS})
+    STRING(REPLACE ".h" "" stem ${header})
+    FOREACH(ext c cpp)
+        SET(check ${CMAKE_CURRENT_BINARY_DIR}/header_checks/${stem}.${ext})
+        FILE(WRITE ${check}.in "#include <${header}>\n")
+        CONFIGURE_FILE(${check}.in ${check} COPYONLY)
+        LIST(APPEND TELEBOT_HEADER_CHECKS ${check})
+    ENDFOREACH()
+ENDFOREACH()
+ADD_LIBRARY(telebot_header_checks OBJECT ${TELEBOT_HEADER_CHECKS})
+TARGET_INCLUDE_DIRECTORIES(telebot_header_checks PRIVATE ${CMAKE_SOURCE_DIR}/include)

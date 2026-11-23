@@ -300,4 +300,53 @@ TEST_F(RecentApi, ProfilePhotoIsSentAsInputProfilePhoto)
     EXPECT_EQ(bad.code(), TELEBOT_ERROR_INVALID_PARAMETER);
 }
 
+TEST_F(RecentApiHighLevel, CallMethodReturnsTheResultAsJson)
+{
+    fake_->reply(200, R"({"ok":true,"result":{"status":"member","user":{"id":42}}})");
+    const telebot_param_t params[] = {{"chat_id", "-100", nullptr}, {"user_id", "42", nullptr}};
+    char *result = nullptr;
+    ASSERT_EQ(telebot_call_method(handle_, "getChatMember", params, 2, &result), TELEBOT_ERROR_NONE);
+    ASSERT_NE(result, nullptr);
+    EXPECT_STREQ(result, R"({"status":"member","user":{"id":42}})");
+    free(result);
+    EXPECT_EQ(fake_->last().method(), "getChatMember");
+    EXPECT_EQ(fake_->last().at("user_id"), "42");
+}
+
+TEST_F(RecentApiHighLevel, CallMethodWithoutResultOnlyReportsSuccess)
+{
+    fake_->reply(200, R"({"ok":true,"result":true})");
+    EXPECT_EQ(telebot_call_method(handle_, "close", nullptr, 0, nullptr), TELEBOT_ERROR_NONE);
+}
+
+TEST_F(RecentApiHighLevel, CallMethodClearsResultOnFailure)
+{
+    fake_->reply(400, R"({"ok":false,"error_code":400,"description":"Bad Request"})");
+    char *result = reinterpret_cast<char *>(0x1);
+    EXPECT_EQ(telebot_call_method(handle_, "getChatMember", nullptr, 0, &result), TELEBOT_ERROR_OPERATION_FAILED);
+    EXPECT_EQ(result, nullptr);
+
+    const telebot_param_t unnamed[] = {{nullptr, "1", nullptr}};
+    size_t sent = fake_->requests().size();
+    EXPECT_EQ(telebot_call_method(handle_, "x", unnamed, 1, &result), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(fake_->requests().size(), sent);
+    EXPECT_EQ(telebot_call_method(nullptr, "getMe", nullptr, 0, &result), TELEBOT_ERROR_INVALID_PARAMETER);
+}
+
+TEST(HighLevelHandle, NullHandleIsAnInvalidParameter)
+{
+    telebot_user_t me = {};
+    long long int balance = 0;
+    char *id = nullptr;
+    EXPECT_EQ(telebot_get_me(nullptr, &me), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_set_proxy(nullptr, "socks5://127.0.0.1:1080", nullptr), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_close_forum_topic(nullptr, 1, 2), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_get_my_star_balance(nullptr, &balance), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_set_game_score(nullptr, 1, 2, false, false, 3, 4, nullptr, nullptr),
+              TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_answer_web_app_query(nullptr, "q", "{}", &id), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_set_passport_data_errors(nullptr, 1, "[]"), TELEBOT_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(telebot_destroy(nullptr), TELEBOT_ERROR_INVALID_PARAMETER);
+}
+
 } // namespace

@@ -21,6 +21,8 @@
 #define __TELEBOT_STICKERS_H__
 
 #include <stdbool.h>
+#include "telebot-common.h"
+#include "telebot-types.h"
 
 #ifdef __cplusplus
 extern "C" {

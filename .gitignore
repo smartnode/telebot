@@ -62,3 +62,6 @@ TODO.md
 
 # Doxygen output
 apidocs/
+
+# clangd index
+.cache/

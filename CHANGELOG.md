@@ -1,5 +1,33 @@
 # Changelog
 
+## 10.4.1 (2026-11-24)
+
+Source compatible with 10.4.0, except that a NULL handle now returns a different error code
+(see below and [MIGRATION.md](MIGRATION.md)).
+
+### API
+
+- `telebot_call_method()` calls any Bot API method by name from the simple API and returns the
+  reply's `result` as JSON text.
+- `telebot_core_call_method()` replaces `telebot_core_call()`, which still works but is deprecated
+  and produces a compiler warning. `TELEBOT_DEPRECATED()` marks such functions.
+- Functions of the simple API return `TELEBOT_ERROR_INVALID_PARAMETER` for a NULL handle, as the
+  core API does, instead of `TELEBOT_ERROR_NOT_SUPPORTED`.
+- `telebot_set_proxy()` and `telebot_stop_message_live_location()` (both layers) take their string
+  inputs as `const char *`.
+- `telebot_core_get_proxy()` reports `TELEBOT_ERROR_OUT_OF_MEMORY` when it cannot copy the address.
+
+### Headers
+
+- New `telebot-config.h` holds library-wide runtime settings; `telebot_set_json_allocator()`
+  moved there from `telebot-core.h`. `telebot.h` and `telebot-core.h` include it.
+- `telebot-core.h` no longer includes high-level headers: request parameters shared by both
+  layers (`telebot_send_options_t`, `telebot_input_file_t`, `telebot_input_media_t`,
+  `telebot_param_t`, `telebot_invoice_params_t`, `telebot_chat_permissions_t`,
+  `telebot_chat_administrator_rights_t`) moved to `telebot-common.h`, and `<pthread.h>` is gone.
+- Every public header compiles on its own, from C and C++; a build check enforces it.
+- API reference groups: Simple API, Core API, Common Definitions and Library Configuration.
+
 ## 10.4.0 (2026-11-21)
 
 Follows Telegram Bot API 10.4. This is a breaking release; see

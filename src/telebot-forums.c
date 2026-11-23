@@ -30,7 +30,7 @@ telebot_error_e telebot_create_forum_topic(telebot_handler_t handle, long long i
                                            telebot_forum_topic_t *topic)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if (topic == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -87,7 +87,7 @@ telebot_error_e telebot_edit_forum_topic(telebot_handler_t handle, long long int
                                          const char *name, const char *icon_custom_emoji_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_edit_forum_topic(handle->core_h, chat_id, message_thread_id, name, icon_custom_emoji_id);
     int ret = telebot_core_get_response_code(response);
@@ -98,7 +98,7 @@ telebot_error_e telebot_edit_forum_topic(telebot_handler_t handle, long long int
 telebot_error_e telebot_close_forum_topic(telebot_handler_t handle, long long int chat_id, int message_thread_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_close_forum_topic(handle->core_h, chat_id, message_thread_id);
     int ret = telebot_core_get_response_code(response);
@@ -109,7 +109,7 @@ telebot_error_e telebot_close_forum_topic(telebot_handler_t handle, long long in
 telebot_error_e telebot_reopen_forum_topic(telebot_handler_t handle, long long int chat_id, int message_thread_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_reopen_forum_topic(handle->core_h, chat_id, message_thread_id);
     int ret = telebot_core_get_response_code(response);
@@ -120,7 +120,7 @@ telebot_error_e telebot_reopen_forum_topic(telebot_handler_t handle, long long i
 telebot_error_e telebot_delete_forum_topic(telebot_handler_t handle, long long int chat_id, int message_thread_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_delete_forum_topic(handle->core_h, chat_id, message_thread_id);
     int ret = telebot_core_get_response_code(response);
@@ -131,7 +131,7 @@ telebot_error_e telebot_delete_forum_topic(telebot_handler_t handle, long long i
 telebot_error_e telebot_unpin_all_forum_topic_messages(telebot_handler_t handle, long long int chat_id, int message_thread_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_unpin_all_forum_topic_messages(handle->core_h, chat_id, message_thread_id);
     int ret = telebot_core_get_response_code(response);
@@ -142,7 +142,7 @@ telebot_error_e telebot_unpin_all_forum_topic_messages(telebot_handler_t handle,
 telebot_error_e telebot_get_forum_topic_icon_stickers(telebot_handler_t handle, telebot_sticker_t **stickers, int *count)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if ((stickers == NULL) || (count == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -197,7 +197,7 @@ finish:
 telebot_error_e telebot_edit_general_forum_topic(telebot_handler_t handle, long long int chat_id, const char *name)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_edit_general_forum_topic(handle->core_h, chat_id, name);
     int ret = telebot_core_get_response_code(response);
@@ -208,7 +208,7 @@ telebot_error_e telebot_edit_general_forum_topic(telebot_handler_t handle, long 
 telebot_error_e telebot_close_general_forum_topic(telebot_handler_t handle, long long int chat_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_close_general_forum_topic(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);
@@ -219,7 +219,7 @@ telebot_error_e telebot_close_general_forum_topic(telebot_handler_t handle, long
 telebot_error_e telebot_reopen_general_forum_topic(telebot_handler_t handle, long long int chat_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_reopen_general_forum_topic(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);
@@ -230,7 +230,7 @@ telebot_error_e telebot_reopen_general_forum_topic(telebot_handler_t handle, lon
 telebot_error_e telebot_hide_general_forum_topic(telebot_handler_t handle, long long int chat_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_hide_general_forum_topic(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);
@@ -241,7 +241,7 @@ telebot_error_e telebot_hide_general_forum_topic(telebot_handler_t handle, long 
 telebot_error_e telebot_unhide_general_forum_topic(telebot_handler_t handle, long long int chat_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_unhide_general_forum_topic(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);
@@ -252,7 +252,7 @@ telebot_error_e telebot_unhide_general_forum_topic(telebot_handler_t handle, lon
 telebot_error_e telebot_unpin_all_general_forum_topic_messages(telebot_handler_t handle, long long int chat_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_unpin_all_general_forum_topic_messages(handle->core_h, chat_id);
     int ret = telebot_core_get_response_code(response);

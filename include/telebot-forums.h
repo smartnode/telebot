@@ -20,6 +20,7 @@
 #define __TELEBOT_FORUMS_H__
 
 #include <stdbool.h>
+#include "telebot-common.h"
 #include "telebot-types.h"
 
 #ifdef __cplusplus

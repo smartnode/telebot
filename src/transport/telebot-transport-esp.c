@@ -33,7 +33,7 @@
 #include "esp_http_client.h"
 #include "esp_random.h"
 
-#include "telebot-config.h"
+#include "telebot-limits.h"
 #include "telebot-multipart.h"
 #include "telebot-transport.h"
 

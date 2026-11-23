@@ -21,4 +21,8 @@ needs updating; the patterns are:
 Unrecognised updates now arrive as `TELEBOT_UPDATE_TYPE_UNKNOWN`, and an empty long poll returns
 `TELEBOT_ERROR_NONE` with `count == 0`.
 
-For Bot API methods the library does not wrap, use `telebot_core_call()` with name/value parameters.
+For Bot API methods the library does not wrap, use `telebot_call_method()` (or `telebot_core_call_method()`)
+with name/value parameters. `telebot_core_call()` from 10.4.0 still works but is deprecated.
+
+Functions of the simple API return `TELEBOT_ERROR_INVALID_PARAMETER` for a NULL `telebot_handler_t`, the same
+as the core API. Earlier 10.x releases returned `TELEBOT_ERROR_NOT_SUPPORTED`.

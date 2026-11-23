@@ -4,6 +4,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
 SET(TELEBOT_COMMON_SRCS
     src/telebot-parser.c
     src/telebot-core.c
+    src/telebot-config.c
     src/telebot.c
     src/telebot-inline.c
     src/telebot-forums.c
@@ -52,7 +53,7 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "${PREFIX}/bin")
 SET(INCLUDEDIR "${PREFIX}/include/${PROJECT_NAME}")
 SET(LIBDIR "${PREFIX}/lib")
-SET(VERSION 10.4)
+SET(VERSION 10.4.1)
 
 SET(CMAKE_MACOSX_RPATH 1)
 
@@ -126,6 +127,7 @@ INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib COMPONENT RuntimeLibraries)
 INSTALL(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-common.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-config.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-methods.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-types.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/telebot-core.h

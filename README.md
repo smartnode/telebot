@@ -65,13 +65,20 @@ telebot_send_message(bot, chat_id, "Temperature: 21.5 °C", NULL, false, NULL);
 With `can_stop` the user sees a stop button; pressing it delivers a
 `TELEBOT_UPDATE_TYPE_STOPPED_MESSAGE_GENERATION` update carrying the `draft_id`.
 
-**Methods without a wrapper.** `telebot_core_call()` sends any Bot API method with name/value
-parameters, so rarely used methods cost no flash:
+**Methods without a wrapper.** `telebot_call_method()` sends any Bot API method with name/value
+parameters and returns the reply's `result` as JSON text, so rarely used methods cost no flash:
 
 ```c
 telebot_param_t params[] = {{"chat_id", "-1001234567890", NULL}, {"user_id", "42", NULL}};
-telebot_core_response_t r = telebot_core_call(core_h, "getChatMember", params, 2);
+char *member = NULL;
+if (telebot_call_method(bot, "getChatMember", params, 2, &member) == TELEBOT_ERROR_NONE)
+{
+    puts(member);   /* {"status":"member","user":{...}} */
+    free(member);
+}
 ```
+
+With the core API, `telebot_core_call_method()` does the same and returns the whole reply.
 
 ## ESP32 (ESP-IDF)
 

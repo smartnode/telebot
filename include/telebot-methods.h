@@ -38,6 +38,9 @@ extern "C" {
  */
 
 /**
+ * @defgroup TELEBOT_API Simple Telegram Bot API
+ * @brief Simplified APIs to create telegram bot; results are parsed into structs.
+ *
  * @addtogroup TELEBOT_API
  * @{
  */
@@ -77,7 +80,7 @@ telebot_error_e telebot_destroy(telebot_handler_t handle);
  * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_set_proxy(telebot_handler_t handle, char *addr, char *auth);
+telebot_error_e telebot_set_proxy(telebot_handler_t handle, const char *addr, const char *auth);
 
 /**
  * @brief Get proxy address currently used.
@@ -541,7 +544,7 @@ telebot_error_e telebot_edit_message_live_location(telebot_handler_t handle,
  * error value.
  */
 telebot_error_e telebot_stop_message_live_location(telebot_handler_t handle,
-    long long int chat_id, int message_id, char *inline_message_id,
+    long long int chat_id, int message_id, const char *inline_message_id,
     const char *reply_markup);
 
 /**
@@ -1760,6 +1763,32 @@ telebot_error_e telebot_remove_chat_verification(telebot_handler_t handle, long 
  */
 telebot_error_e telebot_answer_widget_query(telebot_handler_t handle, const char *widget_query_id,
         const char *data);
+
+/**
+ * @brief Calls any Bot API method by name.
+ *
+ * Use it for methods this library does not wrap. Nothing is validated except
+ * the parameter list itself. On success @p result receives the reply's
+ * "result" field as JSON text, e.g. "true" or "{\"id\":42,...}".
+ * @code
+ * telebot_param_t params[] = {{"chat_id", "-1001234567890", NULL}, {"user_id", "42", NULL}};
+ * char *member = NULL;
+ * if (telebot_call_method(handle, "getChatMember", params, 2, &member) == TELEBOT_ERROR_NONE)
+ *     free(member);
+ * @endcode
+ *
+ * @param[in] handle The telebot handler created with #telebot_create().
+ * @param[in] method Bot API method name, e.g. "getChatMember".
+ * @param[in] params Parameters; each sets exactly one of value or file. May be NULL when @p count is 0.
+ * @param[in] count Number of entries in @p params.
+ * @param[out] result Optional; receives the "result" field as JSON text, which the caller releases
+ *     with free(). Set to NULL on failure. Pass NULL to check only for success.
+ * @return #TELEBOT_ERROR_NONE on success, otherwise a negative #telebot_error_e value.
+ *     #TELEBOT_ERROR_INVALID_PARAMETER is returned for a malformed parameter list without contacting
+ *     Telegram.
+ */
+telebot_error_e telebot_call_method(telebot_handler_t handle, const char *method,
+        const telebot_param_t params[], size_t count, char **result);
 
 /**
  * @} // end of APIs

@@ -27,7 +27,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "telebot-config.h"
+#include "telebot-limits.h"
 #include "telebot-common.h"
 #include "telebot-types.h"
 

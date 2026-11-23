@@ -26,7 +26,7 @@ telebot_error_e telebot_set_passport_data_errors(telebot_handler_t handle,
                                                  long long int user_id, const char *errors)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_set_passport_data_errors(handle->core_h, user_id, errors);
     int ret = telebot_core_get_response_code(response);

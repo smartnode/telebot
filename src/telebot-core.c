@@ -23,7 +23,7 @@
 #include <telebot-common.h>
 #include <telebot-core.h>
 #include <telebot-private.h>
-#include "telebot-config.h"
+#include "telebot-limits.h"
 #include "telebot-transport.h"
 #include "telebot-request.h"
 #include <unistd.h>
@@ -67,13 +67,6 @@ void telebot_core_put_response(telebot_core_response_t response)
         TELEBOT_SAFE_FZCNT(response->data, response->size);
         TELEBOT_SAFE_FREE(response);
     }
-}
-
-void telebot_set_json_allocator(void *(*malloc_fn)(size_t size), void (*free_fn)(void *ptr))
-{
-    /* NULL functions restore the C library defaults */
-    cJSON_Hooks hooks = {.malloc_fn = malloc_fn, .free_fn = free_fn};
-    cJSON_InitHooks(&hooks);
 }
 
 telebot_error_e
@@ -186,12 +179,12 @@ telebot_core_get_proxy(telebot_core_handler_t core_h, char **addr)
         return TELEBOT_ERROR_INVALID_PARAMETER;
     }
 
-    if (core_h->proxy_addr)
-        *addr = strdup(core_h->proxy_addr);
-    else
-        *addr = NULL;
+    *addr = NULL;
+    if (core_h->proxy_addr == NULL)
+        return TELEBOT_ERROR_NONE;
 
-    return TELEBOT_ERROR_NONE;
+    *addr = strdup(core_h->proxy_addr);
+    return (*addr != NULL) ? TELEBOT_ERROR_NONE : TELEBOT_ERROR_OUT_OF_MEMORY;
 }
 
 void telebot_core_set_transport(telebot_core_handler_t core_h, telebot_transport_t *transport)
@@ -277,7 +270,8 @@ telebot_core_perform(telebot_core_handler_t core_h, const char *method, const te
 }
 
 telebot_core_response_t
-telebot_core_call(telebot_core_handler_t core_h, const char *method, const telebot_param_t params[], size_t count)
+telebot_core_call_method(telebot_core_handler_t core_h, const char *method, const telebot_param_t params[],
+                         size_t count)
 {
     if ((method == NULL) || (method[0] == '\0') || ((count > 0) && (params == NULL)))
         return telebot_core_error_response(TELEBOT_ERROR_INVALID_PARAMETER);
@@ -298,6 +292,12 @@ telebot_core_call(telebot_core_handler_t core_h, const char *method, const teleb
             telebot_request_str(&req, p->name, p->value);
     }
     return telebot_core_request(core_h, method, &req);
+}
+
+telebot_core_response_t
+telebot_core_call(telebot_core_handler_t core_h, const char *method, const telebot_param_t params[], size_t count)
+{
+    return telebot_core_call_method(core_h, method, params, count);
 }
 
 telebot_core_response_t
@@ -408,7 +408,7 @@ telebot_core_edit_message_live_location(telebot_core_handler_t core_h, long long
 
 telebot_core_response_t
 telebot_core_stop_message_live_location(telebot_core_handler_t core_h, long long int chat_id, int message_id,
-                                        char *inline_message_id, const char *reply_markup)
+                                        const char *inline_message_id, const char *reply_markup)
 {
     telebot_request_t req;
     telebot_request_init(&req);

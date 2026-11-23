@@ -20,6 +20,7 @@
 #define __TELEBOT_PAYMENTS_H__
 
 #include <stdbool.h>
+#include "telebot-common.h"
 #include "telebot-types.h"
 
 #ifdef __cplusplus
@@ -38,38 +39,6 @@ extern "C" {
  * @addtogroup TELEBOT_API
  * @{
  */
-
-/**
- * @brief Description of an invoice, shared by #telebot_send_invoice() and
- * #telebot_create_invoice_link().
- *
- * Zero-initialise it and set what you need; title, description, payload,
- * currency and prices are required. For payments in Telegram Stars use
- * currency "XTR" and leave provider_token NULL.
- */
-typedef struct telebot_invoice_params {
-    const char *title;                  /**< Product name, 1-32 characters */
-    const char *description;            /**< Product description, 1-255 characters */
-    const char *payload;                /**< Bot-defined payload, 1-128 bytes, not shown to the user */
-    const char *provider_token;         /**< Payment provider token; NULL for Telegram Stars */
-    const char *currency;               /**< Three-letter ISO 4217 code, or "XTR" for Telegram Stars */
-    const char *prices;                 /**< JSON array of LabeledPrice, e.g. [{"label":"Cup","amount":50}] */
-    int max_tip_amount;                 /**< Maximum tip in the smallest currency units; 0 for no tips */
-    const char *suggested_tip_amounts;  /**< JSON array of up to 4 suggested tips, or NULL */
-    const char *start_parameter;        /**< sendInvoice only: deep-linking parameter, or NULL */
-    const char *provider_data;          /**< JSON data for the payment provider, or NULL */
-    const char *photo_url;              /**< URL of a product photo, or NULL */
-    int photo_size;                     /**< Photo size in bytes, or 0 */
-    int photo_width;                    /**< Photo width, or 0 */
-    int photo_height;                   /**< Photo height, or 0 */
-    bool need_name;                     /**< Require the user's full name */
-    bool need_phone_number;             /**< Require the user's phone number */
-    bool need_email;                    /**< Require the user's email address */
-    bool need_shipping_address;         /**< Require the user's shipping address */
-    bool send_phone_number_to_provider; /**< Pass the phone number to the provider */
-    bool send_email_to_provider;        /**< Pass the email address to the provider */
-    bool is_flexible;                   /**< The final price depends on the shipping method */
-} telebot_invoice_params_t;
 
 /**
  * @brief Sends an invoice.

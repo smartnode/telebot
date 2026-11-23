@@ -28,6 +28,7 @@
  */
 
 #include "telebot-common.h"
+#include "telebot-config.h"
 #include "telebot-types.h"
 #include "telebot-methods.h"
 #include "telebot-stickers.h"

@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "telebot-json.h"
-#include "telebot-config.h"
+#include "telebot-limits.h"
 #include "telebot-fields.h"
 #include <telebot-methods.h>
 #include <telebot-parser.h>

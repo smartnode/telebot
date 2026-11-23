@@ -26,7 +26,7 @@ extern "C" {
 #include <telebot-parser.h>
 #include "telebot-json.h"
 #include "telebot-transport.h"
-#include "telebot-config.h"
+#include "telebot-limits.h"
 #include "telebot-arena.h"
 }
 

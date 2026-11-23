@@ -9,7 +9,7 @@ telebot_error_e telebot_answer_inline_query(telebot_handler_t handle,
                                             bool is_personal, const char *next_offset, const char *button)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     telebot_core_response_t response = telebot_core_answer_inline_query(handle->core_h, inline_query_id,
                                                                          results, cache_time, is_personal,
@@ -25,7 +25,7 @@ telebot_error_e telebot_save_prepared_inline_message(telebot_handler_t handle,
                                                      telebot_prepared_inline_message_t *prepared_message)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if (prepared_message == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -83,7 +83,7 @@ telebot_error_e telebot_put_prepared_inline_message(telebot_prepared_inline_mess
 telebot_error_e telebot_answer_web_app_query(telebot_handler_t handle, const char *web_app_query_id, const char *result, char **inline_message_id)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_answer_web_app_query(handle->core_h, web_app_query_id, result);

@@ -1,4 +1,4 @@
-version: "10.4.0"
+version: "10.4.1"
 description: "Telegram Bot API client in C, sized for low-memory devices"
 url: "https://github.com/smartnode/telebot"
 license: "Apache-2.0"

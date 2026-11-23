@@ -26,7 +26,7 @@ telebot_error_e telebot_send_game(telebot_handler_t handle, long long int chat_i
         const char *game_short_name, const telebot_send_options_t *options, telebot_message_t *message)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if (message == NULL)
         return TELEBOT_ERROR_INVALID_PARAMETER;
 
@@ -79,7 +79,7 @@ telebot_error_e telebot_set_game_score(telebot_handler_t handle,
                                        telebot_message_t *message)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
 
     struct cJSON *obj = NULL;
     telebot_core_response_t response = telebot_core_set_game_score(handle->core_h, user_id, score, force,
@@ -134,7 +134,7 @@ telebot_error_e telebot_get_game_high_scores(telebot_handler_t handle,
                                              telebot_game_high_score_t **high_scores, int *count)
 {
     if (handle == NULL)
-        return TELEBOT_ERROR_NOT_SUPPORTED;
+        return TELEBOT_ERROR_INVALID_PARAMETER;
     if ((high_scores == NULL) || (count == NULL))
         return TELEBOT_ERROR_INVALID_PARAMETER;
 

@@ -21,10 +21,8 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <pthread.h>
 #include "telebot-common.h"
-#include "telebot-types.h"
-#include "telebot-payments.h"
+#include "telebot-config.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -108,23 +106,6 @@ const char *telebot_core_get_response_data(telebot_core_response_t response);
  * @param[in] response Response to release.
  */
 void telebot_core_put_response(telebot_core_response_t response);
-
-/**
- * @brief Routes the memory used for JSON parsing through custom allocators.
- *
- * Parsing a reply builds a temporary JSON tree whose size depends on the
- * reply. On boards with external RAM this keeps it out of internal memory:
- * @code
- * static void *psram_malloc(size_t size) { return heap_caps_malloc(size, MALLOC_CAP_SPIRAM); }
- * telebot_set_json_allocator(psram_malloc, heap_caps_free);
- * @endcode
- * The setting is global. Call it before creating any handler; pass NULL for
- * both to restore malloc() and free().
- *
- * @param[in] malloc_fn Allocation function, or NULL for malloc().
- * @param[in] free_fn Matching release function, or NULL for free().
- */
-void telebot_set_json_allocator(void *(*malloc_fn)(size_t size), void (*free_fn)(void *ptr));
 
 /**
  * @brief Start function to use telebot core APIs.
@@ -565,7 +546,7 @@ telebot_core_response_t telebot_core_edit_message_live_location(telebot_core_han
  * before getting data with #telebot_core_get_response_data().
  */
 telebot_core_response_t telebot_core_stop_message_live_location(telebot_core_handler_t core_h,
-        long long int chat_id, int message_id, char *inline_message_id,
+        long long int chat_id, int message_id, const char *inline_message_id,
         const char *reply_markup);
 
 /**
@@ -2055,7 +2036,7 @@ telebot_core_response_t telebot_core_get_sticker_set(telebot_core_handler_t core
  *     {"user_id", "123456789", NULL},
  *     {"tag", "moderator", NULL},
  * };
- * telebot_core_response_t r = telebot_core_call(core_h, "setChatMemberTag", params, 3);
+ * telebot_core_response_t r = telebot_core_call_method(core_h, "setChatMemberTag", params, 3);
  * @endcode
  *
  * @param[in] core_h The telebot core handler created with #telebot_core_create().
@@ -2066,6 +2047,21 @@ telebot_core_response_t telebot_core_get_sticker_set(telebot_core_handler_t core
  *     then release it with #telebot_core_put_response(). #TELEBOT_ERROR_INVALID_PARAMETER is returned for
  *     a malformed parameter list without contacting Telegram.
  */
+telebot_core_response_t telebot_core_call_method(telebot_core_handler_t core_h, const char *method,
+        const telebot_param_t params[], size_t count);
+
+/**
+ * @brief Calls any Bot API method by name.
+ * @deprecated Use #telebot_core_call_method(), which takes the same arguments.
+ *     This name will be removed in the next major version.
+ *
+ * @param[in] core_h The telebot core handler created with #telebot_core_create().
+ * @param[in] method Bot API method name.
+ * @param[in] params Parameters; see #telebot_core_call_method().
+ * @param[in] count Number of entries in @p params.
+ * @return The same response as #telebot_core_call_method().
+ */
+TELEBOT_DEPRECATED("use telebot_core_call_method()")
 telebot_core_response_t telebot_core_call(telebot_core_handler_t core_h, const char *method,
         const telebot_param_t params[], size_t count);
 
